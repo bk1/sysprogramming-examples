@@ -18,7 +18,7 @@
 #include <termios.h>
 #include <unistd.h>
 
-int main() {
+int main(int argc, char *argv[]) {
   int tty_fd = open("/dev/tty", O_RDONLY);
   printf("regular reading\n");
   while (1) {

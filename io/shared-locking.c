@@ -6,7 +6,7 @@
  */
 
 
- #include <sys/file.h>
+#include <sys/file.h>
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
@@ -27,7 +27,7 @@ void handle_error(int return_code) {
   }
 }
 
-int main() {
+int main(int argc, char *argv[]) {
   const char *FILENAME = "/tmp/uvw987654";
   FILE *file = fopen(FILENAME, "a");
   int return_code;

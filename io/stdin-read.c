@@ -6,7 +6,7 @@
  */
 
 
- #include <errno.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,7 +15,7 @@
 #include <termios.h>
 #include <unistd.h>
 
-int main() {
+int main(int argc, char *argv[]) {
   printf("regular reading\n");
   while (1) {
     char c;

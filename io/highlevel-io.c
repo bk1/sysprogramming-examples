@@ -6,11 +6,11 @@
  */
 
 
- #include <stdio.h>
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
-int main() {
+int main(int argc, char *argv[]) {
   int k,m,n;
   FILE *out;
   FILE *in;

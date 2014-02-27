@@ -6,7 +6,7 @@
  */
 
 
- #include <stdio.h>
+#include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -14,7 +14,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-int main() {
+int main(int argc, char *argv[]) {
   struct stat stat_buf;
   int r;
   r = fstat(STDIN_FILENO, &stat_buf);

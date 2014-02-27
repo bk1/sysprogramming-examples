@@ -6,7 +6,7 @@
  */
 
 
- #include <stdio.h>
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -14,7 +14,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-int main() {
+int main(int argc, char *argv[]) {
   int k,m,n;
   int fdout;
   int fdin;

@@ -6,7 +6,7 @@
  */
 
 
- #include <errno.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,7 +31,7 @@ void *thread_run(void *ptr) {
   close(pipes[1]);
 }
 
-int main() {
+int main(int argc, char *argv[]) {
   char buff[1024];
   int ret_code;
   pid_t pid;

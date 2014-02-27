@@ -6,13 +6,13 @@
  */
 
 
- #include <stdio.h>
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <dirent.h>
 
-int main() {
+int main(int argc, char *argv[]) {
   int r;
   int fdin;
   const char *DIRNAME = "/tmp/test-dir-9876";
