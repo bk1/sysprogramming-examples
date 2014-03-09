@@ -28,6 +28,5 @@ io/abc-lowlevel
 processes/extract
 processes/fork-write-twice
 processes/transmit-via-pipe
-scripts/create-make
 threads/thread
 threads/threadf
