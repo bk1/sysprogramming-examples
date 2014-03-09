@@ -71,4 +71,5 @@ int main(int argc, char *argv[]) {
     exit(2);
   }
   printf("parent done\n");
+  exit(0);
 }

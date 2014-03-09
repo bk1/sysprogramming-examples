@@ -59,4 +59,5 @@ int main(int argc, char *argv[]) {
   }
   close(fdreadwrite);
   printf("\n");
+  exit(0);
 }

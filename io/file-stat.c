@@ -37,6 +37,7 @@ int main(int argc, char *argv[]) {
   printf("st_atime=%d\n", stat_buf.st_atime);
   printf("st_mtime=%d\n", stat_buf.st_mtime);
   printf("st_ctime=%d\n", stat_buf.st_ctime);
+  exit(0);
 }
 
 

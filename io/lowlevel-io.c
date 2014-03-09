@@ -33,4 +33,5 @@ int main(int argc, char *argv[]) {
   k = read(fdin, (void *) buffer, m);
   close(fdin);
   printf("%d byte read:\n%s\n", k, buffer);
+  exit(0);
 }

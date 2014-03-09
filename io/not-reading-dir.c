@@ -56,4 +56,5 @@ int main(int argc, char *argv[]) {
   }
   buffer[999] = (char) 0;
   printf("%d bytes read:\n%s\n", k, buffer);
+  exit(0);
 }

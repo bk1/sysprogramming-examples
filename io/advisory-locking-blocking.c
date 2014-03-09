@@ -51,4 +51,5 @@ int main(int argc, char *argv[]) {
   lockf(fd, F_ULOCK, 1);
   printf("pid=%d unlocked position %d\n", pid, pos);
   close(fd);
+  exit(0);
 }

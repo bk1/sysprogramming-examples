@@ -5,9 +5,6 @@
  * License: GPL v2 (See https://de.wikipedia.org/wiki/GNU_General_Public_License )
  */
 
-
- /* www.brodowsky.com/tty-read.c */
-
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
