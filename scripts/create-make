@@ -60,7 +60,7 @@ sub doexec ($@) {
     if ($sname =~ m/thread/) {
        $libs .=" -pthread";
     }
-    $targets .= "$tname: $sname\n\tgcc $sname $libs -o $tname\n\n";
+    $targets .= "$tname: $sname\n\tgcc -Wall $sname $libs -o $tname\n\n";
     chdir $File::Find::dir;
     return !$?;
 }
