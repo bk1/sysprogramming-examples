@@ -1,0 +1,66 @@
+#!/usr/bin/perl -w
+
+use strict;
+use File::Find();
+
+# Set the variable $File::Find::dont_use_nlink if you're using AFS,
+# since AFS cheats.
+
+# for the convenience of &wanted calls, including -eval statements:
+use vars qw/*name *dir *prune/;
+*name   = *File::Find::name;
+*dir    = *File::Find::dir;
+*prune  = *File::Find::prune;
+
+my $all = "all:";
+
+my $targets = "";
+
+sub wanted;
+sub doexec ($@);
+
+
+use Cwd ();
+my $cwd = Cwd::cwd();
+
+
+# Traverse desired filesystems
+File::Find::find({wanted => \&wanted}, '.');
+
+print "# automatically generated makefile by $0\n\n";
+print "\n$all\n";
+print "\n$targets\n";
+
+exit 0;
+
+
+sub wanted {
+    /^.*\.c\z/s &&
+    doexec(0);
+}
+
+
+sub doexec ($@) {
+    my $ok = shift;
+    if ($ok) {
+        my $old = select(STDOUT);
+        $| = 1;
+        print "name=$name\n";
+        select($old);
+        return 0 unless <STDIN> =~ /^y/;
+    }
+    chdir $cwd; #sigh
+    # system "ls -l $name";
+    my $sname = $name;
+    $sname =~ s/^\.\///;
+    my $tname = $sname;
+    $tname =~ s/\.c$//;
+    $all .= " $tname";
+    my $libs = "";
+    if ($sname =~ m/thread/) {
+       $libs .=" -pthread";
+    }
+    $targets .= "$tname: $sname\n\tgcc $sname $libs -o $tname\n\n";
+    chdir $File::Find::dir;
+    return !$?;
+}
