@@ -16,8 +16,7 @@
 #include <errno.h>
 
 int main(int argc, char *argv[]) {
-  int k,m,n,r;
-  int fdout;
+  int k,r;
   int fdin;
   const char *DIRNAME = "/tmp/test-dir-9876";
   char *buffer = (char *) malloc(1000);

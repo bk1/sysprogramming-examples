@@ -24,19 +24,19 @@ int main(int argc, char *argv[]) {
     printf("errno=%d\nmessage=%s\n", myerrno, error_str);
     exit(1);
   }
-  printf("st_dev=%d\n", stat_buf.st_dev);
-  printf("st_ino=%d\n", stat_buf.st_ino);
+  printf("st_dev=%ld\n", (long) stat_buf.st_dev);
+  printf("st_ino=%ld\n", (long) stat_buf.st_ino);
   printf("st_mode=%o\n", stat_buf.st_mode);
-  printf("st_nlink=%d\n", stat_buf.st_nlink);
-  printf("st_uid=%d\n", stat_buf.st_uid);
-  printf("st_gid=%d\n", stat_buf.st_gid);
-  printf("st_rdev=%d\n", stat_buf.st_rdev);
-  printf("st_size=%d\n", stat_buf.st_size);
-  printf("st_blksize=%d\n", stat_buf.st_blksize);
-  printf("st_blocks=%d\n", stat_buf.st_blocks);
-  printf("st_atime=%d\n", stat_buf.st_atime);
-  printf("st_mtime=%d\n", stat_buf.st_mtime);
-  printf("st_ctime=%d\n", stat_buf.st_ctime);
+  printf("st_nlink=%ld\n", (long) stat_buf.st_nlink);
+  printf("st_uid=%ld\n", (long) stat_buf.st_uid);
+  printf("st_gid=%ld\n", (long) stat_buf.st_gid);
+  printf("st_rdev=%ld\n", (long) stat_buf.st_rdev);
+  printf("st_size=%ld\n", (long) stat_buf.st_size);
+  printf("st_blksize=%ld\n", (long) stat_buf.st_blksize);
+  printf("st_blocks=%ld\n", (long) stat_buf.st_blocks);
+  printf("st_atime=%ld\n", (long) stat_buf.st_atime);
+  printf("st_mtime=%ld\n", (long) stat_buf.st_mtime);
+  printf("st_ctime=%ld\n", (long) stat_buf.st_ctime);
   exit(0);
 }
 

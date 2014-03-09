@@ -31,7 +31,6 @@ int main(int argc, char *argv[]) {
   const char *FILENAME = "/tmp/abc987654";
   FILE *file = fopen(FILENAME, "a");
   int return_code;
-  int myerrno;
   if (file == NULL) {
     handle_error(-1);
   }

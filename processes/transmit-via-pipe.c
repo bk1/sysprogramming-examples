@@ -61,4 +61,5 @@ int main(int argc, char *argv[]) {
   printf("sleeping\n");
   sleep(20);
   printf("done\n");
+  exit(0);
 }

@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
 
   /* go linewise through file from stdin */
   while (TRUE) {
-    char c = fgetc(keyboard);
+    fgetc(keyboard);
     char *line = fgets(buff, SIZE, stdin);
     if (line == NULL) {
       break;

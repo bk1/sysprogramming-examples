@@ -46,7 +46,8 @@ int main(int argc, char *argv[]) {
   sscanf(argv[2], "%ld", &y);
   printf("y=%ld\n", y);
   len = y - x;
-  
+  printf("len=%ld\n", len);
+
   int fd = mylock(FILENAME, x, y);
   sleep(10);
   close(fd);

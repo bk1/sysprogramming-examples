@@ -16,12 +16,12 @@
 #include <errno.h>
 
 int main(int argc, char *argv[]) {
-  int k,m,n;
+  int n;
   int fdout;
-  int fdin;
+
   const char *FILENAME = "/tmpx/out-highlevel.txt";
   const char *CONTENT = "Dies ist ein Beispieltext 2";
-  char *buffer;
+
   n = strlen(CONTENT) + 1; // include '\000'
   fdout = open(FILENAME, O_WRONLY | O_CREAT);
   printf("fdout=%d\n", fdout);
@@ -32,5 +32,7 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
   /* ... */
+  write(fdout, CONTENT, n);
+  close(fdout);
   exit(0);
 }

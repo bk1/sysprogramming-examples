@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 int main(int argc, char *argv[]) {
   int fork_result;
@@ -31,4 +32,5 @@ int main(int argc, char *argv[]) {
     close(pipes[0]);
     printf("found message=\"%s\"\n", buff);
   }
+  exit(0);
 }

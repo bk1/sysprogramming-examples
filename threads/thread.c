@@ -29,6 +29,7 @@ void *thread_run(void *ptr) {
   }
   printf("%d chars written\n", ret_code);
   close(pipes[1]);
+  return (void *) NULL;
 }
 
 int main(int argc, char *argv[]) {
@@ -62,4 +63,5 @@ int main(int argc, char *argv[]) {
   printf("found message=\"%s\"\n", buff);
   pthread_join( thread1, NULL);
   printf("done\n");
+  exit(0);
 }

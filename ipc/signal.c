@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 void my_handler(int signo) {
   if (signo == SIGTERM) {

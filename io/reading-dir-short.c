@@ -11,10 +11,10 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <dirent.h>
+#include <sys/stat.h>
 
 int main(int argc, char *argv[]) {
   int r;
-  int fdin;
   const char *DIRNAME = "/tmp/test-dir-9876";
   struct dirent *entry;
   r = mkdir(DIRNAME, 0777);
@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
         break;
       }
     }
-    printf("inode=%12d offset=%12d reclen=%6d type=%4d name=%s\n", entry->d_ino, entry->d_off, entry->d_reclen, entry->d_type, entry->d_name);
+    printf("inode=%12ld offset=%12ld reclen=%6ld type=%4ld name=%s\n", (long) entry->d_ino, (long) entry->d_off, (long) entry->d_reclen, (long) entry->d_type, entry->d_name);
   }
   r = closedir(dir);
   printf("r=%d\n", r);
@@ -55,4 +55,5 @@ int main(int argc, char *argv[]) {
     printf("errno=%d\nmessage=%s\n", myerrno, error_str);
     exit(1);
   }
+  exit(0);
 }

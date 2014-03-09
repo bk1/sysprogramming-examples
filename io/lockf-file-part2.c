@@ -58,7 +58,7 @@ int main ( int argc, char *argv[] ) {
   sscanf(argv[2], "%d", &from);
   sscanf(argv[3], "%d", &to);
 
-  printf("Locking from Byte: %d\n", from, sleepTime);
+  printf("Locking from Byte: %d (sleeptime=%d)\n", from, sleepTime);
   printf("Locking to Byte: %d\n", to);
   return open_lock_sleep_close(argv[1], from, to, sleepTime);
   exit(0);

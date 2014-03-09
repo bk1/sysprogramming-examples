@@ -85,4 +85,5 @@ int main(int argc, char *argv[]) {
     }
   }
   close(tty_fd);
+  exit(0);
 }

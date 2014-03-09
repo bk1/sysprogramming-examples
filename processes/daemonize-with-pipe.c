@@ -12,7 +12,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
-
+#include <sys/wait.h>
 
 /* helper function for dealing with errors */
 void handle_error(int return_code, char *msg) {

@@ -31,7 +31,6 @@ int main(int argc, char *argv[]) {
   const char *FILENAME = "/tmp/uvw987654";
   FILE *file = fopen(FILENAME, "a");
   int return_code;
-  int myerrno;
   if (file == NULL) {
     handle_error(-1);
   }
@@ -58,4 +57,5 @@ int main(int argc, char *argv[]) {
   handle_error(return_code);
   printf("unlocked file pid=%d\n", pid);
   close(fd);
+  exit(0);
 }
