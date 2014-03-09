@@ -14,6 +14,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <signal.h>
+#include <time.h>
 
 #define FALSE 0
 #define TRUE  1
@@ -118,12 +119,16 @@ int main(int argc, char *argv[]) {
       msg.data.c = 'C';
       msg.data.x = i;
       msg.data.y = i*i;
-      msg.type = 10;
+      msg.type = i + 101;
       retcode = msgsnd(id, &msg, SIZE, 0);
       handle_error(retcode, "msgsnd failed");
-      sleep(1);
+      struct timespec duration;
+      duration.tv_sec = (time_t) 0;
+      duration.tv_nsec = 100000000L;
+      nanosleep(&duration, NULL);
     }
     msg.data.c = 'Q';
+    msg.type   = 100;
     msgsnd(id, &msg, SIZE, 0);
     printf("terminating child\n");
     exit(0);
@@ -142,8 +147,8 @@ int main(int argc, char *argv[]) {
 
     //show_msg_ctl(id, "child");
 
-    while (TRUE) {
-      retcode = msgrcv(id, &msg, SIZE, 10, 0);
+    for (i = 200; i >= 100; i--) {
+      retcode = msgrcv(id, &msg, SIZE, i, 0);
       handle_error(retcode, "parent msgrcv failed");
       char c = msg.data.c;
       if (c == 'Q') {

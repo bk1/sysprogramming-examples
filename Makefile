@@ -1,7 +1,7 @@
 # automatically generated makefile by scripts/create-make
 
 
-all: processes/fork-write-twice processes/daemonize processes/fork-wait processes/daemonize-with-pipe processes/extract processes/transmit-via-pipe io/tty-read io/stdio-stat io/lowlevel-read-write io/stdin-read io/reading-deleted-file io/shared-locking io/highlevel-io io/advisory-locking-blocking io/file-stat io/lowlevel-io io/lockf-file-part1 io/reading-dir-short io/lockf-file-part2 io/abc-lowlevel io/not-reading-dir io/advisory-locking io/failing-io io/reading-dir io/password-test io/abc-highlevel threads/threadf threads/thread ipc/signal ipc/msgqueue
+all: processes/fork-write-twice processes/daemonize processes/fork-wait processes/daemonize-with-pipe processes/extract processes/transmit-via-pipe io/tty-read io/stdio-stat io/lowlevel-read-write io/stdin-read io/reading-deleted-file io/shared-locking io/highlevel-io io/advisory-locking-blocking io/file-stat io/lowlevel-io io/lockf-file-part1 io/reading-dir-short io/lockf-file-part2 io/abc-lowlevel io/not-reading-dir io/advisory-locking io/failing-io io/reading-dir io/password-test io/abc-highlevel threads/threadf threads/thread ipc/signal ipc/msgqueue-positive-typed ipc/msgqueue
 
 processes/fork-write-twice: processes/fork-write-twice.c
 	gcc -Wall processes/fork-write-twice.c  -o processes/fork-write-twice
@@ -89,6 +89,9 @@ threads/thread: threads/thread.c
 
 ipc/signal: ipc/signal.c
 	gcc -Wall ipc/signal.c  -o ipc/signal
+
+ipc/msgqueue-positive-typed: ipc/msgqueue-positive-typed.c
+	gcc -Wall ipc/msgqueue-positive-typed.c  -o ipc/msgqueue-positive-typed
 
 ipc/msgqueue: ipc/msgqueue.c
 	gcc -Wall ipc/msgqueue.c  -o ipc/msgqueue

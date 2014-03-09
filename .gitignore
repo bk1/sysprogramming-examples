@@ -30,3 +30,7 @@ processes/fork-write-twice
 processes/transmit-via-pipe
 threads/thread
 threads/threadf
+ipc/msgqueue
+make.log
+ipc/msgqueue-positive-typed
+msgref.dat
