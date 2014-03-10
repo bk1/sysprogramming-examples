@@ -1,7 +1,7 @@
-# automatically generated makefile by ./scripts/create-make
+# automatically generated makefile by scripts//create-make
 
 
-all: processes/fork-write-twice processes/daemonize processes/fork-wait processes/daemonize-with-pipe processes/extract processes/transmit-via-pipe io/tty-read io/stdio-stat io/lowlevel-read-write io/stdin-read io/reading-deleted-file io/shared-locking io/highlevel-io io/advisory-locking-blocking io/file-stat io/lowlevel-io io/lockf-file-part1 io/reading-dir-short io/lockf-file-part2 io/abc-lowlevel io/not-reading-dir io/advisory-locking io/failing-io io/reading-dir io/password-test io/abc-highlevel threads/threadf threads/thread ipc/shared-memory ipc/signal ipc/msgqueue-positive-typed ipc/semaphore ipc/msgqueue-simple ipc/semaphore-simple ipc/msgqueue ipc/msgqueue-negative-typed
+all: processes/fork-write-twice processes/daemonize processes/fork-wait processes/daemonize-with-pipe processes/extract processes/transmit-via-pipe io/tty-read io/stdio-stat io/lowlevel-read-write io/stdin-read io/reading-deleted-file io/shared-locking io/highlevel-io io/advisory-locking-blocking io/file-stat io/lowlevel-io io/lockf-file-part1 io/reading-dir-short io/lockf-file-part2 io/abc-lowlevel io/not-reading-dir io/advisory-locking io/failing-io io/reading-dir io/password-test io/abc-highlevel threads/threadf threads/thread ipc/shared-memory ipc/signal ipc/msgqueue-positive-typed ipc/daemonize-group-signal-sigaction ipc/semaphore ipc/msgqueue-simple ipc/semaphore-simple ipc/daemonize-group-signal ipc/daemonize-signal-and-pipe ipc/msgqueue ipc/msgqueue-hello ipc/msgqueue-negative-typed ipc/shared-memory-count
 
 processes/fork-write-twice: processes/fork-write-twice.c
 	gcc -Wall processes/fork-write-twice.c  -o processes/fork-write-twice
@@ -96,6 +96,9 @@ ipc/signal: ipc/signal.c
 ipc/msgqueue-positive-typed: ipc/msgqueue-positive-typed.c
 	gcc -Wall ipc/msgqueue-positive-typed.c  -o ipc/msgqueue-positive-typed
 
+ipc/daemonize-group-signal-sigaction: ipc/daemonize-group-signal-sigaction.c
+	gcc -Wall ipc/daemonize-group-signal-sigaction.c  -o ipc/daemonize-group-signal-sigaction
+
 ipc/semaphore: ipc/semaphore.c
 	gcc -Wall ipc/semaphore.c  -o ipc/semaphore
 
@@ -105,10 +108,22 @@ ipc/msgqueue-simple: ipc/msgqueue-simple.c
 ipc/semaphore-simple: ipc/semaphore-simple.c
 	gcc -Wall ipc/semaphore-simple.c  -o ipc/semaphore-simple
 
+ipc/daemonize-group-signal: ipc/daemonize-group-signal.c
+	gcc -Wall ipc/daemonize-group-signal.c  -o ipc/daemonize-group-signal
+
+ipc/daemonize-signal-and-pipe: ipc/daemonize-signal-and-pipe.c
+	gcc -Wall ipc/daemonize-signal-and-pipe.c  -o ipc/daemonize-signal-and-pipe
+
 ipc/msgqueue: ipc/msgqueue.c
 	gcc -Wall ipc/msgqueue.c  -o ipc/msgqueue
 
+ipc/msgqueue-hello: ipc/msgqueue-hello.c
+	gcc -Wall ipc/msgqueue-hello.c  -o ipc/msgqueue-hello
+
 ipc/msgqueue-negative-typed: ipc/msgqueue-negative-typed.c
 	gcc -Wall ipc/msgqueue-negative-typed.c  -o ipc/msgqueue-negative-typed
+
+ipc/shared-memory-count: ipc/shared-memory-count.c
+	gcc -Wall ipc/shared-memory-count.c  -o ipc/shared-memory-count
 
 
