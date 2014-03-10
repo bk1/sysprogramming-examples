@@ -18,27 +18,9 @@
 #include <signal.h>
 #include <time.h>
 
-#define FALSE 0
-#define TRUE  1
-
 #define ERROR_SIZE 16384
 
 #define MSGPERM 0600
-
-#define WORKER_TYPE 1000
-
-int msgqid_for_cleanup = 0;
-int sempid_for_cleanup = 0;
-
-void handle_error(int return_code, const char *msg);
-
-int create_sem(key_t key, const char *txt, const char *etxt) {
-  int semaphore_id = semget(key, 1, IPC_CREAT | MSGPERM);
-  handle_error(semaphore_id, etxt);
-  printf("%s: semaphore_id=%d key=%ld\n", txt, semaphore_id, (long) key);
-  fflush(stdout);
-  return semaphore_id;
-}
 
 /* helper function for dealing with errors */
 void handle_error(int return_code, const char *msg) {
@@ -59,20 +41,14 @@ void handle_error(int return_code, const char *msg) {
   }
 }
 
-
-void show_sem_ctl(int semaphore_id, const char *txt) {
-
-  int retcode;
-  struct semid_ds semctl_data;
-  retcode = semctl(semaphore_id, 0, IPC_STAT, &semctl_data);
-  handle_error(retcode, "child semctl failed");
-  struct ipc_perm perms = semctl_data.sem_perm;
-  printf("%s: key=%ld uid=%d gid=%d cuid=%d cgid=%d mode=%d seq=%d\n", txt, (long) perms.__key, (int) perms.uid, (int) perms.gid, (int) perms.cuid, (int) perms.cgid, (int) perms.mode, (int)perms.__seq);
-  fflush(stdout);
+int create_sem(key_t key) {
+  int semaphore_id = semget(key, 1, IPC_CREAT | MSGPERM);
+  handle_error(semaphore_id, "failed with semget");
+  printf("semaphore_id=%d key=%ld\n", semaphore_id, (long) key);
+  return semaphore_id;
 }
 
 int main(int argc, char *argv[]) {
-  int i;
   int retcode;
   struct sembuf sem;
 
@@ -80,16 +56,12 @@ int main(int argc, char *argv[]) {
   fwrite("X", 1, 1, f);
   fclose(f);
 
-  key_t msg_key = ftok("./semref.dat", 0);
-  if (msg_key < 0) {
-    handle_error(-1, "ftok failed");
-  }
   key_t sem_key = ftok("./semref.dat", 1);
   if (sem_key < 0) {
     handle_error(-1, "ftok failed");
   }
 
-  int semaphore_id = create_sem(sem_key, "parent", "parent semget failed");
+  int semaphore_id = create_sem(sem_key);
   short semval[1];
   semval[0] = (short) 5;
   retcode = semctl(semaphore_id, 1, SETALL, &semval);
@@ -102,7 +74,6 @@ int main(int argc, char *argv[]) {
     sem.sem_op  = -1;
     sem.sem_flg = SEM_UNDO;
     printf("%d obtaining resource\n", j);
-    fflush(stdout);
     retcode = semop(semaphore_id, &sem, 1);
     handle_error(retcode, "semop failed");
   }

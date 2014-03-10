@@ -115,6 +115,19 @@ union semun {
   struct seminfo  *__buf;  /* Buffer for IPC_INFO (Linux-specific) */
 };
 
+void prepare_sem(key_t sem_key) {
+  int retcode;
+  int tmp_semaphore_id = create_sem(sem_key, "parent", "parent semget failed");
+  short semval[1];
+  semval[0] = (short) 2;
+  retcode = semctl(tmp_semaphore_id, 1, SETALL, &semval);
+  handle_error(retcode, "changing of semaphore failed");
+  union semun semunx;
+  semctl(tmp_semaphore_id, 1, GETALL, &semunx);
+  printf("limit=%d\n", semunx.array[0]);
+  fflush(stdout);
+}
+
 const int SIZE = sizeof(struct data);
 
 int main(int argc, char *argv[]) {
@@ -139,16 +152,7 @@ int main(int argc, char *argv[]) {
     handle_error(-1, "ftok failed");
   }
 
-  {
-    int tmp_semaphore_id = create_sem(sem_key, "parent", "parent semget failed");
-    short semval[1];
-    semval[0] = (short) 5;
-    retcode = semctl(tmp_semaphore_id, 1, SETALL, &semval);
-    handle_error(retcode, "changing of semaphore failed");
-    union semun semunx;
-    semctl(tmp_semaphore_id, 1, GETALL, &semunx);
-    printf("limit=%d\n", semunx.array[0]);
-  }
+  prepare_sem(sem_key);
 
   /* create a worker process */
   int pid = fork();
@@ -188,7 +192,7 @@ int main(int argc, char *argv[]) {
 
   sleep(1);
 
-  for (i = 1; i < 20; i++) {
+  for (i = 1; i <= 5; i++) {
     int pid = fork();
     handle_error(pid, "fork failed");
     if (pid == 0) {
@@ -248,7 +252,7 @@ int main(int argc, char *argv[]) {
   int semaphore_id = create_sem(sem_key, "parent", "parent semget failed");
   sempid_for_cleanup = semaphore_id;
 
-  for (i = 0; i < 20; i++) {
+  for (i = 1; i <= 5; i++) {
     printf("waiting for child i=%d\n", i);
     fflush(stdout);
     int status;
