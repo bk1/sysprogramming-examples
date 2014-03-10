@@ -44,17 +44,17 @@ void my_handler(int signo) {
 /* helper function for dealing with errors */
 void handle_error(int return_code, const char *msg) {
   if (return_code < 0) {
-    char error_message0[ERROR_SIZE];
-    char error_message[ERROR_SIZE];
+    char extra_msg[ERROR_SIZE];
+    char error_msg[ERROR_SIZE];
     int myerrno = errno;
     const char *error_str = strerror(myerrno);
-    sprintf(error_message0, "return_code=%d\nerrno=%d\nmessage=%s\n", return_code, myerrno, error_str);
     if (msg != NULL) {
-      sprintf(error_message, "%s\n%s", msg, error_message0);
+      sprintf(extra_msg, "%s\n", msg);
     } else {
-      sprintf(error_message, "%s", error_message0);
+      sprintf(extra_msg, "");
     }
-    write(STDOUT_FILENO, error_message, strlen(error_message));
+    sprintf(error_msg, "%sreturn_code=%d\nerrno=%d\nmessage=%s\n", extra_msg, return_code, myerrno, error_str);
+    write(STDOUT_FILENO, error_msg, strlen(error_msg));
     cleanup_queue();
     exit(1);
   }
@@ -112,19 +112,22 @@ int main(int argc, char *argv[]) {
 
     printf("child: id=%d key=%ld\n", id, (long) key);
 
-    //show_msg_ctl(id, "child");
+    show_msg_ctl(id, "child");
+
+    msg.type = 10;
 
     for (i = 0; i < 100; i++) {
       msg.data.c = 'C';
       msg.data.x = i;
       msg.data.y = i*i;
-      msg.type = 10;
       retcode = msgsnd(id, &msg, SIZE, 0);
       handle_error(retcode, "msgsnd failed");
       sleep(1);
     }
+
     msg.data.c = 'Q';
-    msgsnd(id, &msg, SIZE, 0);
+    retcode = msgsnd(id, &msg, SIZE, 0);
+    handle_error(retcode, "msgsnd failed");
     printf("terminating child\n");
     exit(0);
 
@@ -140,7 +143,7 @@ int main(int argc, char *argv[]) {
 
     printf("parent: id=%d key=%ld\n", id, (long) key);
 
-    //show_msg_ctl(id, "child");
+    show_msg_ctl(id, "child");
 
     while (TRUE) {
       retcode = msgrcv(id, &msg, SIZE, 10, 0);
