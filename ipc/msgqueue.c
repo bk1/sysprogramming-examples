@@ -51,7 +51,7 @@ void handle_error(int return_code, const char *msg) {
     if (msg != NULL) {
       sprintf(extra_msg, "%s\n", msg);
     } else {
-      sprintf(extra_msg, "");
+      extra_msg[0] = '\000';
     }
     sprintf(error_msg, "%sreturn_code=%d\nerrno=%d\nmessage=%s\n", extra_msg, return_code, myerrno, error_str);
     write(STDOUT_FILENO, error_msg, strlen(error_msg));

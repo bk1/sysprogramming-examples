@@ -1,129 +1,137 @@
-# automatically generated makefile by scripts//create-make
+# automatically generated makefile by ./scripts/create-make
+
+CFLAGS=-Wall -lpthread -g
 
 
-all: processes/fork-write-twice processes/daemonize processes/fork-wait processes/daemonize-with-pipe processes/extract processes/transmit-via-pipe io/tty-read io/stdio-stat io/lowlevel-read-write io/stdin-read io/reading-deleted-file io/shared-locking io/highlevel-io io/advisory-locking-blocking io/file-stat io/lowlevel-io io/lockf-file-part1 io/reading-dir-short io/lockf-file-part2 io/abc-lowlevel io/not-reading-dir io/advisory-locking io/failing-io io/reading-dir io/password-test io/abc-highlevel threads/threadf threads/thread ipc/shared-memory ipc/signal ipc/msgqueue-positive-typed ipc/daemonize-group-signal-sigaction ipc/semaphore ipc/msgqueue-simple ipc/semaphore-simple ipc/daemonize-group-signal ipc/daemonize-signal-and-pipe ipc/msgqueue ipc/msgqueue-hello ipc/msgqueue-negative-typed ipc/shared-memory-count
+all: processes/fork-write-twice processes/daemonize processes/fork-wait processes/daemonize-with-pipe processes/extract processes/transmit-via-pipe io/tty-read io/stdio-stat io/lowlevel-read-write io/stdin-read io/reading-deleted-file io/shared-locking io/highlevel-io io/advisory-locking-blocking io/file-stat io/lowlevel-io io/lockf-file-part1 io/reading-dir-short io/lockf-file-part2 io/abc-lowlevel io/not-reading-dir io/advisory-locking io/failing-io io/reading-dir io/password-test io/abc-highlevel threads/threadf threads/thread threads/thread_write_once ipc/shared-memory ipc/signal ipc/msgqueue-positive-typed ipc/daemonize-group-signal-sigaction ipc/semaphore ipc/msgqueue-simple ipc/semaphore-simple ipc/daemonize-group-signal ipc/daemonize-signal-and-pipe ipc/msgqueue ipc/msgqueue-hello ipc/msgqueue-negative-typed ipc/shared-memory-count
+
+clean:
+	rm processes/fork-write-twice processes/daemonize processes/fork-wait processes/daemonize-with-pipe processes/extract processes/transmit-via-pipe io/tty-read io/stdio-stat io/lowlevel-read-write io/stdin-read io/reading-deleted-file io/shared-locking io/highlevel-io io/advisory-locking-blocking io/file-stat io/lowlevel-io io/lockf-file-part1 io/reading-dir-short io/lockf-file-part2 io/abc-lowlevel io/not-reading-dir io/advisory-locking io/failing-io io/reading-dir io/password-test io/abc-highlevel threads/threadf threads/thread threads/thread_write_once ipc/shared-memory ipc/signal ipc/msgqueue-positive-typed ipc/daemonize-group-signal-sigaction ipc/semaphore ipc/msgqueue-simple ipc/semaphore-simple ipc/daemonize-group-signal ipc/daemonize-signal-and-pipe ipc/msgqueue ipc/msgqueue-hello ipc/msgqueue-negative-typed ipc/shared-memory-count
 
 processes/fork-write-twice: processes/fork-write-twice.c
-	gcc -Wall processes/fork-write-twice.c  -o processes/fork-write-twice
+	gcc $(CFLAGS) processes/fork-write-twice.c  -o processes/fork-write-twice
 
 processes/daemonize: processes/daemonize.c
-	gcc -Wall processes/daemonize.c  -o processes/daemonize
+	gcc $(CFLAGS) processes/daemonize.c  -o processes/daemonize
 
 processes/fork-wait: processes/fork-wait.c
-	gcc -Wall processes/fork-wait.c  -o processes/fork-wait
+	gcc $(CFLAGS) processes/fork-wait.c  -o processes/fork-wait
 
 processes/daemonize-with-pipe: processes/daemonize-with-pipe.c
-	gcc -Wall processes/daemonize-with-pipe.c  -o processes/daemonize-with-pipe
+	gcc $(CFLAGS) processes/daemonize-with-pipe.c  -o processes/daemonize-with-pipe
 
 processes/extract: processes/extract.c
-	gcc -Wall processes/extract.c  -o processes/extract
+	gcc $(CFLAGS) processes/extract.c  -o processes/extract
 
 processes/transmit-via-pipe: processes/transmit-via-pipe.c
-	gcc -Wall processes/transmit-via-pipe.c  -o processes/transmit-via-pipe
+	gcc $(CFLAGS) processes/transmit-via-pipe.c  -o processes/transmit-via-pipe
 
 io/tty-read: io/tty-read.c
-	gcc -Wall io/tty-read.c  -o io/tty-read
+	gcc $(CFLAGS) io/tty-read.c  -o io/tty-read
 
 io/stdio-stat: io/stdio-stat.c
-	gcc -Wall io/stdio-stat.c  -o io/stdio-stat
+	gcc $(CFLAGS) io/stdio-stat.c  -o io/stdio-stat
 
 io/lowlevel-read-write: io/lowlevel-read-write.c
-	gcc -Wall io/lowlevel-read-write.c  -o io/lowlevel-read-write
+	gcc $(CFLAGS) io/lowlevel-read-write.c  -o io/lowlevel-read-write
 
 io/stdin-read: io/stdin-read.c
-	gcc -Wall io/stdin-read.c  -o io/stdin-read
+	gcc $(CFLAGS) io/stdin-read.c  -o io/stdin-read
 
 io/reading-deleted-file: io/reading-deleted-file.c
-	gcc -Wall io/reading-deleted-file.c  -o io/reading-deleted-file
+	gcc $(CFLAGS) io/reading-deleted-file.c  -o io/reading-deleted-file
 
 io/shared-locking: io/shared-locking.c
-	gcc -Wall io/shared-locking.c  -o io/shared-locking
+	gcc $(CFLAGS) io/shared-locking.c  -o io/shared-locking
 
 io/highlevel-io: io/highlevel-io.c
-	gcc -Wall io/highlevel-io.c  -o io/highlevel-io
+	gcc $(CFLAGS) io/highlevel-io.c  -o io/highlevel-io
 
 io/advisory-locking-blocking: io/advisory-locking-blocking.c
-	gcc -Wall io/advisory-locking-blocking.c  -o io/advisory-locking-blocking
+	gcc $(CFLAGS) io/advisory-locking-blocking.c  -o io/advisory-locking-blocking
 
 io/file-stat: io/file-stat.c
-	gcc -Wall io/file-stat.c  -o io/file-stat
+	gcc $(CFLAGS) io/file-stat.c  -o io/file-stat
 
 io/lowlevel-io: io/lowlevel-io.c
-	gcc -Wall io/lowlevel-io.c  -o io/lowlevel-io
+	gcc $(CFLAGS) io/lowlevel-io.c  -o io/lowlevel-io
 
 io/lockf-file-part1: io/lockf-file-part1.c
-	gcc -Wall io/lockf-file-part1.c  -o io/lockf-file-part1
+	gcc $(CFLAGS) io/lockf-file-part1.c  -o io/lockf-file-part1
 
 io/reading-dir-short: io/reading-dir-short.c
-	gcc -Wall io/reading-dir-short.c  -o io/reading-dir-short
+	gcc $(CFLAGS) io/reading-dir-short.c  -o io/reading-dir-short
 
 io/lockf-file-part2: io/lockf-file-part2.c
-	gcc -Wall io/lockf-file-part2.c  -o io/lockf-file-part2
+	gcc $(CFLAGS) io/lockf-file-part2.c  -o io/lockf-file-part2
 
 io/abc-lowlevel: io/abc-lowlevel.c
-	gcc -Wall io/abc-lowlevel.c  -o io/abc-lowlevel
+	gcc $(CFLAGS) io/abc-lowlevel.c  -o io/abc-lowlevel
 
 io/not-reading-dir: io/not-reading-dir.c
-	gcc -Wall io/not-reading-dir.c  -o io/not-reading-dir
+	gcc $(CFLAGS) io/not-reading-dir.c  -o io/not-reading-dir
 
 io/advisory-locking: io/advisory-locking.c
-	gcc -Wall io/advisory-locking.c  -o io/advisory-locking
+	gcc $(CFLAGS) io/advisory-locking.c  -o io/advisory-locking
 
 io/failing-io: io/failing-io.c
-	gcc -Wall io/failing-io.c  -o io/failing-io
+	gcc $(CFLAGS) io/failing-io.c  -o io/failing-io
 
 io/reading-dir: io/reading-dir.c
-	gcc -Wall io/reading-dir.c  -o io/reading-dir
+	gcc $(CFLAGS) io/reading-dir.c  -o io/reading-dir
 
 io/password-test: io/password-test.c
-	gcc -Wall io/password-test.c  -o io/password-test
+	gcc $(CFLAGS) io/password-test.c  -o io/password-test
 
 io/abc-highlevel: io/abc-highlevel.c
-	gcc -Wall io/abc-highlevel.c  -o io/abc-highlevel
+	gcc $(CFLAGS) io/abc-highlevel.c  -o io/abc-highlevel
 
 threads/threadf: threads/threadf.c
-	gcc -Wall threads/threadf.c  -pthread -o threads/threadf
+	gcc $(CFLAGS) threads/threadf.c  -pthread -o threads/threadf
 
 threads/thread: threads/thread.c
-	gcc -Wall threads/thread.c  -pthread -o threads/thread
+	gcc $(CFLAGS) threads/thread.c  -pthread -o threads/thread
+
+threads/thread_write_once: threads/thread_write_once.c
+	gcc $(CFLAGS) threads/thread_write_once.c  -pthread -o threads/thread_write_once
 
 ipc/shared-memory: ipc/shared-memory.c
-	gcc -Wall ipc/shared-memory.c  -o ipc/shared-memory
+	gcc $(CFLAGS) ipc/shared-memory.c  -o ipc/shared-memory
 
 ipc/signal: ipc/signal.c
-	gcc -Wall ipc/signal.c  -o ipc/signal
+	gcc $(CFLAGS) ipc/signal.c  -o ipc/signal
 
 ipc/msgqueue-positive-typed: ipc/msgqueue-positive-typed.c
-	gcc -Wall ipc/msgqueue-positive-typed.c  -o ipc/msgqueue-positive-typed
+	gcc $(CFLAGS) ipc/msgqueue-positive-typed.c  -o ipc/msgqueue-positive-typed
 
 ipc/daemonize-group-signal-sigaction: ipc/daemonize-group-signal-sigaction.c
-	gcc -Wall ipc/daemonize-group-signal-sigaction.c  -o ipc/daemonize-group-signal-sigaction
+	gcc $(CFLAGS) ipc/daemonize-group-signal-sigaction.c  -o ipc/daemonize-group-signal-sigaction
 
 ipc/semaphore: ipc/semaphore.c
-	gcc -Wall ipc/semaphore.c  -o ipc/semaphore
+	gcc $(CFLAGS) ipc/semaphore.c  -o ipc/semaphore
 
 ipc/msgqueue-simple: ipc/msgqueue-simple.c
-	gcc -Wall ipc/msgqueue-simple.c  -o ipc/msgqueue-simple
+	gcc $(CFLAGS) ipc/msgqueue-simple.c  -o ipc/msgqueue-simple
 
 ipc/semaphore-simple: ipc/semaphore-simple.c
-	gcc -Wall ipc/semaphore-simple.c  -o ipc/semaphore-simple
+	gcc $(CFLAGS) ipc/semaphore-simple.c  -o ipc/semaphore-simple
 
 ipc/daemonize-group-signal: ipc/daemonize-group-signal.c
-	gcc -Wall ipc/daemonize-group-signal.c  -o ipc/daemonize-group-signal
+	gcc $(CFLAGS) ipc/daemonize-group-signal.c  -o ipc/daemonize-group-signal
 
 ipc/daemonize-signal-and-pipe: ipc/daemonize-signal-and-pipe.c
-	gcc -Wall ipc/daemonize-signal-and-pipe.c  -o ipc/daemonize-signal-and-pipe
+	gcc $(CFLAGS) ipc/daemonize-signal-and-pipe.c  -o ipc/daemonize-signal-and-pipe
 
 ipc/msgqueue: ipc/msgqueue.c
-	gcc -Wall ipc/msgqueue.c  -o ipc/msgqueue
+	gcc $(CFLAGS) ipc/msgqueue.c  -o ipc/msgqueue
 
 ipc/msgqueue-hello: ipc/msgqueue-hello.c
-	gcc -Wall ipc/msgqueue-hello.c  -o ipc/msgqueue-hello
+	gcc $(CFLAGS) ipc/msgqueue-hello.c  -o ipc/msgqueue-hello
 
 ipc/msgqueue-negative-typed: ipc/msgqueue-negative-typed.c
-	gcc -Wall ipc/msgqueue-negative-typed.c  -o ipc/msgqueue-negative-typed
+	gcc $(CFLAGS) ipc/msgqueue-negative-typed.c  -o ipc/msgqueue-negative-typed
 
 ipc/shared-memory-count: ipc/shared-memory-count.c
-	gcc -Wall ipc/shared-memory-count.c  -o ipc/shared-memory-count
+	gcc $(CFLAGS) ipc/shared-memory-count.c  -o ipc/shared-memory-count
 
 

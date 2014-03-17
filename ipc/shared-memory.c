@@ -72,6 +72,7 @@ void my_handler(int signo) {
 /* helper function for dealing with errors */
 void handle_error(int return_code, const char *msg) {
   if (return_code < 0) {
+
     char extra_txt[ERROR_SIZE];
     char error_msg[ERROR_SIZE];
     char *extra_msg = extra_txt;

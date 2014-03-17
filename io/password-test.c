@@ -48,7 +48,8 @@ int main(int argc, char *argv[]) {
    */
   FILE *pfile = fopen("passwd", "r");
   handle_errorf(pfile);
-  char *passwd = strdup(fgets(buff, SIZE, pfile));
+  const char *read_passwd = fgets(buff, SIZE, pfile);
+  char *passwd = strdup(read_passwd);
   retcode = fclose(pfile);
   handle_error(retcode);
 
@@ -87,6 +88,9 @@ int main(int argc, char *argv[]) {
       write(STDOUT_FILENO, "*", 1);
       if (c == '\n') {
         write(STDOUT_FILENO, "\n", 1);
+        if (i < plen) {
+          authenticated = FALSE;
+        }
         break;
       }
       if (i >= plen || c != passwd[i]) {
