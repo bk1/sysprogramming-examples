@@ -51,3 +51,5 @@ ipc/shared-memory-count
 sem.log
 semref.dat
 shmref.dat
+threads/myfile
+threads/thread_write_once
