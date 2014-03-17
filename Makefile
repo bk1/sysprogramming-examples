@@ -3,10 +3,10 @@
 CFLAGS=-Wall -lpthread -g
 
 
-all: processes/fork-write-twice processes/daemonize processes/fork-wait processes/daemonize-with-pipe processes/extract processes/transmit-via-pipe io/tty-read io/stdio-stat io/lowlevel-read-write io/stdin-read io/reading-deleted-file io/shared-locking io/highlevel-io io/advisory-locking-blocking io/file-stat io/lowlevel-io io/lockf-file-part1 io/reading-dir-short io/lockf-file-part2 io/abc-lowlevel io/not-reading-dir io/advisory-locking io/failing-io io/reading-dir io/password-test io/abc-highlevel threads/thread-id threads/condition threads/timedlock threads/threadf threads/thread threads/thread_write_once threads/nonblocking threads/mutex-reentrance threads/mutex-order threads/deadlock ipc/shared-memory ipc/signal ipc/msgqueue-positive-typed ipc/daemonize-group-signal-sigaction ipc/semaphore ipc/msgqueue-simple ipc/shared-memory-count-simple ipc/semaphore-simple ipc/daemonize-group-signal ipc/daemonize-signal-and-pipe ipc/msgqueue ipc/msgqueue-hello ipc/shared-memory-count-output-semaphore ipc/msgqueue-negative-typed ipc/shared-memory-count
+all: processes/fork-write-twice processes/daemonize processes/fork-wait processes/daemonize-with-pipe processes/extract processes/transmit-via-pipe io/tty-read io/stdio-stat io/lowlevel-read-write io/stdin-read io/reading-deleted-file io/shared-locking io/highlevel-io io/advisory-locking-blocking io/file-stat io/lowlevel-io io/lockf-file-part1 io/reading-dir-short io/lockf-file-part2 io/abc-lowlevel io/not-reading-dir io/advisory-locking io/failing-io io/reading-dir io/password-test io/abc-highlevel threads/thread_return threads/thread-id threads/condition threads/timedlock threads/threadf threads/thread threads/thread_write_once threads/exit-pthread-exit threads/nonblocking threads/mutex-reentrance threads/mutex-order threads/deadlock ipc/shared-memory ipc/signal ipc/msgqueue-positive-typed ipc/daemonize-group-signal-sigaction ipc/semaphore ipc/msgqueue-simple ipc/shared-memory-count-simple ipc/semaphore-simple ipc/daemonize-group-signal ipc/daemonize-signal-and-pipe ipc/msgqueue ipc/msgqueue-hello ipc/shared-memory-count-output-semaphore ipc/msgqueue-negative-typed ipc/shared-memory-count
 
 clean:
-	rm processes/fork-write-twice processes/daemonize processes/fork-wait processes/daemonize-with-pipe processes/extract processes/transmit-via-pipe io/tty-read io/stdio-stat io/lowlevel-read-write io/stdin-read io/reading-deleted-file io/shared-locking io/highlevel-io io/advisory-locking-blocking io/file-stat io/lowlevel-io io/lockf-file-part1 io/reading-dir-short io/lockf-file-part2 io/abc-lowlevel io/not-reading-dir io/advisory-locking io/failing-io io/reading-dir io/password-test io/abc-highlevel threads/thread-id threads/condition threads/timedlock threads/threadf threads/thread threads/thread_write_once threads/nonblocking threads/mutex-reentrance threads/mutex-order threads/deadlock ipc/shared-memory ipc/signal ipc/msgqueue-positive-typed ipc/daemonize-group-signal-sigaction ipc/semaphore ipc/msgqueue-simple ipc/shared-memory-count-simple ipc/semaphore-simple ipc/daemonize-group-signal ipc/daemonize-signal-and-pipe ipc/msgqueue ipc/msgqueue-hello ipc/shared-memory-count-output-semaphore ipc/msgqueue-negative-typed ipc/shared-memory-count
+	rm processes/fork-write-twice processes/daemonize processes/fork-wait processes/daemonize-with-pipe processes/extract processes/transmit-via-pipe io/tty-read io/stdio-stat io/lowlevel-read-write io/stdin-read io/reading-deleted-file io/shared-locking io/highlevel-io io/advisory-locking-blocking io/file-stat io/lowlevel-io io/lockf-file-part1 io/reading-dir-short io/lockf-file-part2 io/abc-lowlevel io/not-reading-dir io/advisory-locking io/failing-io io/reading-dir io/password-test io/abc-highlevel threads/thread_return threads/thread-id threads/condition threads/timedlock threads/threadf threads/thread threads/thread_write_once threads/exit-pthread-exit threads/nonblocking threads/mutex-reentrance threads/mutex-order threads/deadlock ipc/shared-memory ipc/signal ipc/msgqueue-positive-typed ipc/daemonize-group-signal-sigaction ipc/semaphore ipc/msgqueue-simple ipc/shared-memory-count-simple ipc/semaphore-simple ipc/daemonize-group-signal ipc/daemonize-signal-and-pipe ipc/msgqueue ipc/msgqueue-hello ipc/shared-memory-count-output-semaphore ipc/msgqueue-negative-typed ipc/shared-memory-count
 
 processes/fork-write-twice: processes/fork-write-twice.c
 	gcc $(CFLAGS) processes/fork-write-twice.c  -o processes/fork-write-twice
@@ -86,6 +86,9 @@ io/password-test: io/password-test.c
 io/abc-highlevel: io/abc-highlevel.c
 	gcc $(CFLAGS) io/abc-highlevel.c  -o io/abc-highlevel
 
+threads/thread_return: threads/thread_return.c
+	gcc $(CFLAGS) threads/thread_return.c  -pthread -o threads/thread_return
+
 threads/thread-id: threads/thread-id.c
 	gcc $(CFLAGS) threads/thread-id.c  -pthread -o threads/thread-id
 
@@ -103,6 +106,9 @@ threads/thread: threads/thread.c
 
 threads/thread_write_once: threads/thread_write_once.c
 	gcc $(CFLAGS) threads/thread_write_once.c  -pthread -o threads/thread_write_once
+
+threads/exit-pthread-exit: threads/exit-pthread-exit.c
+	gcc $(CFLAGS) threads/exit-pthread-exit.c  -pthread -o threads/exit-pthread-exit
 
 threads/nonblocking: threads/nonblocking.c
 	gcc $(CFLAGS) threads/nonblocking.c  -pthread -o threads/nonblocking
