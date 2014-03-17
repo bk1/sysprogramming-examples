@@ -40,17 +40,17 @@ void *thread_run(void *ptr) {
   for (i = 0; i < 100; i++) {
     long x = val + i;
     long y = x*x;
-    printf("%20ld (%7ld)  %4d^2=%8d\n", (long) id, val, x, y);
+    printf("%20ld (%3ld)  %4ld^2=%8ld\n", (long) id, val, x, y);
     fflush(stdout);
     if (i % 10 == 9) {
-      printf("%20ld (%7ld) waiting for others\n", (long) id, val);
+      printf("%20ld (%3ld) waiting for others\n", (long) id, val);
       fflush(stdout);
       pthread_barrier_wait(& barrier);
-      printf("%20ld (%7ld) continuing\n", (long) id, val);
+      printf("%20ld (%3ld) continuing\n", (long) id, val);
       fflush(stdout);
     }
   }
-  printf("%20ld (%7ld) done\n", (long) id, val);
+  printf("%20ld (%3ld) done\n", (long) id, val);
   fflush(stdout);
   return (void *) NULL;
 }

@@ -52,7 +52,7 @@ void handle_error(int return_code, const char *msg) {
     if (msg != NULL) {
       sprintf(extra_msg, "%s\n", msg);
     } else {
-      sprintf(extra_msg, "");
+      extra_msg[0] = '\000';
     }
     sprintf(error_msg, "%sreturn_code=%d\nerrno=%d\nmessage=%s\n", extra_msg, return_code, myerrno, error_str);
     write(STDOUT_FILENO, error_msg, strlen(error_msg));
@@ -109,10 +109,12 @@ void receive(int id) {
 
 int main(int argc, char *argv[]) {
 
-  int retcode;
+  // int retcode;
 
   signal(SIGTERM, my_handler);
+  // handle_error(retcode, "registration of sighandler for SIGTERM");
   signal(SIGINT, my_handler);
+  // handle_error(retcode, "registration of sighandler for SIGINT");
 
   FILE *f = fopen("msgref.dat", "w");
   fwrite("X", 1, 1, f);
@@ -138,20 +140,19 @@ int main(int argc, char *argv[]) {
     usage(argv[0]);
   }
   switch (argv[1][1]) {
-  case 'r' : 
+  case 'r' :
     receive(id);
     break;
-  case 's' : 
+  case 's' :
     send(id);
     break;
-  case 'c' : 
+  case 'c' :
     cleanup_queue();
     break;
-  default: 
+  default:
     usage(argv[0]);
     break;
   }
 
-  
   exit(0);
 }

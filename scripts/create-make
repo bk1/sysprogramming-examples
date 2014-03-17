@@ -14,7 +14,7 @@ use vars qw/*name *dir *prune/;
 
 my $all = "all:";
 
-my $clean = "clean:\n\trm";
+my $clean = "clean:\n\trm -f";
 
 my $targets = "";
 
@@ -30,7 +30,7 @@ my $cwd = Cwd::cwd();
 File::Find::find({wanted => \&wanted}, '.');
 
 print "# automatically generated makefile by $0\n\n";
-print "CFLAGS=-Wall -lpthread -g\n\n"; #  -std=c99 -D_XOPEN_SOURCE
+print "CFLAGS=-Wall -lpthread -g -std=gnu99\n\n"; # -D_XOPEN_SOURCE -D__USE_XOPEN2K\n\n";
 print "\n$all\n";
 print "\n$clean\n";
 print "\n$targets\n";

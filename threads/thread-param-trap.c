@@ -38,7 +38,7 @@ void *thread_run(void *ptr) {
   // warning: name gets changed by main-thread all the time!!!
   char *name = ptr;
   char *orig_name = strdup(name);
-  int retcode;
+  // int retcode;
   printf("%s (%ld) started (orig_name=%s)\n", name, (long) pthread_self(), orig_name);
   sleep(5);
   printf("%s (%ld) done (orig_name=%s)\n", name, (long) pthread_self(), orig_name);

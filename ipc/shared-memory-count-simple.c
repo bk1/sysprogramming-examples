@@ -59,6 +59,7 @@ int setup_sem(int semaphore_id, char *etxt) {
   short semval[1] = { 1 };
   int retcode = semctl(semaphore_id, 1, SETALL, &semval);
   handle_error(retcode, etxt);
+  return retcode;
 }
 
 void cleanup() {
@@ -88,7 +89,7 @@ void handle_error(long return_code, const char *msg) {
     } else {
       extra_msg = "";
     }
-    sprintf(error_msg, "%sreturn_code=%d\nerrno=%d\nmessage=%s\n", extra_msg, return_code, myerrno, error_str);
+    sprintf(error_msg, "%sreturn_code=%ld\nerrno=%d\nmessage=%s\n", extra_msg, return_code, myerrno, error_str);
     write(STDOUT_FILENO, error_msg, strlen(error_msg));
     /* cleanup(); */
     exit(1);
@@ -204,8 +205,6 @@ int main(int argc, char *argv[]) {
   }
 
   unsigned int i;
-  char output_buffer[16384];
-  char *output_ptr = output_buffer;
 
   struct sembuf semops;
   semops.sem_num = 0;
