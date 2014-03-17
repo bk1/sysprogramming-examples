@@ -29,9 +29,6 @@
 #define BUF_SIZE 16384
 
 #define ALPHA_SIZE 256
-#define SEM_SIZE 128
-
-#define SEM_LIMIT  10
 
 #define REF_FILE "./shm_sem_ref.dat"
 
@@ -43,14 +40,6 @@ struct data {
 };
 
 const int SIZE = sizeof(struct data);
-
-union semun {
-    int              val;    /* Value for SETVAL */
-    struct semid_ds *buf;    /* Buffer for IPC_STAT, IPC_SET */
-    unsigned short  *array;  /* Array for GETALL, SETALL */
-    struct seminfo  *__buf;  /* Buffer for IPC_INFO
-                                (Linux-specific) */
-};
 
 void handle_error(long return_code, const char *msg);
 
@@ -67,14 +56,9 @@ int create_sem(key_t key, const int sem_size, const char *txt, const char *etxt,
 }
 
 int setup_sem(int semaphore_id, char *etxt) {
-  short semval[SEM_SIZE];
-  int i;
-  for (i = 0; i < SEM_SIZE; i++) {
-    semval[i] = (short) SEM_LIMIT;
-  }
-  int retcode = semctl(semaphore_id, SEM_SIZE, SETALL, &semval);
+  short semval[1] = { 1 };
+  int retcode = semctl(semaphore_id, 1, SETALL, &semval);
   handle_error(retcode, etxt);
-  return retcode;
 }
 
 void cleanup() {
@@ -90,6 +74,7 @@ void cleanup() {
   }
 }
 
+
 /* helper function for dealing with errors */
 void handle_error(long return_code, const char *msg) {
   if (return_code < 0) {
@@ -103,7 +88,7 @@ void handle_error(long return_code, const char *msg) {
     } else {
       extra_msg = "";
     }
-    sprintf(error_msg, "%sreturn_code=%ld\nerrno=%d\nmessage=%s\n", extra_msg, return_code, myerrno, error_str);
+    sprintf(error_msg, "%sreturn_code=%d\nerrno=%d\nmessage=%s\n", extra_msg, return_code, myerrno, error_str);
     write(STDOUT_FILENO, error_msg, strlen(error_msg));
     /* cleanup(); */
     exit(1);
@@ -137,7 +122,7 @@ void show_sem_ctl(int semaphore_id, int idx, const char *txt) {
 
 int main(int argc, char *argv[]) {
 
-  time_t t_start = time(NULL);
+  time_t t0 = time(NULL);
 
   if (argc > 2) {
     printf("Usage\n\n");
@@ -168,7 +153,7 @@ int main(int argc, char *argv[]) {
     printf("setting up IPC\n");
     int shm_id = create_shm(shm_key, "create", "shmget failed", IPC_CREAT);
     shmid_for_cleanup = shm_id;
-    int semaphore_id = create_sem(sem_key, SEM_SIZE, "create", "semget (data) failed", IPC_CREAT);
+    int semaphore_id = create_sem(sem_key, 1, "create", "semget failed", IPC_CREAT);
     semid_for_cleanup = semaphore_id;
 
     show_sem_ctl(semaphore_id, 0, "semaphore before setup");
@@ -180,7 +165,8 @@ int main(int argc, char *argv[]) {
 
   int shm_id = create_shm(shm_key, "create", "shmget failed", 0);
   shmid_for_cleanup = shm_id;
-  int semaphore_id = create_sem(sem_key, SEM_SIZE, "create", "semget failed", 0);
+
+  int semaphore_id = create_sem(sem_key, 1, "create", "semget failed", 0);
   semid_for_cleanup = semaphore_id;
 
   if (argc == 2 && strcmp(argv[1], "-c") == 0) {
@@ -196,9 +182,12 @@ int main(int argc, char *argv[]) {
 
   struct data *shm_data = (struct data *) shmat(shm_id, NULL, 0);
 
-  time_t total_data_semops_wait = 0;
   char buffer[BUF_SIZE];
-  long *counter = shm_data->counter;
+  struct data local_data;
+  long *counter = local_data.counter;
+  for (int i = 0; i < ALPHA_SIZE; i++) {
+    counter[i] = 0L;
+  }
 
   while (TRUE) {
     ssize_t size_read = read(STDIN_FILENO, buffer, BUF_SIZE);
@@ -210,75 +199,66 @@ int main(int argc, char *argv[]) {
     int i;
     for (i = 0; i < size_read; i++) {
       unsigned char c = buffer[i];
-      unsigned int  ck = (c % SEM_SIZE);
-      struct sembuf semops_write;
-      semops_write.sem_num = ck;
-      semops_write.sem_op  = -SEM_LIMIT;
-      semops_write.sem_flg = SEM_UNDO;
-      time_t t0 = time(NULL);
-      // show_sem_ctl(semaphore_id, ck, "reserving write semaphore");
-      retcode = semop(semaphore_id, &semops_write, 1);
-      handle_error(retcode, "error while getting write-semaphore");
-      // show_sem_ctl(semaphore_id, ck, "write semaphore reserved");
-      time_t dt = time(NULL) - t0;
-      total_data_semops_wait += dt;
       counter[c]++;
-      semops_write.sem_num = ck;
-      semops_write.sem_op  = SEM_LIMIT;
-      semops_write.sem_flg = SEM_UNDO;
-      // show_sem_ctl(semaphore_id, ck, "freeing write semaphore");
-      retcode = semop(semaphore_id, &semops_write, 1);
-      handle_error(retcode, "error while releasing write-semaphore");
-      // show_sem_ctl(semaphore_id, ck, "write semaphore freed");
     }
   }
-
-  time_t total_duration = time(NULL) - t_start;
 
   unsigned int i;
-
   char output_buffer[16384];
   char *output_ptr = output_buffer;
-  int n;
-  int m = 0;
-  n = sprintf(output_ptr, "------------------------------------------------------------\n");
-  output_ptr += n; m += n;
-  n = sprintf(output_ptr, "%s: pid=%ld\n", name, (long) getpid());
-  output_ptr += n; m += n;
-  n = sprintf(output_ptr, "total wait for data: ~ %ld sec; total duration: ~ %ld\n", (long) total_data_semops_wait, (long) total_duration);
-  output_ptr += n; m += n;
-  n = sprintf(output_ptr, "------------------------------------------------------------\n");
-  output_ptr += n; m += n;
+
+  struct sembuf semops;
+  semops.sem_num = 0;
+  semops.sem_op  = -1;
+  semops.sem_flg = SEM_UNDO;
+  time_t t1 = time(NULL);
+  // show_sem_ctl(semaphore_id, 0, "reserving semaphore");
+  retcode = semop(semaphore_id, &semops, 1);
+  handle_error(retcode, "error while getting semaphore");
+  time_t dt = time(NULL) - t1;
+  // show_sem_ctl(semaphore_id, 0, "semaphore reserved");
+
+  for (int i = 0; i < ALPHA_SIZE; i++) {
+    long *tcounter = shm_data->counter;
+    long *scounter = local_data.counter;
+    tcounter[i] += scounter[i];
+  }
+
+  time_t total = time(NULL) - t0;
+
+  printf("------------------------------------------------------------\n");
+  printf("%s: pid=%ld\n", name, (long) getpid());
+  printf("total time for calculation: ~ %ld sec; total wait for semaphore: ~ %ld sec\n", (long) total, (long) dt);
+  printf("------------------------------------------------------------\n");
   for (i = 0; i < ALPHA_SIZE; i++) {
-    struct sembuf semops_read;
-    unsigned int  ck = (i % SEM_SIZE);
-    semops_read.sem_num = ck;
-    semops_read.sem_op  = -1;
-    semops_read.sem_flg = SEM_UNDO;
-    retcode = semop(semaphore_id, &semops_read, 1);
-    handle_error(retcode, "error while getting read-semaphore");
     long *counter = shm_data->counter;
     long val = counter[i];
-    semops_read.sem_op  = 1;
-    retcode = semop(semaphore_id, &semops_read, 1);
-    handle_error(retcode, "error while releasing read-semaphore");
+
     if (! (i & 007)) {
-      n = sprintf(output_ptr, "\n");
-      output_ptr += n; m += n;
+      printf("\n");
+      fflush(stdout);
     }
     if ((i & 0177) < 32 || i == 127) {
-      n = sprintf(output_ptr, "\\%03o: %10ld    ", i, val);
-      output_ptr += n; m += n;
+      printf("\\%03o: %10ld    ", i, val);
     } else {
-      n = sprintf(output_ptr, "%4c: %10ld    ", (char) i, val);
-      output_ptr += n; m += n;
+      printf("%4c: %10ld    ", (char) i, val);
     }
   }
-  n = sprintf(output_ptr, "\n\n");
-  output_ptr += n; m += n;
-  n = sprintf(output_ptr, "------------------------------------------------------------\n\n");
-  output_ptr += n; m += n;
-  write(STDOUT_FILENO, output_buffer, (size_t) m);
+  printf("\n\n");
+  printf("------------------------------------------------------------\n\n");
+  fflush(stdout);
 
+  semops.sem_num = 0;
+  semops.sem_op  = 1;
+  semops.sem_flg = SEM_UNDO;
+  // show_sem_ctl(semaphore_id, 0, "freeing semaphore");
+  retcode = semop(semaphore_id, &semops, 1);
+  handle_error(retcode, "error while releasing semaphore");
+  // show_sem_ctl(semaphore_id, 0, "semaphore freed");
+
+  retcode = shmdt(shm_data);
+  handle_error(retcode, "error while detaching shared memory");
+  /* cleanup(); */
+  printf("done\n");
   exit(0);
 }
