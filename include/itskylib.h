@@ -11,6 +11,14 @@
 #define TRUE 1
 #define FALSE 0
 
+#define MAX_BLOCK_COUNT 100000
+#define MAX_BLOCK_SIZE  100000
+
+struct char_array {
+  char **strings;
+  int len;
+};
+
 enum exit_type { PROCESS_EXIT, THREAD_EXIT, NO_EXIT };
 
 enum file_type { NOT_EXISTENT, DIRECTORY, REGULAR_FILE, OTHER };
@@ -31,6 +39,11 @@ int open_retry_mode(char *file, int flags, mode_t mode, enum exit_type et);
 int open_retry(char *file, int flags, enum exit_type et);
 
 enum file_type check_file(const char *file_or_dir_name);
+
+int is_string_char(char c);
+
+/* read the contents of a file and convert it to an array of strings containing the readable characters interpreted as 8-bit-charset */
+struct char_array read_to_array(int fd);
 
 #endif
 

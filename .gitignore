@@ -77,3 +77,4 @@ ipc/mutex-ipc
 ipc/mutex-ipc-separate
 ipc/posix-sem-ipc
 ipc/sysv-sem-ipc
+io/read-string-array

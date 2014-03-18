@@ -141,4 +141,111 @@ enum file_type check_file(const char *file_or_dir_name) {
   }
 }
 
+int is_string_char(char c) {
+  return ('A' <= c && c <= 'Z' || '0' <= c && c <= '9' || 'a' <= c && c <= 'z' || '\240' <= c && c <= '\377');
+}
+
+/* read the contents of a file and convert it to an array of strings containing the readable characters interpreted as 8-bit-charset */
+struct char_array read_to_array(int fd) {
+  struct stat stat;
+  long retcode = fstat(fd, &stat);
+  handle_error(retcode, "stat", PROCESS_EXIT);
+  if (! S_ISREG(stat.st_mode)) {
+    handle_error(-1, "no regular file", PROCESS_EXIT);
+  }
+  off_t size = stat.st_size;
+  // printf("read_to_array size=%ld\n", (long)size);
+  char *content = malloc(size + 1);
+  content[size] = '\000';
+  retcode = read(fd, content, size);
+  // printf("read %ld bytes\n", retcode);
+  handle_error(retcode, "read", PROCESS_EXIT);
+  if (retcode < size) {
+    char error[1024];
+    sprintf(error, "read %ld characters instead of expected %ld", (long) retcode, (long) size);
+    /* TODO we should be more generous with read not taking all of the file contents at once */
+    handle_error(-1, error, PROCESS_EXIT);
+  }
+  /* temporarily make a two-level structure for the string pointers */
+  struct char_array blocks[MAX_BLOCK_COUNT]; // 1048576]; // 1024*1024
+  // printf("blocks created\n");
+  for (int i = 0; i < MAX_BLOCK_COUNT; i++) {
+    blocks[i].len = 0;
+    blocks[i].strings = (char **) NULL;
+  }
+  //printf("blocks initialized\n");
+  long string_count = 0;
+  long block_count = 0;
+  long string_pos = 0;
+  long block_pos = 0;
+
+  char *source_pointer = content;
+  char *target_pointer = content;
+  char *end_pointer = content + size;
+  char *string_pointer = content;
+  /* go through everything */
+  while (source_pointer <= end_pointer) {
+    /* go through one string, ends latest at end_pointer */
+    string_pointer = target_pointer;
+    while (source_pointer <= end_pointer) {
+      char c = *source_pointer;
+      source_pointer++;
+      if (is_string_char(c)) {
+        *target_pointer = c;
+        target_pointer++;
+      } else {
+        *target_pointer = '\000';
+        target_pointer++;
+        break;
+      }
+    }
+    if (target_pointer > string_pointer) {
+      // printf("found string %s (sc=%ld bc=%ld sp=%ld bp=%ld)\n", string_pointer, string_count, block_count, string_pos, block_pos);
+      /* real string found */
+      struct char_array *block = &(blocks[block_pos]);
+      if (block->strings == NULL) {
+        // printf("initialzing strings in block_pos=%ld\n", block_pos);
+        char **ptr =  (char **) malloc(MAX_BLOCK_SIZE * sizeof(char *));
+        handle_ptr_error(ptr, "malloc", PROCESS_EXIT);
+        block->strings = ptr;
+        block_count++;
+      }
+      block->strings[string_pos] = string_pointer;
+      block->len++;
+      string_pos++;
+      string_count++;
+      if (string_pos >= MAX_BLOCK_SIZE) {
+        //printf("incrementing block_pos sp=%ld bp=%ld\n", string_pos, block_pos);
+        string_pos = 0;
+        block_pos++;
+        //printf("incremented block_pos sp=%ld bp=%ld\n", string_pos, block_pos);
+      }
+    }
+    while (source_pointer <= end_pointer) {
+      char c = *source_pointer;
+      if (is_string_char(c)) {
+        break;
+      }
+      source_pointer++;
+    }
+  }
+  struct char_array result;
+  result.len = string_count;
+  result.strings = malloc(string_count * sizeof(char *));
+  string_pos = 0;
+  block_pos = 0;
+  for (int i = 0; i < string_count; i++) {
+    result.strings[i] = blocks[block_pos].strings[string_pos];
+    string_pos++;
+    if (string_pos >= MAX_BLOCK_SIZE) {
+      string_pos = 0;
+      block_pos++;
+    }
+  }
+  for (int i = 0; i < block_count; i++) {
+    free(blocks[i].strings);
+  }
+  return result;
+}
+
 /* end of file lib.c */
