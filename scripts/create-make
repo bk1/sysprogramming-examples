@@ -30,8 +30,8 @@ my $cwd = Cwd::cwd();
 File::Find::find({wanted => \&wanted}, '.');
 
 print "# automatically generated makefile by $0\n\n";
-print "CFLAGS=-Wall -lpthread -g -std=gnu99 -I./include -L./lib\n\n"; # -D_XOPEN_SOURCE -D__USE_XOPEN2K\n\n";
-print "LIBS=-lpthread -litsky\n\n";
+print "CFLAGS=-Wall -g -std=gnu99 -I./include -L./lib\n\n"; # -D_XOPEN_SOURCE -D__USE_XOPEN2K\n\n";
+print "LIBS=-lpthread lib/libitsky.a\n\n"; # -litsky\n\n";
 print "\n$all\n";
 print "\n$clean\n";
 print "\n$targets\n";

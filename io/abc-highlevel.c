@@ -14,6 +14,8 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include <itskylib.h>
+
 #define NOT_EXISTENT  0
 #define DIRECTORY  1
 #define REGULAR_FILE       2
@@ -47,23 +49,6 @@ int check_file(const char *file_or_dir_name) {
   }
 }
 
-/* helper function for dealing with errors */
-void handle_error(int return_code) {
-  if (return_code < 0) {
-    int myerrno = errno;
-    const char *error_str = strerror(myerrno);
-    printf("return_code=%d\nerrno=%d\nmessage=%s\n", return_code, myerrno, error_str);
-    exit(1);
-  }
-}
-
-/* helper function for dealing with errors concerning FILE pointers */
-void handle_errorf(FILE *ptr) {
-  if (ptr == NULL) {
-    handle_error(-1);
-  }
-}
-
 int main(int argc, char *argv[]) {
   const char *DIRNAME = "abc-dir";
   const char *FILENAME_FORM = "abc_file_%09d";
@@ -76,7 +61,7 @@ int main(int argc, char *argv[]) {
   if (r == OTHER || r == REGULAR_FILE) {
     /* if it exists as non-directory, try to remove it */
     return_code = unlink(DIRNAME);
-    handle_error(return_code);
+    handle_error(return_code, "unlink dir", PROCESS_EXIT);
     r = check_file(DIRNAME);
     if (r != NOT_EXISTENT) {
       printf("file %s could not be deleted\n", DIRNAME);
@@ -86,11 +71,11 @@ int main(int argc, char *argv[]) {
   if (r != DIRECTORY) {
     /* try to create a directory */
     return_code = mkdir(DIRNAME, 0777);
-    handle_error(return_code);
+    handle_error(return_code, "mkdir", PROCESS_EXIT);
   }
   /* change into the directory */
   return_code = chdir(DIRNAME);
-  handle_error(return_code);
+  handle_error(return_code, "chdir", PROCESS_EXIT);
 
   /* directory exists, find file name that is not in use */
   int i;
@@ -105,18 +90,18 @@ int main(int argc, char *argv[]) {
    * WARNING: this can cause a race condition, if some other program creates a file with the same name at the same moment
    */
   FILE *file = fopen(filename, "w");
-  handle_errorf(file);
+  handle_ptr_error(file, "fopen", PROCESS_EXIT);
 
   char c;
   for (c = 'Z'; c >= 'A'; c--) {
     /* move to the position wher c should be written */
     return_code = fseek(file, (off_t)(c - 'A'), SEEK_SET);
-    handle_error(return_code);
+    handle_error(return_code, "fseek", PROCESS_EXIT);
     /* write c */
     return_code = fputc(c, file);
-    handle_error(return_code);
+    handle_error(return_code, "fputc", PROCESS_EXIT);
   }
   return_code = fclose(file);
-  handle_error(return_code);
+  handle_error(return_code, "fclose", PROCESS_EXIT);
   exit(0);
 }
