@@ -68,3 +68,5 @@ threads/thread-id
 threads/thread-param-trap
 threads/thread_return
 threads/timedlock
+lib/lib.o
+lib/libitsky.a
