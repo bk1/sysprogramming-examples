@@ -15,17 +15,12 @@
 #include <pthread.h>
 #include <stdbool.h>
 
+#include <itskylib.h>
+
 #define SIZE 1024
 #define THREAD_COUNT 10
 
 pthread_barrier_t barrier;
-
-void handle_thread_error(int retcode) {
-  if (retcode < 0) {
-    printf("thread error %d\n", retcode);
-    exit(1);
-  }
-}
 
 void *thread_run(void *ptr) {
   long *val_ptr = (long *) ptr;
@@ -56,7 +51,7 @@ int main(int argc, char *argv[]) {
   pthread_t thread[THREAD_COUNT];
   int retcode;
   retcode = pthread_barrier_init(&barrier, NULL, THREAD_COUNT);
-  handle_thread_error(retcode);
+  handle_thread_error(retcode, "pthread_barrier_init", PROCESS_EXIT);
 
   int i;
   for (i = 0; i < THREAD_COUNT; i++) {
@@ -65,13 +60,13 @@ int main(int argc, char *argv[]) {
     *val_ptr = val;
     printf("main: starting %d\n", i);
     retcode = pthread_create(&(thread[i]), NULL, thread_run, val_ptr);
-    handle_thread_error(retcode);
+    handle_thread_error(retcode, "pthread_create", PROCESS_EXIT);
     printf("main: started %d\n", i);
   }
   for (i = 0; i < THREAD_COUNT; i++) {
     printf("main: joining thread %d\n", i);
     retcode = pthread_join(thread[i], NULL);
-    handle_thread_error(retcode);
+    handle_thread_error(retcode, "pthread_join", PROCESS_EXIT);
     printf("main: joined thread %d\n", i);
   }
   printf("DONE\n");

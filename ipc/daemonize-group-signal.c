@@ -15,20 +15,9 @@
 #include <unistd.h>
 #include <signal.h>
 
-#define FALSE 0
-#define TRUE  1
+#include <itskylib.h>
 
 int daemonized = FALSE;
-
-/* helper function for dealing with errors */
-void handle_error(int return_code) {
-  if (return_code < 0) {
-    int myerrno = errno;
-    const char *error_str = strerror(myerrno);
-    printf("return_code=%d\nerrno=%d\nmessage=%s\n", return_code, myerrno, error_str);
-    exit(1);
-  }
-}
 
 void signal_handler(int signo) {
   daemonized = TRUE;
@@ -48,21 +37,21 @@ int main(int argc, char *argv[]) {
 
   /* set pgid to pid */
   retcode = setpgid(pid, pgid);
-  handle_error(retcode);
+  handle_error(retcode, "setpgid", PROCESS_EXIT);
 
   /* set signal handler */
   signal(SIGUSR1, signal_handler);
-  handle_error(retcode);
+  handle_error(retcode, "signal", PROCESS_EXIT);
 
   /* first fork() to create child */
   fork_result = fork();
-  handle_error(fork_result);
+  handle_error(fork_result, "fork (1)", PROCESS_EXIT);
   if (fork_result == 0) {
     printf("In child\n");
 
     /* second fork to create grand child */
     fork_result = fork();
-    handle_error(fork_result);
+    handle_error(fork_result, "fork (2)", PROCESS_EXIT);
     if (fork_result != 0) {
       /* exit child, make grand child a daemon */
       printf("exiting child\n");
@@ -84,10 +73,10 @@ int main(int argc, char *argv[]) {
   }
   printf("parent waiting for child\n");
   retcode = wait(&status);
-  handle_error(retcode);
+  handle_error(retcode, "wait", PROCESS_EXIT);
   printf("child terminated\n");
   retcode = kill(-pgid, SIGUSR1);
-  handle_error(retcode);
+  handle_error(retcode, "kill", PROCESS_EXIT);
   printf("parent done\n");
   exit(0);
 }

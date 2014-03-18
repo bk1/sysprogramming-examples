@@ -14,15 +14,10 @@
 #include <unistd.h>
 #include <pthread.h>
 
+#include <itskylib.h>
+
 pthread_mutex_t mutex1;
 pthread_mutex_t mutex2;
-
-void handle_thread_error(int retcode) {
-  if (retcode < 0) {
-    printf("thread error %d\n", retcode);
-    exit(1);
-  }
-}
 
 void *thread_run(void *ptr) {
   
@@ -46,12 +41,12 @@ int main(int argc, char *argv[]) {
   pthread_t thread1;
   int retcode;
   retcode = pthread_mutex_init(&mutex1, NULL);
-  handle_thread_error(retcode);
+  handle_thread_error(retcode, "pthread_mutex_init (1)", PROCESS_EXIT);
   retcode = pthread_mutex_init(&mutex2, NULL);
-  handle_thread_error(retcode);
+  handle_thread_error(retcode, "pthread_mutex_init (2)", PROCESS_EXIT);
 
   retcode = pthread_create(&thread1, NULL, thread_run, NULL);
-  handle_thread_error(retcode);
+  handle_thread_error(retcode, "pthread_create", PROCESS_EXIT);
   
   printf("in parent thread: getting mutex1\n");
   pthread_mutex_lock(&mutex1);
@@ -67,12 +62,12 @@ int main(int argc, char *argv[]) {
   printf("in parent thread: done\n");
 
   retcode = pthread_join( thread1, NULL);
-  handle_thread_error(retcode);
+  handle_thread_error(retcode, "pthread_join", PROCESS_EXIT);
 
   retcode = pthread_mutex_destroy(&mutex1);
-  handle_thread_error(retcode);
+  handle_thread_error(retcode, "pthread_mutex_destroy", PROCESS_EXIT);
   retcode = pthread_mutex_destroy(&mutex2);
-  handle_thread_error(retcode);
+  handle_thread_error(retcode, "pthread_mutex_destroy", PROCESS_EXIT);
   printf("done\n");
   exit(0);
 }

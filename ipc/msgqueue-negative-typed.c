@@ -16,8 +16,8 @@
 #include <signal.h>
 #include <time.h>
 
-#define FALSE 0
-#define TRUE  1
+#include <itskylib.h>
+
 #define SIZE 20
 
 #define ERROR_SIZE 16384
@@ -26,13 +26,11 @@
 
 int msgqid_for_cleanup = 0;
 
-void handle_error(int return_code, const char *msg);
-
 void cleanup_queue() {
   if (msgqid_for_cleanup > 0) {
     int retcode = msgctl(msgqid_for_cleanup, IPC_RMID, NULL);
     msgqid_for_cleanup = 0;
-    handle_error(retcode, "removing of msgqueue failed");
+    handle_error(retcode, "removing of msgqueue failed", NO_EXIT);
   }
 }
 
@@ -42,32 +40,13 @@ void my_handler(int signo) {
   exit(1);
 }
 
-/* helper function for dealing with errors */
-void handle_error(int return_code, const char *msg) {
-  if (return_code < 0) {
-    char error_message0[ERROR_SIZE];
-    char error_message[ERROR_SIZE];
-    int myerrno = errno;
-    const char *error_str = strerror(myerrno);
-    sprintf(error_message0, "return_code=%d\nerrno=%d\nmessage=%s\n", return_code, myerrno, error_str);
-    if (msg != NULL) {
-      sprintf(error_message, "%s\n%s", msg, error_message0);
-    } else {
-      sprintf(error_message, "%s", error_message0);
-    }
-    write(STDOUT_FILENO, error_message, strlen(error_message));
-    cleanup_queue();
-    exit(1);
-  }
-}
-
 
 void show_msg_ctl(int id, const char *txt) {
 
   int retcode;
   struct msqid_ds msgctl_data;
   retcode = msgctl(id, IPC_STAT, &msgctl_data);
-  handle_error(retcode, "child msgctl failed");
+  handle_error(retcode, "child msgctl failed", PROCESS_EXIT);
   struct ipc_perm perms = msgctl_data.msg_perm;
   printf("%s: key=%ld uid=%d gid=%d cuid=%d cgid=%d mode=%d seq=%d\n", txt, (long) perms.__key, (int) perms.uid, (int) perms.gid, (int) perms.cuid, (int) perms.cgid, (int) perms.mode, (int)perms.__seq);
   printf("%s: bytes=%ld qnum=%ld qbytes=%ld\n", txt, msgctl_data.__msg_cbytes, msgctl_data.msg_qnum, msgctl_data.msg_qbytes);
@@ -97,19 +76,17 @@ int main(int argc, char *argv[]) {
   fclose(f);
 
   key_t key = ftok("./msgref.dat", 0);
-  if (key < 0) {
-    handle_error(-1, "ftok failed");
-  }
+  handle_error(key, "ftok failed", PROCESS_EXIT);
 
   /* create a second process so communication can be tested */
   int pid = fork();
-  handle_error(pid, "fork failed");
+  handle_error(pid, "fork failed", PROCESS_EXIT);
   if (pid == 0) {
     printf("in child pid=%d (ppid=%d)\n", getpid(), getppid());
     struct msg msg;
 
     int id = msgget(key, IPC_CREAT | MSGPERM);
-    handle_error(id, "child msgget failed");
+    handle_error(id, "child msgget failed", PROCESS_EXIT);
 
     printf("child: id=%d key=%ld\n", id, (long) key);
 
@@ -121,7 +98,7 @@ int main(int argc, char *argv[]) {
       msg.data.y = i*i;
       msg.type = i + 101;
       retcode = msgsnd(id, &msg, SIZE, 0);
-      handle_error(retcode, "msgsnd failed");
+      handle_error(retcode, "msgsnd failed", PROCESS_EXIT);
       struct timespec duration;
       duration.tv_sec = (time_t) 0;
       duration.tv_nsec = 100000000L;
@@ -134,6 +111,7 @@ int main(int argc, char *argv[]) {
     exit(0);
 
   } else {
+    atexit(cleanup_queue);
     printf("in parent pod=%d (child_pid=%d)\n", getpid(), pid);
     sleep(1);
     printf("reading in parent\n");
@@ -141,7 +119,7 @@ int main(int argc, char *argv[]) {
     struct msg msg;
     int id = msgget(key, IPC_CREAT | MSGPERM);
     msgqid_for_cleanup = id;
-    handle_error(id, "parent msgget failed");
+    handle_error(id, "parent msgget failed", PROCESS_EXIT);
 
     printf("parent: id=%d key=%ld\n", id, (long) key);
 
@@ -149,7 +127,7 @@ int main(int argc, char *argv[]) {
 
     for (i = 150; i >= 50; i--) {
       retcode = msgrcv(id, &msg, SIZE, -i, 0);
-      handle_error(retcode, "parent msgrcv failed");
+      handle_error(retcode, "parent msgrcv failed", PROCESS_EXIT);
       char c = msg.data.c;
       long t = msg.type;
       if (c == 'Q') {

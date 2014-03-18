@@ -14,12 +14,7 @@
 #include <unistd.h>
 #include <pthread.h>
 
-void handle_thread_error(int retcode) {
-  if (retcode < 0) {
-    printf("thread error %d\n", retcode);
-    exit(1);
-  }
-}
+#include <itskylib.h>
 
 void print_info(char *txt) {
   /** warning gettid is VERY Linux-specific: */
@@ -39,14 +34,16 @@ int main(int argc, char *argv[]) {
   int retcode;
 
   retcode = pthread_create(&thread1, NULL, thread_run, "in child thread1");
-  handle_thread_error(retcode);
+  handle_thread_error(retcode, "pthread_create (1)", PROCESS_EXIT);
   retcode = pthread_create(&thread2, NULL, thread_run, "in child thread2");
-  handle_thread_error(retcode);
+  handle_thread_error(retcode, "pthread_create (2)", PROCESS_EXIT);
 
   print_info("in parent");
 
   retcode = pthread_join( thread1, NULL);
-  handle_thread_error(retcode);
+  handle_thread_error(retcode, "pthread_join", PROCESS_EXIT);
+  retcode = pthread_join( thread2, NULL);
+  handle_thread_error(retcode, "pthread_join", PROCESS_EXIT);
 
   printf("done\n");
   exit(0);

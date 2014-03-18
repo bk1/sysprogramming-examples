@@ -15,6 +15,8 @@
 #include <unistd.h>
 #include <signal.h>
 
+#include <itskylib.h>
+
 #define MSGPERM 0600
 #define SIZE 20
 

@@ -15,28 +15,27 @@
 #include <unistd.h>
 #include <pthread.h>
 
+#include <itskylib.h>
+
 int pipes[2];
 int message_len;
 
 void *thread_run(void *ptr) {
   char message[] = "This is the message to be transmitted";
-  int ret_code;
+  int retcode;
   sleep(1);
   message_len = strlen(message);
   printf("In child\n");
-  ret_code = write(pipes[1], message, strlen(message));
-  if (ret_code < 0) {
-    printf("Error writing to pipe ret_code=%d errno=%d\n", ret_code, errno);
-    exit(2);
-  }
-  printf("%d chars written\n", ret_code);
+  retcode = write(pipes[1], message, strlen(message));
+  handle_error(retcode, "Error writing to pipe retcode=%d errno=%d\n", THREAD_EXIT);
+  printf("%d chars written\n", retcode);
   close(pipes[1]);
   return (void *) NULL;
 }
 
 int main(int argc, char *argv[]) {
   char buff[1024];
-  int ret_code;
+  int retcode;
   pid_t pid;
   pid_t ppid;
   pthread_t thread1;
@@ -44,25 +43,20 @@ int main(int argc, char *argv[]) {
   pid =  getpid();
   ppid =  getppid();
   printf("Started pid=%d ppid=%d\n", pid, ppid);
-  ret_code = pipe(pipes);
-  if (ret_code != 0) {
-    printf("Error creating pipe ret_code=%d errno=%d\n", ret_code, errno);
-    exit(1);
-  }
-  ret_code = pthread_create(&thread1, NULL, thread_run, NULL);
+  retcode = pipe(pipes);
+  handle_error(retcode, "Error creating pipe", PROCESS_EXIT);
+  retcode = pthread_create(&thread1, NULL, thread_run, NULL);
+  handle_thread_error(retcode, "Error creating thread", PROCESS_EXIT);
   pid =  getpid();
   ppid =  getppid();
-  printf("ret_code=%d pid=%d ppid=%d\n", ret_code, pid, ppid);
+  printf("retcode=%d pid=%d ppid=%d\n", retcode, pid, ppid);
   printf("In parent\n");
-  ret_code = read(pipes[0], buff, message_len);
-  if (ret_code < 0) {
-    printf("Error reading from pipe ret_code=%d errno=%d\n", ret_code, errno);
-    exit(3);
-  }
-  printf("%d chars read\n", ret_code);
+  retcode = read(pipes[0], buff, message_len);
+  handle_error(retcode, "Error reading from pipe", PROCESS_EXIT);
+  printf("%d chars read\n", retcode);
   close(pipes[0]);
   printf("found message=\"%s\"\n", buff);
-  pthread_join( thread1, NULL);
+  pthread_join(thread1, NULL);
   printf("done\n");
   exit(0);
 }

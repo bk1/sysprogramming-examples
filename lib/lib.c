@@ -6,13 +6,13 @@
  */
 
 #include <errno.h>
-#include <fcntl.h>    
+#include <fcntl.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h> 
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -21,14 +21,25 @@
 #define ERROR_SIZE 4096
 
 void exit_by_type(enum exit_type et) {
-  if (et == PROCESS_EXIT) {
+  switch (et) {
+  case PROCESS_EXIT: 
     exit(1);
-  } else {
+    break;
+  case THREAD_EXIT:
     pthread_exit(NULL);
+    break;
+  case NO_EXIT:
+    printf("continuing\n");
+    break;
+  default:
+    printf("unknown exit_type=%d\n", et);
+    exit(2);
+    break;
   }
 }
 
 
+/* helper function for dealing with errors */
 void handle_error_myerrno(long return_code, int myerrno, const char *msg, enum exit_type et) {
   if (return_code < 0) {
     char extra_msg[ERROR_SIZE];
@@ -99,7 +110,7 @@ int open_retry(char *file, int flags, enum exit_type et) {
   }
   return fd;
 }
-  
+
 
 /* check if file exits and what type it is
  * exit with error if errors occur during stat

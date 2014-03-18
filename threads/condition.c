@@ -15,25 +15,12 @@
 #include <pthread.h>
 #include <time.h>
 
-#define TRUE 1
-#define FALSE 0
+#include <itskylib.h>
 
-#define SIZE 1024
 #define THREAD_COUNT 10
 
 pthread_mutex_t mutex1;
 pthread_cond_t  condition;
-
-char buff[SIZE];
-
-int done = FALSE;
-
-void handle_thread_error(int retcode) {
-  if (retcode < 0) {
-    printf("thread error %d\n", retcode);
-    exit(1);
-  }
-}
 
 void *thread_run(void *ptr) {
   char *name = (char *)ptr;
@@ -53,7 +40,7 @@ int main(int argc, char *argv[]) {
   int retcode;
   retcode = pthread_mutex_init(&mutex1, NULL);
   retcode = pthread_cond_init(&condition, NULL);
-  handle_thread_error(retcode);
+  handle_thread_error(retcode, "pthread_cond_init", PROCESS_EXIT);
 
   int i;
   for (i = 0; i < THREAD_COUNT; i++) {
@@ -62,7 +49,7 @@ int main(int argc, char *argv[]) {
     char *name = strdup(raw_name);
     printf("main: starting %s\n", name);
     retcode = pthread_create(&(thread[i]), NULL, thread_run, name);
-    handle_thread_error(retcode);
+    handle_thread_error(retcode, "pthread_create", PROCESS_EXIT);
     printf("main: started %s\n", name);
   }
   sleep(5);
@@ -76,7 +63,7 @@ int main(int argc, char *argv[]) {
   for (i = 0; i < THREAD_COUNT; i++) {
     printf("main: joining thread %d\n", i);
     retcode = pthread_join(thread[i], NULL);
-    handle_thread_error(retcode);
+    handle_thread_error(retcode, "pthread_join", PROCESS_EXIT);
     printf("main: joined thread %d\n", i);
   }
   printf("DONE\n");

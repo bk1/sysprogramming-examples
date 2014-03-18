@@ -11,7 +11,7 @@
 #define TRUE 1
 #define FALSE 0
 
-enum exit_type { PROCESS_EXIT, THREAD_EXIT };
+enum exit_type { PROCESS_EXIT, THREAD_EXIT, NO_EXIT };
 
 enum file_type { NOT_EXISTENT, DIRECTORY, REGULAR_FILE, OTHER };
 
