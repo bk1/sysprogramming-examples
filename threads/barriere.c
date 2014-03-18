@@ -13,10 +13,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <pthread.h>
-
-
-#define TRUE 1
-#define FALSE 0
+#include <stdbool.h>
 
 #define SIZE 1024
 #define THREAD_COUNT 10

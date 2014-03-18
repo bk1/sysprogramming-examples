@@ -30,7 +30,8 @@ my $cwd = Cwd::cwd();
 File::Find::find({wanted => \&wanted}, '.');
 
 print "# automatically generated makefile by $0\n\n";
-print "CFLAGS=-Wall -lpthread -g -std=gnu99\n\n"; # -D_XOPEN_SOURCE -D__USE_XOPEN2K\n\n";
+print "CFLAGS=-Wall -lpthread -g -std=gnu99 -I./include -L./lib\n\n"; # -D_XOPEN_SOURCE -D__USE_XOPEN2K\n\n";
+print "LIBS=-lpthread -litsky\n\n";
 print "\n$all\n";
 print "\n$clean\n";
 print "\n$targets\n";
@@ -58,14 +59,17 @@ sub doexec ($@) {
     my $sname = $name;
     $sname =~ s/^\.\///;
     my $tname = $sname;
-    $tname =~ s/\.c$//;
+    if ($name =~ m/\/lib\//) {
+        $tname =~ s/lib[a-zA-Z0-9]*\.c$/libitsky.a/;
+        my $oname = $sname;
+        $oname =~ s/\.c$/.o/;
+        $targets .= "$tname: $sname\n\tgcc -c \$(CFLAGS) $sname -o $oname\n\tar cr $tname $oname\n\tranlib $tname\n\n";
+    } else {
+        $tname =~ s/\.c$//;
+        $targets .= "$tname: $sname\n\tgcc \$(CFLAGS) \$(LIBS) $sname -o $tname\n\n";
+    }
     $all .= " $tname";
     $clean .= " $tname";
-    my $libs = "";
-    if ($sname =~ m/thread/) {
-       $libs .=" -pthread";
-    }
-    $targets .= "$tname: $sname\n\tgcc \$(CFLAGS) $sname $libs -o $tname\n\n";
     chdir $File::Find::dir;
     return !$?;
 }
