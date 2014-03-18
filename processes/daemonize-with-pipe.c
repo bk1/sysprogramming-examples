@@ -14,15 +14,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-/* helper function for dealing with errors */
-void handle_error(int return_code, char *msg) {
-  if (return_code < 0) {
-    int myerrno = errno;
-    const char *error_str = strerror(myerrno);
-    printf("%s\nreturn_code=%d\nerrno=%d\nmessage=%s\n", msg, return_code, myerrno, error_str);
-    exit(1);
-  }
-}
+#include <itskylib.h>
 
 int main(int argc, char *argv[]) {
   int fork_result;
@@ -33,7 +25,7 @@ int main(int argc, char *argv[]) {
   char message[] = "X";
   printf("Started parent\n");
   retcode = pipe(pipes);
-  handle_error(retcode, "Error creating pipe");
+  handle_error(retcode, "Error creating pipe", PROCESS_EXIT);
   
   /* first fork() to create child */
   fork_result = fork();
@@ -51,17 +43,17 @@ int main(int argc, char *argv[]) {
     /* in grand child */
     /* close write end of pipe */
     retcode = close(pipes[1]);
-    handle_error(retcode, "error closing pipe in grandchild (daemon)");
+    handle_error(retcode, "error closing pipe in grandchild (daemon)", PROCESS_EXIT);
 
     /* read from pipe */
     printf("in grandchild: waiting for pipe\n");
     retcode = read(pipes[0], buff, strlen(message));
-    handle_error(retcode, "error reading from pipe in grandchild");
+    handle_error(retcode, "error reading from pipe in grandchild", PROCESS_EXIT);
 
     printf("grandchild has received message from grand parent: daemonized\n");
     /* pipe has done its purpose, close it */
     retcode = close(pipes[0]);
-    handle_error(retcode, "error closing pipe in daemon");
+    handle_error(retcode, "error closing pipe in daemon", PROCESS_EXIT);
 
     printf("daemon has ppid=%d\n", getppid());
 
@@ -78,10 +70,10 @@ int main(int argc, char *argv[]) {
   wait(&status);
   printf("child terminated\n");
   retcode = write(pipes[1], message, strlen(message));
-  handle_error(retcode, "error writing to pipe in parent");
+  handle_error(retcode, "error writing to pipe in parent", PROCESS_EXIT);
 
   retcode = close(pipes[1]);
-  handle_error(retcode, "error closing pipe in parent");
+  handle_error(retcode, "error closing pipe in parent", PROCESS_EXIT);
   
   printf("parent done\n");
   exit(0);
