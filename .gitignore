@@ -73,3 +73,7 @@ lib/libitsky.a
 ipc/shared-memory-count-simple-posix
 output-semaphore.log
 shm_sem_ref.dat
+ipc/mutex-ipc
+ipc/mutex-ipc-separate
+ipc/posix-sem-ipc
+ipc/sysv-sem-ipc
