@@ -14,63 +14,21 @@
 #include <unistd.h>
 #include <errno.h>
 
-#define NOT_EXISTENT  0
-#define DIRECTORY  1
-#define REGULAR_FILE       2
-#define OTHER      3
-
-/* check if file exits and what type it is
- * exit with error if errors occur during stat
- * return NOT_EXISTENT, DIRECTORY, REGULAR_FILE or OTHER
- */
-int check_file(const char *file_or_dir_name) {
-  int r;
-  struct stat stat_buf;
-  r = lstat(file_or_dir_name, &stat_buf);
-  if (r < 0) {
-    int myerrno = errno;
-    if (myerrno == ENOENT) {
-      /* not existing should be handled as legitimate result, not as error */
-      return NOT_EXISTENT;
-    } else {
-      const char *error_str = strerror(myerrno);
-      printf("errno=%d\nmessage=%s\n", myerrno, error_str);
-      exit(1);
-    }
-  }
-  mode_t st_mode = stat_buf.st_mode;
-  if (S_ISDIR(st_mode)) {
-    return DIRECTORY;
-  } else if (S_ISREG(st_mode)) {
-    return REGULAR_FILE;
-  } else {
-    return OTHER;
-  }
-}
-
-/* helper function for dealing with errors */
-void handle_error(int return_code) {
-  if (return_code < 0) {
-    int myerrno = errno;
-    const char *error_str = strerror(myerrno);
-    printf("return_code=%d\nerrno=%d\nmessage=%s\n", return_code, myerrno, error_str);
-    exit(1);
-  }
-}
+#include <itskylib.h>
 
 int main(int argc, char *argv[]) {
   const char *DIRNAME = "abc-dir";
   const char *FILENAME_FORM = "abc_file_%09d";
   char *filename = (char *) malloc(25);
   int r;
-  int return_code;
+  int retcode;
 
   /* check if the given directory exists already */
   r = check_file(DIRNAME);
   if (r == OTHER || r == REGULAR_FILE) {
     /* if it exists as non-directory, try to remove it */
-    return_code = unlink(DIRNAME);
-    handle_error(return_code);
+    retcode = unlink(DIRNAME);
+    handle_error(retcode, "unlink", PROCESS_EXIT);
     r = check_file(DIRNAME);
     if (r != NOT_EXISTENT) {
       printf("file %s could not be deleted\n", DIRNAME);
@@ -79,12 +37,12 @@ int main(int argc, char *argv[]) {
   }
   if (r != DIRECTORY) {
     /* try to create a directory */
-    return_code = mkdir(DIRNAME, 0777);
-    handle_error(return_code);
+    retcode = mkdir(DIRNAME, 0777);
+    handle_error(retcode, "mkdir", PROCESS_EXIT);
   }
   /* change into the directory */
-  return_code = chdir(DIRNAME);
-  handle_error(return_code);
+  retcode = chdir(DIRNAME);
+  handle_error(retcode, "chdir", PROCESS_EXIT);
 
   /* directory exists */
   int i;
@@ -100,21 +58,21 @@ int main(int argc, char *argv[]) {
    * WARNING: this can cause a race condition, if some other program creates a file with the same name at the same moment
    */
   int fd = open(filename, O_WRONLY | O_CREAT | O_EXCL, 0666);
-  handle_error(fd);
+  handle_error(fd, "open", PROCESS_EXIT);
 
   char *buff = malloc(2);
   buff[1] = '\000';
   char c;
   for (c = 'Z'; c >= 'A'; c--) {
     /* move to the position wher c should be written */
-    return_code = lseek(fd, (off_t)(c - 'A'), SEEK_SET);
-    handle_error(return_code);
+    retcode = lseek(fd, (off_t)(c - 'A'), SEEK_SET);
+    handle_error(retcode, "lseek", PROCESS_EXIT);
     buff[0] = c;
     /* write c */
-    return_code = write(fd, buff, 1);
-    handle_error(return_code);
+    retcode = write(fd, buff, 1);
+    handle_error(retcode, "write", PROCESS_EXIT);
   }
-  return_code = close(fd);
-  handle_error(return_code);
+  retcode = close(fd);
+  handle_error(retcode, "close", PROCESS_EXIT);
   exit(0);
 }

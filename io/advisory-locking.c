@@ -14,27 +14,16 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-void handle_error_myerrno(int return_code, int myerrno) {
-    const char *error_str = strerror(myerrno);
-    printf("return_code=%d\nerrno=%d\nmessage=%s\n", return_code, myerrno, error_str);
-    exit(1);
-}
-
-void handle_error(int return_code) {
-  if (return_code < 0) {
-    int myerrno = errno;
-    handle_error_myerrno(return_code, myerrno);
-  }
-}
+#include <itskylib.h>
 
 int main(int argc, char *argv[]) {
   const char *FILENAME = "/tmp/abc987654";
-  FILE *file = fopen(FILENAME, "a");
   int return_code;
   int myerrno;
-  if (file == NULL) {
-    handle_error(-1);
-  }
+
+  FILE *file = fopen(FILENAME, "a");
+  handle_ptr_error(file, "fopen", PROCESS_EXIT);
+
   fwrite("abcdefghijklmnopqrstuvwxyz", 1, 26, file);
   fwrite("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 1, 26, file);
   int fd = fileno(file);
@@ -49,7 +38,7 @@ int main(int argc, char *argv[]) {
       if (myerrno == EACCES || myerrno == EAGAIN) {
         printf("pid=%d could not lock position %d\n", pid, pos);
       } else {
-        handle_error_myerrno(return_code, myerrno);
+        handle_error_myerrno(return_code, myerrno, "lockf", PROCESS_EXIT);
       }
     } else {
       printf("pid=%d could lock position %d\n", pid, pos);

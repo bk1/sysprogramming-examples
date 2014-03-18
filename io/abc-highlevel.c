@@ -16,39 +16,6 @@
 
 #include <itskylib.h>
 
-#define NOT_EXISTENT  0
-#define DIRECTORY  1
-#define REGULAR_FILE       2
-#define OTHER      3
-
-/* check if file exits and what type it is
- * exit with error if errors occur during stat
- * return NOT_EXISTENT, DIRECTORY, REGULAR_FILE or OTHER
- */
-int check_file(const char *file_or_dir_name) {
-  int r;
-  struct stat stat_buf;
-  r = lstat(file_or_dir_name, &stat_buf);
-  if (r < 0) {
-    int myerrno = errno;
-    if (myerrno == ENOENT) {
-      return NOT_EXISTENT;
-    } else {
-      const char *error_str = strerror(myerrno);
-      printf("errno=%d\nmessage=%s\n", myerrno, error_str);
-      exit(1);
-    }
-  }
-  mode_t st_mode = stat_buf.st_mode;
-  if (S_ISDIR(st_mode)) {
-    return DIRECTORY;
-  } else if (S_ISREG(st_mode)) {
-    return REGULAR_FILE;
-  } else {
-    return OTHER;
-  }
-}
-
 int main(int argc, char *argv[]) {
   const char *DIRNAME = "abc-dir";
   const char *FILENAME_FORM = "abc_file_%09d";

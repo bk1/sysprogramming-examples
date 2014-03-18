@@ -10,6 +10,8 @@
 
 enum exit_type { PROCESS_EXIT, THREAD_EXIT };
 
+enum file_type { NOT_EXISTENT, DIRECTORY, REGULAR_FILE, OTHER };
+
 void exit_by_type(enum exit_type et);
 
 void handle_thread_error(int retcode, const char *msg, enum exit_type et);
@@ -22,6 +24,8 @@ void handle_ptr_error(void *ptr, const char *msg, enum exit_type et);
 int open_retry_mode(char *file, int flags, mode_t mode, enum exit_type et);
 
 int open_retry(char *file, int flags, enum exit_type et);
+
+enum file_type check_file(const char *file_or_dir_name);
 
 #endif
 

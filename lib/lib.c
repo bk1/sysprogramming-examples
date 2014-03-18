@@ -28,24 +28,11 @@ void exit_by_type(enum exit_type et) {
   }
 }
 
-void handle_thread_error(int retcode, const char *msg, enum exit_type et) {
-  if (retcode < 0) {
-    if (msg != NULL) {
-      printf("%s: thread error %d\n", msg, retcode);
-    } else {
-      printf("thread error %d\n", retcode);
-    }
-    exit_by_type(et);
-  }
-}
 
-
-/* helper function for dealing with errors */
-void handle_error(long return_code, const char *msg, enum exit_type et) {
+void handle_error_myerrno(long return_code, int myerrno, const char *msg, enum exit_type et) {
   if (return_code < 0) {
     char extra_msg[ERROR_SIZE];
     char error_msg[ERROR_SIZE];
-    int myerrno = errno;
     const char *error_str = strerror(myerrno);
     if (msg != NULL) {
       sprintf(extra_msg, "%s\n", msg);
@@ -56,6 +43,18 @@ void handle_error(long return_code, const char *msg, enum exit_type et) {
     write(STDOUT_FILENO, error_msg, strlen(error_msg));
     exit_by_type(et);
   }
+}
+
+void handle_thread_error(int retcode, const char *msg, enum exit_type et) {
+  if (retcode != 0) {
+    handle_error_myerrno(-abs(retcode), retcode, msg, et);
+  }
+}
+
+/* helper function for dealing with errors */
+void handle_error(long return_code, const char *msg, enum exit_type et) {
+  int myerrno = errno;
+  handle_error_myerrno(return_code, myerrno, msg, et);
 }
 
 
@@ -101,3 +100,34 @@ int open_retry(char *file, int flags, enum exit_type et) {
   return fd;
 }
   
+
+/* check if file exits and what type it is
+ * exit with error if errors occur during stat
+ * return NOT_EXISTENT, DIRECTORY, REGULAR_FILE or OTHER
+ */
+enum file_type check_file(const char *file_or_dir_name) {
+  int r;
+  struct stat stat_buf;
+  r = lstat(file_or_dir_name, &stat_buf);
+  if (r < 0) {
+    int myerrno = errno;
+    if (myerrno == ENOENT) {
+      /* not existing should be handled as legitimate result, not as error */
+      return NOT_EXISTENT;
+    } else {
+      const char *error_str = strerror(myerrno);
+      printf("errno=%d\nmessage=%s\n", myerrno, error_str);
+      exit(1);
+    }
+  }
+  mode_t st_mode = stat_buf.st_mode;
+  if (S_ISDIR(st_mode)) {
+    return DIRECTORY;
+  } else if (S_ISREG(st_mode)) {
+    return REGULAR_FILE;
+  } else {
+    return OTHER;
+  }
+}
+
+/* end of file lib.c */
