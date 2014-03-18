@@ -70,3 +70,6 @@ threads/thread_return
 threads/timedlock
 lib/lib.o
 lib/libitsky.a
+ipc/shared-memory-count-simple-posix
+output-semaphore.log
+shm_sem_ref.dat
