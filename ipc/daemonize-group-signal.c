@@ -40,8 +40,8 @@ int main(int argc, char *argv[]) {
   handle_error(retcode, "setpgid", PROCESS_EXIT);
 
   /* set signal handler */
-  signal(SIGUSR1, signal_handler);
-  handle_error(retcode, "signal", PROCESS_EXIT);
+  void *ptr = signal(SIGUSR1, signal_handler);
+  handle_ptr_error(ptr, "signal", PROCESS_EXIT);
 
   /* first fork() to create child */
   fork_result = fork();
@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
   printf("parent waiting for child\n");
   retcode = wait(&status);
   handle_error(retcode, "wait", PROCESS_EXIT);
-  printf("child terminated\n");
+  printf("child terminated status=%d\n", status);
   retcode = kill(-pgid, SIGUSR1);
   handle_error(retcode, "kill", PROCESS_EXIT);
   printf("parent done\n");

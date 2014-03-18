@@ -5,10 +5,10 @@ CFLAGS=-Wall -g -std=gnu99 -I./include -L./lib
 LIBS=-lpthread -litsky
 
 
-all: lib/libitsky.a processes/fork-write-twice processes/daemonize processes/fork-wait processes/daemonize-with-pipe processes/daemonize-group-signal processes/extract processes/transmit-via-pipe io/tty-read io/stdio-stat io/lowlevel-read-write io/stdin-read io/reading-deleted-file io/shared-locking io/highlevel-io io/advisory-locking-blocking io/file-stat io/lowlevel-io io/lockf-file-part1 io/reading-dir-short io/lockf-file-part2 io/abc-lowlevel io/not-reading-dir io/advisory-locking io/failing-io io/reading-dir io/password-test io/abc-highlevel threads/thread_return threads/thread-param-trap threads/thread-id threads/condition threads/timedlock threads/threadf threads/thread threads/thread_write_once threads/exit-pthread-exit threads/nonblocking threads/mutex-reentrance threads/mutex-order threads/deadlock threads/barriere ipc/shared-memory ipc/signal ipc/msgqueue-positive-typed ipc/daemonize-group-signal-sigaction ipc/semaphore ipc/msgqueue-simple ipc/shared-memory-count-simple ipc/semaphore-simple ipc/daemonize-group-signal ipc/shared-memory-count-simple-posix ipc/daemonize-signal-and-pipe ipc/msgqueue ipc/msgqueue-hello ipc/shared-memory-count-output-semaphore ipc/msgqueue-negative-typed ipc/shared-memory-count
+all: lib/libitsky.a processes/fork-write-twice processes/daemonize processes/fork-wait processes/daemonize-with-pipe processes/daemonize-group-signal processes/extract processes/transmit-via-pipe io/tty-read io/stdio-stat io/lowlevel-read-write io/stdin-read io/reading-deleted-file io/shared-locking io/highlevel-io io/advisory-locking-blocking io/file-stat io/lowlevel-io io/lockf-file-part1 io/reading-dir-short io/lockf-file-part2 io/abc-lowlevel io/not-reading-dir io/advisory-locking io/failing-io io/reading-dir io/password-test io/abc-highlevel threads/thread_return threads/thread-param-trap threads/thread-id threads/condition threads/timedlock threads/threadf threads/thread threads/thread_write_once threads/exit-pthread-exit threads/nonblocking threads/mutex-reentrance threads/mutex-order threads/deadlock threads/barriere ipc/shared-memory ipc/signal ipc/msgqueue-positive-typed ipc/daemonize-group-signal-sigaction ipc/semaphore ipc/msgqueue-simple ipc/shared-memory-count-simple ipc/mutex-ipc-separate ipc/mutex-ipc ipc/posix-sem-ipc ipc/semaphore-simple ipc/daemonize-group-signal ipc/shared-memory-count-simple-posix ipc/daemonize-signal-and-pipe ipc/msgqueue ipc/msgqueue-hello ipc/sysv-sem-ipc ipc/shared-memory-count-output-semaphore ipc/msgqueue-negative-typed ipc/shared-memory-count
 
 clean:
-	rm -f lib/libitsky.a processes/fork-write-twice processes/daemonize processes/fork-wait processes/daemonize-with-pipe processes/daemonize-group-signal processes/extract processes/transmit-via-pipe io/tty-read io/stdio-stat io/lowlevel-read-write io/stdin-read io/reading-deleted-file io/shared-locking io/highlevel-io io/advisory-locking-blocking io/file-stat io/lowlevel-io io/lockf-file-part1 io/reading-dir-short io/lockf-file-part2 io/abc-lowlevel io/not-reading-dir io/advisory-locking io/failing-io io/reading-dir io/password-test io/abc-highlevel threads/thread_return threads/thread-param-trap threads/thread-id threads/condition threads/timedlock threads/threadf threads/thread threads/thread_write_once threads/exit-pthread-exit threads/nonblocking threads/mutex-reentrance threads/mutex-order threads/deadlock threads/barriere ipc/shared-memory ipc/signal ipc/msgqueue-positive-typed ipc/daemonize-group-signal-sigaction ipc/semaphore ipc/msgqueue-simple ipc/shared-memory-count-simple ipc/semaphore-simple ipc/daemonize-group-signal ipc/shared-memory-count-simple-posix ipc/daemonize-signal-and-pipe ipc/msgqueue ipc/msgqueue-hello ipc/shared-memory-count-output-semaphore ipc/msgqueue-negative-typed ipc/shared-memory-count
+	rm -f lib/libitsky.a processes/fork-write-twice processes/daemonize processes/fork-wait processes/daemonize-with-pipe processes/daemonize-group-signal processes/extract processes/transmit-via-pipe io/tty-read io/stdio-stat io/lowlevel-read-write io/stdin-read io/reading-deleted-file io/shared-locking io/highlevel-io io/advisory-locking-blocking io/file-stat io/lowlevel-io io/lockf-file-part1 io/reading-dir-short io/lockf-file-part2 io/abc-lowlevel io/not-reading-dir io/advisory-locking io/failing-io io/reading-dir io/password-test io/abc-highlevel threads/thread_return threads/thread-param-trap threads/thread-id threads/condition threads/timedlock threads/threadf threads/thread threads/thread_write_once threads/exit-pthread-exit threads/nonblocking threads/mutex-reentrance threads/mutex-order threads/deadlock threads/barriere ipc/shared-memory ipc/signal ipc/msgqueue-positive-typed ipc/daemonize-group-signal-sigaction ipc/semaphore ipc/msgqueue-simple ipc/shared-memory-count-simple ipc/mutex-ipc-separate ipc/mutex-ipc ipc/posix-sem-ipc ipc/semaphore-simple ipc/daemonize-group-signal ipc/shared-memory-count-simple-posix ipc/daemonize-signal-and-pipe ipc/msgqueue ipc/msgqueue-hello ipc/sysv-sem-ipc ipc/shared-memory-count-output-semaphore ipc/msgqueue-negative-typed ipc/shared-memory-count
 
 lib/libitsky.a: lib/lib.c
 	gcc -c $(CFLAGS) lib/lib.c -o lib/lib.o
@@ -158,6 +158,15 @@ ipc/msgqueue-simple: ipc/msgqueue-simple.c lib/libitsky.a include/itskylib.h
 ipc/shared-memory-count-simple: ipc/shared-memory-count-simple.c lib/libitsky.a include/itskylib.h
 	gcc $(CFLAGS) ipc/shared-memory-count-simple.c $(LIBS) -o ipc/shared-memory-count-simple
 
+ipc/mutex-ipc-separate: ipc/mutex-ipc-separate.c lib/libitsky.a include/itskylib.h
+	gcc $(CFLAGS) ipc/mutex-ipc-separate.c $(LIBS) -o ipc/mutex-ipc-separate
+
+ipc/mutex-ipc: ipc/mutex-ipc.c lib/libitsky.a include/itskylib.h
+	gcc $(CFLAGS) ipc/mutex-ipc.c $(LIBS) -o ipc/mutex-ipc
+
+ipc/posix-sem-ipc: ipc/posix-sem-ipc.c lib/libitsky.a include/itskylib.h
+	gcc $(CFLAGS) ipc/posix-sem-ipc.c $(LIBS) -o ipc/posix-sem-ipc
+
 ipc/semaphore-simple: ipc/semaphore-simple.c lib/libitsky.a include/itskylib.h
 	gcc $(CFLAGS) ipc/semaphore-simple.c $(LIBS) -o ipc/semaphore-simple
 
@@ -175,6 +184,9 @@ ipc/msgqueue: ipc/msgqueue.c lib/libitsky.a include/itskylib.h
 
 ipc/msgqueue-hello: ipc/msgqueue-hello.c lib/libitsky.a include/itskylib.h
 	gcc $(CFLAGS) ipc/msgqueue-hello.c $(LIBS) -o ipc/msgqueue-hello
+
+ipc/sysv-sem-ipc: ipc/sysv-sem-ipc.c lib/libitsky.a include/itskylib.h
+	gcc $(CFLAGS) ipc/sysv-sem-ipc.c $(LIBS) -o ipc/sysv-sem-ipc
 
 ipc/shared-memory-count-output-semaphore: ipc/shared-memory-count-output-semaphore.c lib/libitsky.a include/itskylib.h
 	gcc $(CFLAGS) ipc/shared-memory-count-output-semaphore.c $(LIBS) -o ipc/shared-memory-count-output-semaphore
