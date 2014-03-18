@@ -15,6 +15,8 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include <itskylib.h>
+
 int main(int argc, char *argv[]) {
   int n;
   int fdout;
@@ -25,12 +27,7 @@ int main(int argc, char *argv[]) {
   n = strlen(CONTENT) + 1; // include '\000'
   fdout = open(FILENAME, O_WRONLY | O_CREAT);
   printf("fdout=%d\n", fdout);
-  if (fdout < 0) {
-    int myerrno = errno;
-    const char *error_str = strerror(myerrno);
-    printf("errno=%d\nmessage=%s\n", myerrno, error_str);
-    exit(1);
-  }
+  handle_error(fdout, "open", PROCESS_EXIT);
   /* ... */
   write(fdout, CONTENT, n);
   close(fdout);

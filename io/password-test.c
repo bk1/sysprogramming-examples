@@ -15,27 +15,9 @@
 #include <termios.h>
 #include <unistd.h>
 
+#include <itskylib.h>
+
 #define SIZE 1024
-
-#define TRUE 1
-#define FALSE 0
-
-/* helper function for dealing with errors */
-void handle_error(int return_code) {
-  if (return_code < 0) {
-    int myerrno = errno;
-    const char *error_str = strerror(myerrno);
-    printf("return_code=%d\nerrno=%d\nmessage=%s\n", return_code, myerrno, error_str);
-    exit(1);
-  }
-}
-
-/* helper function for dealing with errors concerning FILE pointers */
-void handle_errorf(FILE *ptr) {
-  if (ptr == NULL) {
-    handle_error(-1);
-  }
-}
 
 int main(int argc, char *argv[]) {
 
@@ -47,11 +29,11 @@ int main(int argc, char *argv[]) {
    * REMARK: this should off course be encrypted for real life software
    */
   FILE *pfile = fopen("passwd", "r");
-  handle_errorf(pfile);
+  handle_ptr_error(pfile, "fopen", PROCESS_EXIT);
   const char *read_passwd = fgets(buff, SIZE, pfile);
   char *passwd = strdup(read_passwd);
   retcode = fclose(pfile);
-  handle_error(retcode);
+  handle_error(retcode, "fclose", PROCESS_EXIT);
 
   /* remove trailing newline */
   int last_pos = strlen(passwd) - 1;
@@ -62,19 +44,19 @@ int main(int argc, char *argv[]) {
 
   /* open tty for reading password from user */
   int tty_fd = open("/dev/tty", O_RDONLY);
-  handle_error(tty_fd);
+  handle_error(tty_fd, "open tty", PROCESS_EXIT);
   struct termios termios_struct;
   struct termios orig_termios_struct;
 
   retcode = tcgetattr(tty_fd, &orig_termios_struct);
-  handle_error(retcode);
+  handle_error(retcode, "tcgetattr (1)", PROCESS_EXIT);
   retcode = tcgetattr(tty_fd, &termios_struct);
-  handle_error(retcode);
+  handle_error(retcode, "tcgetattr (2)", PROCESS_EXIT);
   termios_struct.c_lflag &= (~ICANON) & (~ECHO);
   termios_struct.c_cc[VTIME] = 0;
   termios_struct.c_cc[VMIN] = 1;
   retcode = tcsetattr(tty_fd, TCSANOW, &termios_struct);
-  handle_error(retcode);
+  handle_error(retcode, "tcsetattr", PROCESS_EXIT);
 
   /* read password  from keyboard */
   FILE *keyboard = fdopen(tty_fd, "r");

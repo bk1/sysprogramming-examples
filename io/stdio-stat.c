@@ -14,6 +14,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <itskylib.h>
+
 int main(int argc, char *argv[]) {
   struct stat stat_buf;
   int r;
@@ -21,9 +23,7 @@ int main(int argc, char *argv[]) {
   if (r < 0) {
     int myerrno = errno;
     if (myerrno != EEXIST) {
-      const char *error_str = strerror(myerrno);
-      printf("errno=%d\nmessage=%s\n", myerrno, error_str);
-      exit(1);
+      handle_error_myerrno(r, myerrno, "fstat", PROCESS_EXIT);
     }
   }
   printf("st_dev=%ld\n", (long) stat_buf.st_dev);
@@ -41,5 +41,3 @@ int main(int argc, char *argv[]) {
   printf("st_ctime=%ld\n", (long) stat_buf.st_ctime);
   exit(0);
 }
-
-

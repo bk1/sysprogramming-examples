@@ -8,6 +8,9 @@
 #ifndef _LIB_ITSKY_SYSPROGRAMMING
 #define _LIB_ITSKY_SYSPROGRAMMING
 
+#define TRUE 1
+#define FALSE 0
+
 enum exit_type { PROCESS_EXIT, THREAD_EXIT };
 
 enum file_type { NOT_EXISTENT, DIRECTORY, REGULAR_FILE, OTHER };
@@ -18,6 +21,8 @@ void handle_thread_error(int retcode, const char *msg, enum exit_type et);
 
 /* helper function for dealing with errors */
 void handle_error(long return_code, const char *msg, enum exit_type et);
+
+void handle_error_myerrno(long return_code, int myerrno, const char *msg, enum exit_type et);
 
 void handle_ptr_error(void *ptr, const char *msg, enum exit_type et);
 

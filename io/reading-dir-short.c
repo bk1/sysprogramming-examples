@@ -13,6 +13,8 @@
 #include <dirent.h>
 #include <sys/stat.h>
 
+#include <itskylib.h>
+
 int main(int argc, char *argv[]) {
   int r;
   const char *DIRNAME = "/tmp/test-dir-9876";
@@ -21,26 +23,17 @@ int main(int argc, char *argv[]) {
   if (r < 0) {
     int myerrno = errno;
     if (myerrno != EEXIST) {
-      const char *error_str = strerror(myerrno);
-      printf("r=%d\nerrno=%d\nmessage=%s\n", r, myerrno, error_str);
-      exit(1);
+      handle_error_myerrno(r, myerrno, "mkdir", PROCESS_EXIT);
     }
   }
   DIR *dir = opendir(DIRNAME);
-  if (dir == NULL) {
-    int myerrno = errno;
-    const char *error_str = strerror(myerrno);
-    printf("errno=%d\nmessage=%s\n", myerrno, error_str);
-    exit(1);
-  }
+  handle_ptr_error(dir, "opendir", PROCESS_EXIT);
   while (1) {
     entry = readdir(dir);
     if (entry == NULL) {
       int myerrno = errno;
       if (myerrno != 0) {
-        const char *error_str = strerror(myerrno);
-        printf("errno=%d\nmessage=%s\n", myerrno, error_str);
-        exit(1);
+        handle_error_myerrno(-1, myerrno, "readdir", PROCESS_EXIT);
       } else {
         break;
       }
@@ -49,11 +42,6 @@ int main(int argc, char *argv[]) {
   }
   r = closedir(dir);
   printf("r=%d\n", r);
-  if (r < 0) {
-    int myerrno = errno;
-    const char *error_str = strerror(myerrno);
-    printf("errno=%d\nmessage=%s\n", myerrno, error_str);
-    exit(1);
-  }
+  handle_error(r, "closedir", PROCESS_EXIT);
   exit(0);
 }
