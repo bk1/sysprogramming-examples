@@ -14,9 +14,12 @@ use vars qw/*name *dir *prune/;
 
 my $all = "all:";
 
-my $clean = "clean:\n\trm -f";
+my $clean = "clean:\n\trm -f lib/libitsky.a ";
 
 my $targets = "";
+
+my $lib = "lib/libitsky.a:";
+my $libm = "\tar crs lib/libitsky.a";
 
 sub wanted;
 sub doexec ($@);
@@ -35,6 +38,8 @@ print "LIBS=-lpthread -litsky\n\n"; # lib/libitsky.a\n\n"; # -litsky\n\n";
 print "\n$all\n";
 print "\n$clean\n";
 print "\n$targets\n";
+print "\n$lib\n";
+print "$libm\n";
 
 exit 0;
 
@@ -63,13 +68,16 @@ sub doexec ($@) {
         $tname =~ s/lib[a-zA-Z0-9]*\.c$/libitsky.a/;
         my $oname = $sname;
         $oname =~ s/\.c$/.o/;
-        $targets .= "$tname: $sname\n\tgcc -c \$(CFLAGS) $sname -o $oname\n\tar crs $tname $oname\n\n"; # \tranlib $tname\n\n";
+        $targets .= "$oname: $sname\n\tgcc -c \$(CFLAGS) $sname -o $oname\n\n";
+        $lib .= " $oname";
+        $libm .= " $oname";
+        $clean .= " $oname";
     } else {
         $tname =~ s/\.c$//;
         $targets .= "$tname: $sname lib/libitsky.a include/itskylib.h\n\tgcc \$(CFLAGS) $sname \$(LIBS) -o $tname\n\n";
+        $all .= " $tname";
+        $clean .= " $tname";
     }
-    $all .= " $tname";
-    $clean .= " $tname";
     chdir $File::Find::dir;
     return !$?;
 }

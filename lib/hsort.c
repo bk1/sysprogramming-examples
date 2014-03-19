@@ -22,7 +22,7 @@ int compare_extend(const void *left, const void *right, void *mem) {
 void hsort(void *base, 
            size_t nmemb, 
            size_t size,
-           int (*compare)(const void *, const void *)) {
+           compare_fun2 compare) {
   hsort_r(base, nmemb, size, compare_extend, (void *) compare);
 }
 
@@ -31,8 +31,9 @@ void hsort(void *base,
 void hsort_r(void *base, 
              size_t nmemb, 
              size_t size,
-             int (*compare)(const void *, const void *, void *),
+             compare_fun3 compare,
              void *arg) {
+  
 }
 
  int main(int argc, char *argv[]) {
