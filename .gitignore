@@ -78,3 +78,7 @@ ipc/mutex-ipc-separate
 ipc/posix-sem-ipc
 ipc/sysv-sem-ipc
 io/read-string-array
+c/complex
+c/int-types
+c/pointer
+lib/hsort.o
