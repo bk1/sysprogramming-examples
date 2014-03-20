@@ -150,7 +150,7 @@ int is_string_char(char c) {
 }
 
 /* read the contents of a file and convert it to an array of strings containing the readable characters interpreted as 8-bit-charset */
-struct char_array read_to_array(int fd) {
+struct string_array read_to_array(int fd) {
   struct stat stat;
   long retcode = fstat(fd, &stat);
   handle_error(retcode, "stat", PROCESS_EXIT);
@@ -171,7 +171,7 @@ struct char_array read_to_array(int fd) {
     handle_error(-1, error, PROCESS_EXIT);
   }
   /* temporarily make a two-level structure for the string pointers */
-  struct char_array blocks[MAX_BLOCK_COUNT]; // 1048576]; // 1024*1024
+  struct string_array blocks[MAX_BLOCK_COUNT]; // 1048576]; // 1024*1024
   // printf("blocks created\n");
   for (int i = 0; i < MAX_BLOCK_COUNT; i++) {
     blocks[i].len = 0;
@@ -206,7 +206,7 @@ struct char_array read_to_array(int fd) {
     if (target_pointer > string_pointer) {
       // printf("found string %s (sc=%ld bc=%ld sp=%ld bp=%ld)\n", string_pointer, string_count, block_count, string_pos, block_pos);
       /* real string found */
-      struct char_array *block = &(blocks[block_pos]);
+      struct string_array *block = &(blocks[block_pos]);
       if (block->strings == NULL) {
         // printf("initialzing strings in block_pos=%ld\n", block_pos);
         char **ptr =  (char **) malloc(MAX_BLOCK_SIZE * sizeof(char *));
@@ -233,7 +233,7 @@ struct char_array read_to_array(int fd) {
       source_pointer++;
     }
   }
-  struct char_array result;
+  struct string_array result;
   result.len = string_count;
   result.strings = malloc(string_count * sizeof(char *));
   string_pos = 0;

@@ -20,7 +20,7 @@
 int main(int argc, char *argv[]) {
   for (int i = 1; i < argc; i++) {
     int fd = open(argv[i], O_RDONLY);
-    struct char_array result = read_to_array(fd);
+    struct string_array result = read_to_array(fd);
     close(fd);
     printf("------------------------------------------------------------\n");
     printf("file=%s %d strings\n", argv[i], result.len);

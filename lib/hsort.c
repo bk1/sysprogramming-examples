@@ -17,6 +17,18 @@
 #define RIGHT(idx) (2*(idx) + 2)
 #define POINTER(base, idx, size) ((base) + (size) * (idx))
 
+int parent_idx(int idx) {
+  return PARENT(idx);
+}
+
+int left_child_idx(int idx) {
+  return LEFT(idx);
+}
+
+int right_child_idx(int idx) {
+  return RIGHT(idx);
+}
+
 
 int compare_extend(const void *left, const void *right, void *mem) {
   compare_fun2 compare_basic = (compare_fun2) mem;

@@ -14,7 +14,7 @@
 #define MAX_BLOCK_COUNT 100000
 #define MAX_BLOCK_SIZE  100000
 
-struct char_array {
+struct string_array {
   char **strings;
   int len;
 };
@@ -43,7 +43,7 @@ enum file_type check_file(const char *file_or_dir_name);
 int is_string_char(char c);
 
 /* read the contents of a file and convert it to an array of strings containing the readable characters interpreted as 8-bit-charset */
-struct char_array read_to_array(int fd);
+struct string_array read_to_array(int fd);
 
 #endif
 

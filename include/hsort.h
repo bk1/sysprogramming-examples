@@ -14,6 +14,12 @@ typedef int (*compare_fun2)(const void *left, const void *right);
 typedef int (*compare_fun3)(const void *left, const void *right, void *mem);
 
 
+int parent_idx(int idx);
+
+int left_child_idx(int idx);
+
+int right_child_idx(int idx);
+
 void hsort(void *base, 
            size_t nmemb, 
            size_t size,
