@@ -83,3 +83,4 @@ c/int-types
 c/pointer
 lib/hsort.o
 c/hsort_main
+threads/multithreaded-sort
