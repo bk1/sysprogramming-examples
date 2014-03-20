@@ -5,6 +5,7 @@
  * License: GPL v2 (See https://de.wikipedia.org/wiki/GNU_General_Public_License )
  */
 
+#define _GNU_SOURCE
 
 #include <errno.h>
 #include <stdio.h>
@@ -28,6 +29,8 @@ struct thread_arg {
   int thread_idx;
 };
 
+enum sort_type { HEAP_SORT, QUICK_SORT };
+
 pthread_barrier_t start_barrier;
 pthread_barrier_t barrier;
 
@@ -37,6 +40,8 @@ int thread_count;
 
 pthread_t *thread;
 struct thread_arg *segments;
+
+enum sort_type selected_sort_type;
 
 int compare_full(const void *left, const void *right, void *ignored) {
   return strcmp(*(const char_ptr *) left, *(const char_ptr *) right);
@@ -48,8 +53,8 @@ void *thread_run(void *ptr) {
   char **strings = arg->arr.strings;
   int len = arg->arr.len;
   int idx = arg->thread_idx;
-  pthread_t id = pthread_self();
-  int tid = (int) (id % 0x7fffffff);
+  /* pthread_t id = pthread_self(); */
+  /* int tid = (int) (id % 0x7fffffff); */
 
   /* pthread_mutex_lock(&output_mutex); */
   /* printf("before:------------------------------------------------------------\n"); */
@@ -59,7 +64,17 @@ void *thread_run(void *ptr) {
   /* printf("/before:------------------------------------------------------------\n"); */
   /* pthread_mutex_unlock(&output_mutex); */
 
-  hsort_r(strings, len, sizeof(char_ptr), compare_full, (void *) NULL);
+  switch (selected_sort_type) {
+  case HEAP_SORT:
+    hsort_r(strings, len, sizeof(char_ptr), compare_full, (void *) NULL);
+    break;
+  case QUICK_SORT:
+    qsort_r(strings, len, sizeof(char_ptr), compare_full, (void *) NULL);
+    break;
+  default:
+    /* should *never* happen: */
+    handle_error_myerrno(-1, -1, "wrong sort_type", PROCESS_EXIT);
+  }
 
   /* pthread_mutex_lock(&output_mutex); */
   /* printf("after:------------------------------------------------------------\n"); */
@@ -73,7 +88,7 @@ void *thread_run(void *ptr) {
     retcode = pthread_barrier_wait(& barrier);
     if (retcode == PTHREAD_BARRIER_SERIAL_THREAD) {
       pthread_mutex_lock(&output_mutex);
-      printf("thread %ld (%d) is PTHREAD_BARRIER_SERIAL_THREAD=%d\n", (long) id, tid, retcode);
+      /* printf("thread %ld (%d) is PTHREAD_BARRIER_SERIAL_THREAD=%d\n", (long) id, tid, retcode); */
       pthread_mutex_unlock(&output_mutex);
     } else {
       handle_thread_error(retcode, "pthread_barrier_wait", THREAD_EXIT);
@@ -120,19 +135,41 @@ void *thread_run(void *ptr) {
 
 void usage(char *argv0, char *msg) {
   printf("%s\n\n", msg);
-  printf("Usage:\n\n%s number\n\nsorts stdin using n threads.\n", argv0);
+  printf("Usage:\n\n");
+  printf("%s -h number\n\tsorts stdin using heapsort in n threads.\n\n", argv0);
+  printf("%s -q number\n\tsorts stdin using quicksort in n threads.\n\n", argv0);
   exit(1);
 }
 
 int main(int argc, char *argv[]) {
   int retcode;
 
-  if (argc != 2) {
-    usage(argv[0], "wrong number of arguments");
+  char *argv0 = argv[0];
+  if (argc != 3) {
+    usage(argv0, "wrong number of arguments");
   }
-  sscanf(argv[1], "%d", &thread_count);
-  printf("running with %d threads\n", thread_count);
+
+  /* TODO consider using getopt instead!! */
+  char *argv_opt = argv[1];
+  if (strlen(argv_opt) != 2 || argv_opt[0] != '-') {
+      usage(argv0, "wrong option");
+  }
+  char opt_char = argv_opt[1];
+  switch (opt_char) {
+  case 'h' :
+    selected_sort_type = HEAP_SORT;
+    break;
+  case 'q' :
+    selected_sort_type = QUICK_SORT;
+    break;
+  default:
+    usage(argv0, "wrong option: only -q and -h supported");
+    break;
+  }
+  
+  sscanf(argv[2], "%d", &thread_count);
   if (thread_count < 1 || thread_count > 1024) {
+    printf("running with %d threads\n", thread_count);
     usage(argv[0], "wrong number of threads");
   }
 
