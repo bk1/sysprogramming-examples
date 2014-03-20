@@ -145,6 +145,19 @@ enum file_type check_file(const char *file_or_dir_name) {
   }
 }
 
+struct timespec get_future(time_t sec, long nsec) {
+  int retcode;
+
+  struct timespec ts;
+  retcode = clock_gettime(CLOCK_REALTIME, &ts);
+  handle_error(retcode, "clock_gettime", PROCESS_EXIT);
+  // printf("timout(%ld sec %ld nsec)\n", (long) ts.tv_sec, (long) ts.tv_nsec);
+  ts.tv_sec  += sec;
+  ts.tv_nsec += nsec;
+  // printf("timout(%ld sec %ld nsec)\n", (long) ts.tv_sec, (long) ts.tv_nsec);
+  return ts;
+}
+
 int is_string_char(char c) {
   return ('A' <= c && c <= 'Z' || '0' <= c && c <= '9' || 'a' <= c && c <= 'z' || '\240' <= c && c <= '\377');
 }

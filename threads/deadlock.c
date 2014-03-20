@@ -38,12 +38,51 @@ void *thread_run(void *ptr) {
 }
 
 int main(int argc, char *argv[]) {
-  pthread_t thread1;
   int retcode;
-  retcode = pthread_mutex_init(&mutex1, NULL);
+  pthread_t thread1;
+
+  pthread_mutexattr_t mutex_attr;
+  pthread_mutexattr_init(&mutex_attr);
+  char mutex_type = 'x'; // default
+  if (argc >= 2 && strlen(argv[1]) == 2 && argv[1][0] == '-') {
+    mutex_type = argv[1][1];
+  }
+  switch (mutex_type) {
+  case 'd':
+    pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_DEFAULT);
+    break;
+  case 'n':
+    pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_NORMAL);
+    break;
+  case 'e':
+    pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
+    break;
+  case 'r':
+    pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_RECURSIVE);
+    break;
+  case 'x':
+    // use NULL;
+    break;
+  default:
+    printf("unknown option, supported: -d -n -e -r -x\n");
+    exit(1);
+  }
+  if (mutex_type == 'x') {
+    retcode = pthread_mutex_init(&mutex1, NULL);
+  } else {
+    retcode = pthread_mutex_init(&mutex1, &mutex_attr);
+  }
   handle_thread_error(retcode, "pthread_mutex_init (1)", PROCESS_EXIT);
-  retcode = pthread_mutex_init(&mutex2, NULL);
+
+  if (mutex_type == 'x') {
+    retcode = pthread_mutex_init(&mutex2, NULL);
+  } else {
+    retcode = pthread_mutex_init(&mutex2, &mutex_attr);
+  }
   handle_thread_error(retcode, "pthread_mutex_init (2)", PROCESS_EXIT);
+
+  retcode = pthread_mutexattr_destroy(&mutex_attr);
+  handle_thread_error(retcode, "pthread_mutexattr_destroy", PROCESS_EXIT);
 
   retcode = pthread_create(&thread1, NULL, thread_run, NULL);
   handle_thread_error(retcode, "pthread_create", PROCESS_EXIT);

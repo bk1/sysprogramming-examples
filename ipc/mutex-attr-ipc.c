@@ -83,16 +83,17 @@ int main(int argc, char *argv[]) {
   if (shm_key < 0) {
     handle_error(-1, "ftok failed", PROCESS_EXIT);
   }
-
-  struct timespec timeout;
-  timeout.tv_sec  = (time_t) 200;
-  timeout.tv_nsec = (long) 0;
+  
+  time_t tv_sec  = (time_t) 200;
+  int long tv_nsec = (long) 0;
   if (use_timeout && argc >= 3) {
     int t;
     sscanf(argv[2], "%d", &t);
-    timeout.tv_sec = (time_t) t;
+    tv_sec = (time_t) t;
   }
-  printf("timout(%ld sec %ld msec)\n", (long) timeout.tv_sec, (long) timeout.tv_nsec);
+  struct timespec timeout = get_future(tv_sec, tv_nsec);
+  
+  //printf("timout(%ld sec %ld nsec)\n", (long) timeout.tv_sec, (long) timeout.tv_nsec);
 
   pid_t pid = fork();
   if (pid == 0) {

@@ -8,6 +8,8 @@
 #ifndef _LIB_ITSKY_SYSPROGRAMMING
 #define _LIB_ITSKY_SYSPROGRAMMING
 
+#include <time.h>
+
 #define TRUE 1
 #define FALSE 0
 
@@ -22,6 +24,8 @@ struct string_array {
 enum exit_type { PROCESS_EXIT, THREAD_EXIT, NO_EXIT };
 
 enum file_type { NOT_EXISTENT, DIRECTORY, REGULAR_FILE, OTHER };
+
+struct timespec get_future(time_t sec, long nsec);
 
 void exit_by_type(enum exit_type et);
 
