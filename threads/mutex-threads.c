@@ -48,11 +48,20 @@ void *run(void *arg) {
   return NULL;
 }
 
+void usage(char *argv0, char *msg) {
+  printf("%s\n\n", msg);
+  printf("Usage:\n\n%s\n lock mutexes without lock\n\n%s -t <number>\n lock mutexes with timout after given number of seconds\n", argv0, argv0);
+  exit(1);
+}
+
 int main(int argc, char *argv[]) {
 
   int retcode;
 
   use_timeout = (argc >= 2 && strcmp(argv[1], "-t") == 0);
+  if (argc >= 2 && (strcomp(argv[1], "-h") == 0 ||strcomp(argv[1], "-H") == 0 ||strcomp(argv[1], "-help") == 0 ||strcomp(argv[1], "-help") == 0)) {
+    usage(argv[0], "");
+  }
 
   timeout.tv_sec  = (time_t) 200;
   timeout.tv_nsec = (long) 0;

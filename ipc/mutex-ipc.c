@@ -26,10 +26,6 @@
 
 #define PERM 0600
 
-#define BUF_SIZE 16384
-
-#define ALPHA_SIZE 256
-
 int shmid_for_cleanup = 0;
 int semid_for_cleanup = 0;
 
@@ -71,9 +67,21 @@ void cleanup() {
   }
 }
 
+void usage(char *argv0, char *msg) {
+  printf("%s\n\n", msg);
+  printf("Usage:\n\n%s\n lock mutexes without timeout\n\n%s -t <number>\n lock mutexes with timout after given number of seconds\n", argv0, argv0);
+  exit(1);
+}
+
 int main(int argc, char *argv[]) {
 
   int retcode;
+
+  if (argc >= 2 && (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "-H") == 0 || strcmp(argv[1], "-help") == 0 || strcmp(argv[1], "-help") == 0)) {
+    usage(argv[0], "");
+  }
+
+  int use_timeout = (argc >= 2 && strcmp(argv[1], "-t") == 0);
 
   key_t shm_key = ftok(argv[0], 1);
   if (shm_key < 0) {
@@ -88,9 +96,13 @@ int main(int argc, char *argv[]) {
 
   pthread_mutex_init(&(data->mutex), NULL);
 
-  struct timespec timeout;
-  timeout.tv_sec  = (time_t) 20;
-  timeout.tv_nsec = (long) 0;
+  time_t tv_sec  = (time_t) 200;
+  long tv_nsec = (long) 0;
+  if (use_timeout && argc >= 3) {
+    int t = atoi(argv[2]);
+    tv_sec = (time_t) t;
+  }
+  struct timespec timeout = get_future(tv_sec, tv_nsec);
 
   pid_t pid = fork();
   if (pid == 0) {

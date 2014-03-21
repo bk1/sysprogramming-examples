@@ -32,14 +32,13 @@ void *thread_run(void *ptr) {
   int retcode;
   printf("%s started\n", name);
   sleep(1);
-  struct timespec duration;
-  duration.tv_sec = (__time_t) 0;
-  duration.tv_nsec = (__syscall_slong_t) 100000000L;
+
+  struct timespec timeout = get_future((time_t) 0, 100000000L);
 
   while (! done) {
     retcode = EBUSY;
     while (retcode == EBUSY) {
-      retcode = pthread_mutex_timedlock(&mutex1, &duration);
+      retcode = pthread_mutex_timedlock(&mutex1, &timeout);
       printf("%s/%d\n", name, retcode);
     }
     handle_thread_error(retcode, "pthread_mutex_timedlock", THREAD_EXIT);

@@ -140,3 +140,5 @@ time-script-64
 time-script-7
 time-script-8
 time-t-1
+ipc/mutex-attr-ipc
+threads/mutex-attr-threads

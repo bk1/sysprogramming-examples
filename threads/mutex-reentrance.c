@@ -45,6 +45,12 @@ int main(int argc, char *argv[]) {
     break;
   default:
     printf("unknown option, supported: -d -n -e -r -x\n");
+    printf("Usage\n\n");
+    printf("%s -d\n PTHREAD_MUTEX_DEFAULT\n\n", argv[0]);
+    printf("%s -n\n PTHREAD_MUTEX_NORMAL\n\n", argv[0]);
+    printf("%s -e\n PTHREAD_MUTEX_ERRORCHECK\n\n", argv[0]);
+    printf("%s -r\n PTHREAD_MUTEX_RECURSIVE\n\n", argv[0]);
+    printf("%s -x\n no attribute used\n\n", argv[0]);
     exit(1);
   }
   if (mutex_type == 'x') {

@@ -48,20 +48,29 @@ void *run(void *arg) {
   return NULL;
 }
 
+void usage(char *argv0, char *msg) {
+  printf("%s\n\n", msg);
+  printf("Usage:\n\n%s\n lock mutexes without lock\n\n%s -t <number>\n lock mutexes with timout after given number of seconds\n", argv0, argv0);
+  exit(1);
+}
+
 int main(int argc, char *argv[]) {
 
   int retcode;
 
+  if (argc >= 2 && (strcmp(argv[1], "-h") == 0 ||strcmp(argv[1], "-H") == 0 ||strcmp(argv[1], "-help") == 0 ||strcmp(argv[1], "-help") == 0)) {
+    usage(argv[0], "");
+  }
+
   use_timeout = (argc >= 2 && strcmp(argv[1], "-t") == 0);
 
-  timeout.tv_sec  = (time_t) 200;
-  timeout.tv_nsec = (long) 0;
+  time_t tv_sec  = (time_t) 200;
+  long tv_nsec = (long) 0;
   if (use_timeout && argc >= 3) {
-    int t;
-    sscanf(argv[2], "%d", &t);
-    timeout.tv_sec = (time_t) t;
+    int t = atoi(argv[2]);
+    tv_sec = (time_t) t;
   }
-  printf("timout(%ld sec %ld msec)\n", (long) timeout.tv_sec, (long) timeout.tv_nsec);
+  struct timespec timeout = get_future(tv_sec, tv_nsec);
 
   pthread_t thread;  pthread_create(&thread, NULL, run, NULL);
   printf("in parent: setting up\n");

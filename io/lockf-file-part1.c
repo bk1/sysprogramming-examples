@@ -23,6 +23,12 @@ int mylock(const char *filename, int start, int end) {
   return fd;
 }
 
+void usage(char *argv0, char *msg) {
+  printf("%s\n\n", msg);
+  printf("Usage:\n\n%s\n create file to be dealt with and exit\n%s x y\n lock part of file from position x (inclusiv) to position y (exclusive), sleep 10 sec\n");
+  exit(1);
+}
+
 int main(int argc, char *argv[]) {
   const char *FILENAME="/tmp/myfile-1337";
   if (argc == 1) {
@@ -37,16 +43,12 @@ int main(int argc, char *argv[]) {
     exit(0);
   }
   if (argc < 3) {
-    printf("wrong number of arguments\n");
-    exit(1);
+    usage(argv[0], "wrong number of arguments");
   }
-  long x, y, len;
-  sscanf(argv[1], "%ld", &x);
-  printf("x=%ld\n", x);
-  sscanf(argv[2], "%ld", &y);
-  printf("y=%ld\n", y);
-  len = y - x;
-  printf("len=%ld\n", len);
+  long x = atol(argv[1]);
+  long y = atol(argv[2]);
+  long len = y - x;
+  printf("x=%ld y=%ld len=%ld\n", x, y, len);
 
   int fd = mylock(FILENAME, x, y);
   sleep(10);
