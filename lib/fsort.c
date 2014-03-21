@@ -5,6 +5,11 @@
  * License: GPL v2 (See https://de.wikipedia.org/wiki/GNU_General_Public_License )
  */
 
+/* implements <a href="https://de.wikipedia.org/wiki/Flashsort">Flashsort</a> */
+
+/* enable qsort_r */
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <string.h>
 #include <alloca.h>
@@ -16,6 +21,15 @@
 #define POINTER(base, idx, size) ((base) + (size) * (idx))
 
 
+void fsort(void *base,
+           size_t nmemb,
+           size_t size,
+           compare_fun2 compare,
+           metric_fun1 metric) {
+  fsort_r(base, nmemb, size, compare_extend, (void *) compare, metric_extend, (void *) metric);
+}
+
+
 void fsort_r(void *base,
              size_t nmemb,
              size_t size,
@@ -23,7 +37,6 @@ void fsort_r(void *base,
              void *argc,
              metric_fun2 metric,
              void *argm) {
-  // fprintf(stderr, "fsort_r\n");
   fsort_f(base, nmemb, size, 0.42, compare, argc, metric, argm);
 }
 
@@ -48,21 +61,18 @@ void fsort_f(void *base,
              void *argc,
              metric_fun2 metric,
              void *argm) {
-  // fprintf(stderr,"starting\n");
   if (nmemb <= 1) {
     /* nothing to sort */
     return;
   }
 
-  // fprintf(stderr, "non-trivial\n");
   /* preparation: form classes */
-  // fprintf(stderr, "nmemb=%ld factor=%lf calculating lsize\n", nmemb, factor);
   size_t lsize = calculate_k(nmemb, factor, nmemb) + 1;
   if (lsize < 2) {
     lsize = 2;
   }
-  // fprintf(stderr, "lsize=%ld\n", lsize);
   size_t *l = (size_t *) malloc(lsize * sizeof(size_t));
+  handle_ptr_error(l, "malloc for l", PROCESS_EXIT);
   for (size_t k = 0; k < lsize; k++) {
     l[k] = 0;
   }
@@ -90,8 +100,6 @@ void fsort_f(void *base,
   double step = (lsize - 1)/(amax_metric - amin_metric);
   /* size_t k_min = calculate_k(step, 0, lsize); */
   /* size_t k_max = calculate_k(step, amax_metric - amin_metric, lsize); */
-  /* fprintf(stderr, "nmemb=%ld lsize=%ld step=%lf k_min=%ld k_max=%ld\n", nmemb, lsize, step, k_min, k_max); */
-  // fprintf(stderr, "nmemb=%ld lsize=%ld step=%lf idx_min=%ld idx_max=%ld\n", nmemb, lsize, step, idx_min, idx_max);
 
   /* count the elements in each of the lsize classes */
   for (size_t i = 0; i < nmemb; i++) {
@@ -102,15 +110,13 @@ void fsort_f(void *base,
 
   /* find the start positions for each of the classes */
   size_t *ll = (size_t *) malloc((lsize + 1) * sizeof(size_t));
+  handle_ptr_error(ll, "malloc for ll", PROCESS_EXIT);
   ll[0] = 0;
   for (size_t k = 1; k < lsize; k++) {
-    // size_t left  = l[k];
-    // size_t right = l[k-1];
     l[k] += l[k-1];
     ll[k+1] = l[k];
-    // fprintf(stderr, "k=%ld l[k]=%ld=%ld+%ld\n", k, l[k], left, right);
   }
-  
+
   swap_elements(POINTER(base, 0, size), POINTER(base, idx_max, size), size);
   // fprintf(stderr,"prepared\n");
 
@@ -119,33 +125,23 @@ void fsort_f(void *base,
   size_t j = 0;
   size_t k = lsize - 1;
   while (nmove < nmemb - 1) {
-    // fprintf(stderr, "nmove=%ld nmemb=%ld j=%ld k=%ld lsize=%ld step=%lf\n", nmove, nmemb, j, k, lsize, step);
     while (j >= l[k]) {
-      // fprintf(stderr, "j>=l[k]: j=%ld k=%ld l[k]=%ld\n", j, k, l[k]);
       j++;
       k = calculate_k(step, metric(POINTER(base, j, size), argm) - amin_metric, lsize);
     }
     /* now: j < l[k] */
-    // fprintf(stderr, "looped j>l[k]-1: j=%ld k=%ld l[k]=%ld\n", j, k, l[k]);
     void *flash_ptr = alloca(size);
+    handle_ptr_error(flash_ptr, "alloca for flash_ptr", PROCESS_EXIT);
     /* flash_ptr takes element a[j] such that j > l[k] */
-    // fprintf(stderr, "copy a[j=%ld] to flash_ptr\n", j);
     memcpy(flash_ptr, POINTER(base, j, size), size);
-    // fprintf(stderr, "before loop j!=l[k]: j=%ld k=%ld l[k]=%ld\n", j, k, l[k]);
     while (j != l[k]) {
-      // fprintf(stderr, "loop 1: j=%ld k=%ld l[k]=%ld\n", j, k, l[k]);
       k = calculate_k(step, metric(flash_ptr, argm) - amin_metric, lsize);
-      // fprintf(stderr, "loop 2: j=%ld k=%ld l[k]=%ld\n", j, k, l[k]);
       void *alkm_ptr = POINTER(base, l[k]-1, size);
-      // fprintf(stderr, "swap flash_ptr and a[l[k=%ld]=%ld]\n", k, l[k]);
       swap_elements(flash_ptr, alkm_ptr, size);
       l[k]--;
       nmove++;
-      // fprintf(stderr, "loop 3: j=%ld k=%ld l[k]=%ld (nmove=%ld)\n", j, k, l[k], nmove);
     }
-    // fprintf(stderr, "looped j!=l[k]: j=%ld k=%ld l[k]=%ld (nmove=%ld)\n", j, k, l[k], nmove);
   }
-  // fprintf(stderr,"permuted\n");
   //   /* straight insertion */
   //   for (size_t ii = nmemb - 2; ii > 0; ii--) {
   //     size_t i = ii-1;
@@ -172,6 +168,7 @@ void fsort_f(void *base,
   //     }
   //   }
   //   fprintf(stderr,"inserted\n");
+
   /* use qsort or hsort for each class */
   for (k = 0; k < lsize; k++) {
     size_t n = ll[k+1] - ll[k];

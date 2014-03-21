@@ -5,6 +5,7 @@
  * License: GPL v2 (See https://de.wikipedia.org/wiki/GNU_General_Public_License )
  */
 
+/* enable qsort_r */
 #define _GNU_SOURCE
 
 #include <errno.h>

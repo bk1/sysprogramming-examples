@@ -5,6 +5,8 @@
  * License: GPL v2 (See https://de.wikipedia.org/wiki/GNU_General_Public_License )
  */
 
+/* implements <a href="https://de.wikipedia.org/wiki/Heapsort">Heapsort</a> */
+
 #include <stdio.h>
 #include <string.h>
 #include <alloca.h>
@@ -29,11 +31,6 @@ int right_child_idx(int idx) {
   return RIGHT(idx);
 }
 
-
-int compare_extend(const void *left, const void *right, void *mem) {
-  compare_fun2 compare_basic = (compare_fun2) mem;
-  return compare_basic(left, right);
-}
 
 void sift_down(void *base,
                size_t start,

@@ -10,6 +10,21 @@
 
 #include <sys/types.h>
 
+typedef int (*compare_fun2)(const void *left, const void *right);
+typedef int (*compare_fun3)(const void *left, const void *right, void *mem);
+
+typedef double (*metric_fun1)(const void *element);
+typedef double (*metric_fun2)(const void *element, void *mem);
+
+/* exchange two elements of size */
 void swap_elements(void *left_ptr, void *right_ptr, size_t size);
 
+/* map 3-param compare-function to 2-param-compare-function: The 2-param-function must be provided as the third parameter */
+int compare_extend(const void *left, const void *right, void *mem);
+
+/* map 2-param metric-function to 1-param-metric-function: The 1-param-function must be provided as the second parameter */
+double metric_extend(const void *element, void *mem);
+
 #endif
+
+/* end of file sortcommon.h */

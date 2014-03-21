@@ -11,12 +11,6 @@
 #include <sys/types.h>
 #include <sortcommon.h>
 
-typedef int (*compare_fun2)(const void *left, const void *right);
-typedef int (*compare_fun3)(const void *left, const void *right, void *mem);
-
-typedef double (*metric_fun1)(const void *element);
-typedef double (*metric_fun2)(const void *element, void *mem);
-
 void fsort(void *base, 
            size_t nmemb, 
            size_t size,
