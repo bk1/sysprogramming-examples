@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
   int retcode;
 
   use_timeout = (argc >= 2 && strcmp(argv[1], "-t") == 0);
-  if (argc >= 2 && (strcomp(argv[1], "-h") == 0 ||strcomp(argv[1], "-H") == 0 ||strcomp(argv[1], "-help") == 0 ||strcomp(argv[1], "-help") == 0)) {
+  if (argc >= 2 && (strcomp(argv[1], "-h") == 0 ||strcomp(argv[1], "-H") == 0 ||strcomp(argv[1], "-help") == 0 ||strcomp(argv[1], "--help") == 0)) {
     usage(argv[0], "");
   }
 
