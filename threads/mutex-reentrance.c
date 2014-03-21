@@ -5,6 +5,7 @@
  * License: GPL v2 (See https://de.wikipedia.org/wiki/GNU_General_Public_License )
  */
 
+/* test reentrance of lock */
 
 #include <errno.h>
 #include <stdio.h>
@@ -18,8 +19,25 @@
 
 pthread_mutex_t mutex1;
 
+void usage(const char *argv0, const char *msg) {
+  if (msg != NULL && strlen(msg) > 0) {
+    printf("%s\n\n", msg);
+  }
+  printf("Usage\n\n");
+  printf("%s -d\n mutex_type=PTHREAD_MUTEX_DEFAULT\n\n", argv0);
+  printf("%s -n\n mutex_type=PTHREAD_MUTEX_NORMAL\n\n", argv0);
+  printf("%s -e\n mutex_type=PTHREAD_MUTEX_ERRORCHECK\n\n", argv0);
+  printf("%s -r\n mutex_type=PTHREAD_MUTEX_RECURSIVE\n\n", argv0);
+  printf("%s -x\n no attribute used\n\n", argv0);
+  exit(1);
+}
+
 int main(int argc, char *argv[]) {
   int retcode;
+
+  if (is_help_requested(argc, argv)) {
+    usage(argv[0], "");
+  }
 
   pthread_mutexattr_t mutex_attr;
   pthread_mutexattr_init(&mutex_attr);
@@ -44,14 +62,7 @@ int main(int argc, char *argv[]) {
     // use NULL;
     break;
   default:
-    printf("unknown option, supported: -d -n -e -r -x\n");
-    printf("Usage\n\n");
-    printf("%s -d\n PTHREAD_MUTEX_DEFAULT\n\n", argv[0]);
-    printf("%s -n\n PTHREAD_MUTEX_NORMAL\n\n", argv[0]);
-    printf("%s -e\n PTHREAD_MUTEX_ERRORCHECK\n\n", argv[0]);
-    printf("%s -r\n PTHREAD_MUTEX_RECURSIVE\n\n", argv[0]);
-    printf("%s -x\n no attribute used\n\n", argv[0]);
-    exit(1);
+    usage(argv[0], "unknown option, supported: -d -n -e -r -x");
   }
   if (mutex_type == 'x') {
     retcode = pthread_mutex_init(&mutex1, NULL);
@@ -61,14 +72,20 @@ int main(int argc, char *argv[]) {
   handle_thread_error(retcode, "pthread_mutex_init", PROCESS_EXIT);
   
   printf("in parent thread: getting mutex1\n");
-  pthread_mutex_lock(&mutex1);
+  retcode = pthread_mutex_lock(&mutex1);
+  handle_thread_error(retcode, "lock (1)", PROCESS_EXIT);
   printf("in parent thread: got mutex1\n");
   printf("in parent thread: getting mutex1\n");
-  pthread_mutex_lock(&mutex1);
+  retcode = pthread_mutex_lock(&mutex1);
+  handle_thread_error(retcode, "lock (2)", PROCESS_EXIT);
   printf("in parent thread: got mutex1\n");
   sleep(5);
-  printf("in parent thread: releasing\n");
-  pthread_mutex_unlock(&mutex1);
+  printf("in parent thread: releasing (1)\n");
+  retcode = pthread_mutex_unlock(&mutex1);
+  handle_thread_error(retcode, "unlock (1)", PROCESS_EXIT);
+  printf("in parent thread: releasing (2)\n");
+  retcode = pthread_mutex_unlock(&mutex1);
+  handle_thread_error(retcode, "unlock (2)", PROCESS_EXIT);
   printf("in parent thread: done\n");
 
   retcode = pthread_mutex_destroy(&mutex1);

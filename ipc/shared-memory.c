@@ -6,6 +6,7 @@
  */
 
 /* WARNING: does not work currently */
+/* start a worker thread.  Put assignments for worker thread into shared memory.  Extract result from there and print it */
 
 #include <stdio.h>
 #include <string.h>
@@ -135,9 +136,9 @@ int main(int argc, char *argv[]) {
     kill(SIGUSR1, ppid);
     while (TRUE) {
       while (! shm_data->pready) {
-        retcode = pause();
-        handle_error(retcode, "pause", PROCESS_EXIT);
-        // retcode = sigsuspend(&suspendset);
+        // retcode = pause();
+        // handle_error(retcode, "pause", PROCESS_EXIT);
+        retcode = sigsuspend(&suspendset);
         printf("returned retcode=%d errno=%d\n", retcode, errno);
       }
       shm_data->cready = FALSE;
@@ -168,25 +169,26 @@ int main(int argc, char *argv[]) {
     sleep(1);
   }
   while (! ready) {
-    sleep(1);
+    // sleep(1);
     // pause();
-    // sigsuspend(&suspendset);
+    sigsuspend(&suspendset);
   }
   ready = FALSE;
   for (i = 0; i < 100; i++) {
     shm_data->x = i;
     shm_data->cmd = '*';
     shm_data->pready = TRUE;
+    printf("P: x=%3ld y=%6ld\n", shm_data->x, shm_data->y);
     printf("parent sending signal to worker\n");
     kill(SIGUSR1, pid);
     while (! shm_data->cready) {
-      // sigsuspend(&suspendset);
-      pause();
+      sigsuspend(&suspendset);
+      ///pause();
       // sleep(1);
     }
     shm_data->pready = FALSE;
     ready = FALSE;
-    printf("x=%3ld y=%6ld\n", shm_data->x, shm_data->y);
+    printf("P: x=%3ld y=%6ld\n", shm_data->x, shm_data->y);
   }
   shm_data->cmd = 'Q';
   kill(SIGUSR1, pid);

@@ -18,6 +18,7 @@
 
 #include <itskylib.h>
 #include <hsort.h>
+#include <fsort.h>
 
 #define SIZE 1024
 #define THREAD_COUNT 10
@@ -29,7 +30,7 @@ struct thread_arg {
   int thread_idx;
 };
 
-enum sort_type { HEAP_SORT, QUICK_SORT };
+enum sort_type { HEAP_SORT, QUICK_SORT, FLASH_SORT };
 
 pthread_barrier_t start_barrier;
 pthread_barrier_t barrier;
@@ -45,6 +46,19 @@ enum sort_type selected_sort_type;
 
 int compare_full(const void *left, const void *right, void *ignored) {
   return strcmp(*(const char_ptr *) left, *(const char_ptr *) right);
+}
+
+double metric_full(const void *element, void *ignored) {
+  const char *str = *(const char_ptr *) element;
+  const char *str_ptr = str;
+  double result = 0.0;
+  double factor = 1.0;
+  while (*str_ptr != '\000') {
+    result += ((unsigned char) (* str_ptr)) * factor;
+    factor /= 256.0;
+    str_ptr++;
+  }
+  return result;
 }
 
 void *thread_run(void *ptr) {
@@ -70,6 +84,9 @@ void *thread_run(void *ptr) {
     break;
   case QUICK_SORT:
     qsort_r(strings, len, sizeof(char_ptr), compare_full, (void *) NULL);
+    break;
+  case FLASH_SORT:
+    fsort_r(strings, len, sizeof(char_ptr), compare_full, (void *) NULL, metric_full, (void *) NULL);
     break;
   default:
     /* should *never* happen: */
@@ -136,6 +153,7 @@ void *thread_run(void *ptr) {
 void usage(char *argv0, char *msg) {
   printf("%s\n\n", msg);
   printf("Usage:\n\n");
+  printf("%s -f number\n\tsorts stdin using flashsort in n threads.\n\n", argv0);
   printf("%s -h number\n\tsorts stdin using heapsort in n threads.\n\n", argv0);
   printf("%s -q number\n\tsorts stdin using quicksort in n threads.\n\n", argv0);
   exit(1);
@@ -158,6 +176,9 @@ int main(int argc, char *argv[]) {
   switch (opt_char) {
   case 'h' :
     selected_sort_type = HEAP_SORT;
+    break;
+  case 'f' :
+    selected_sort_type = FLASH_SORT;
     break;
   case 'q' :
     selected_sort_type = QUICK_SORT;

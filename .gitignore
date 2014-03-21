@@ -146,3 +146,5 @@ threads/mutex-attr-threads
 threads/mutex-threads
 threads/posix-sem-threads
 threads/sysv-sem-threads
+lib/fsort.o
+lib/sort_common.o

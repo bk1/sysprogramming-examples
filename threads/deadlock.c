@@ -5,6 +5,7 @@
  * License: GPL v2 (See https://de.wikipedia.org/wiki/GNU_General_Public_License )
  */
 
+/* example program for creating a deadlock */
 
 #include <errno.h>
 #include <stdio.h>
@@ -20,7 +21,7 @@ pthread_mutex_t mutex1;
 pthread_mutex_t mutex2;
 
 void *thread_run(void *ptr) {
-  
+
   printf("in child thread: getting mutex2\n");
   pthread_mutex_lock(&mutex2);
   printf("in child thread: got mutex2\n");
@@ -42,10 +43,10 @@ void usage(const char *argv0, const char *msg) {
     printf("%s\n\n", msg);
   }
   printf("Usage\n\n");
-  printf("%s -d\n PTHREAD_MUTEX_DEFAULT\n\n", argv0);
-  printf("%s -n\n PTHREAD_MUTEX_NORMAL\n\n", argv0);
-  printf("%s -e\n PTHREAD_MUTEX_ERRORCHECK\n\n", argv0);
-  printf("%s -r\n PTHREAD_MUTEX_RECURSIVE\n\n", argv0);
+  printf("%s -d\n mutex_type=PTHREAD_MUTEX_DEFAULT\n\n", argv0);
+  printf("%s -n\n mutex_type=PTHREAD_MUTEX_NORMAL\n\n", argv0);
+  printf("%s -e\n mutex_type=PTHREAD_MUTEX_ERRORCHECK\n\n", argv0);
+  printf("%s -r\n mutex_type=PTHREAD_MUTEX_RECURSIVE\n\n", argv0);
   printf("%s -x\n no attribute used\n\n", argv0);
   exit(1);
 }
@@ -53,6 +54,10 @@ void usage(const char *argv0, const char *msg) {
 int main(int argc, char *argv[]) {
   int retcode;
   pthread_t thread1;
+
+  if (is_help_requested(argc, argv)) {
+    usage(argv[0], "");
+  }
 
   pthread_mutexattr_t mutex_attr;
   pthread_mutexattr_init(&mutex_attr);
@@ -98,7 +103,7 @@ int main(int argc, char *argv[]) {
 
   retcode = pthread_create(&thread1, NULL, thread_run, NULL);
   handle_thread_error(retcode, "pthread_create", PROCESS_EXIT);
-  
+
   printf("in parent thread: getting mutex1\n");
   pthread_mutex_lock(&mutex1);
   printf("in parent thread: got mutex1\n");
