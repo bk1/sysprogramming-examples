@@ -14,8 +14,10 @@
 #include <string.h>
 #include <alloca.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include <fsort.h>
+#include <hsort.h>
 #include <itskylib.h>
 
 #define POINTER(base, idx, size) ((base) + (size) * (idx))
@@ -112,6 +114,7 @@ void fsort_f(void *base,
   size_t *ll = (size_t *) malloc((lsize + 1) * sizeof(size_t));
   handle_ptr_error(ll, "malloc for ll", PROCESS_EXIT);
   ll[0] = 0;
+  ll[1] = l[1];
   for (size_t k = 1; k < lsize; k++) {
     l[k] += l[k-1];
     ll[k+1] = l[k];
@@ -142,43 +145,24 @@ void fsort_f(void *base,
       nmove++;
     }
   }
-  //   /* straight insertion */
-  //   for (size_t ii = nmemb - 2; ii > 0; ii--) {
-  //     size_t i = ii-1;
-  //     fprintf(stderr, "outer: i=%ld ii=%ld j=%ld nmemb=%ld\n", i, ii, j, nmemb);
-  //     void *ai_succ_ptr = POINTER(base, ii, size);
-  //     void *ai_ptr = POINTER(base, i, size);
-  //     if (compare(ai_succ_ptr, ai_ptr, argc) < 0) {
-  //         void *hold_ptr = alloca(size);
-  //         memcpy(hold_ptr, ai_ptr, size);
-  //         j = i;
-  //         void *aj_ptr = POINTER(base, j, size);
-  //         while (TRUE) {
-  //           fprintf(stderr, "inner: i=%ld ii=%ld j=%ld nmemb=%ld\n", i, ii, j, nmemb);
-  //           void *aj_succ_ptr = POINTER(base, j+1, size);
-  //           if (compare(aj_succ_ptr, hold_ptr, argc) >= 0) {
-  //             break;
-  //           }
-  //           memcpy(aj_ptr, aj_succ_ptr, size);
-  //           j++;
-  //           aj_ptr = aj_succ_ptr;
-  //         }
-  //         fprintf(stderr, "outer done: i=%ld ii=%ld j=%ld nmemb=%ld\n", i, ii, j, nmemb);
-  //         memcpy(aj_ptr, hold_ptr, size);
-  //     }
-  //   }
-  //   fprintf(stderr,"inserted\n");
 
   /* use qsort or hsort for each class */
   for (k = 0; k < lsize; k++) {
     size_t n = ll[k+1] - ll[k];
+    if (n > 1 && ll[k+1] < ll[k] || n > nmemb) {
+      char txt[4096];
+      sprintf(txt, "wrong order: k=%ld lsize=%ld nmemb=%ld n=%ld ll[k]=%ld ll[k+1]=%ld\n", k, lsize, nmemb, n, ll[k], ll[k+1]);
+      handle_error_myerrno(-1, EDOM, txt, PROCESS_EXIT);
+    }
     if (n > 1) {
-      // fprintf(stderr, "k=%ld n=%ld ll[k]=%ld ll[k+1]=%ld\n", k, n, ll[k], ll[k+1]);
       void *basek = POINTER(base, ll[k], size);
-      qsort_r(basek, n, size, compare, argc);
+      hsort_r(basek, n, size, compare, argc);
     }
   }
   free(l);
+  l = NULL;
   free(ll);
+  ll = NULL;
+  // fprintf(stderr, "DONE\n");
   return;
 }

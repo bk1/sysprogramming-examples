@@ -46,7 +46,9 @@ struct thread_arg *segments;
 enum sort_type selected_sort_type;
 
 int compare_full(const void *left, const void *right, void *ignored) {
-  return strcmp(*(const char_ptr *) left, *(const char_ptr *) right);
+  const char *left_ptr  = *(const char_ptr *) left;
+  const char *right_ptr = *(const char_ptr *) right;
+  return strcmp(left_ptr, right_ptr);
 }
 
 double metric_full(const void *element, void *ignored) {
@@ -54,7 +56,7 @@ double metric_full(const void *element, void *ignored) {
   const char *str_ptr = str;
   double result = 0.0;
   double factor = 1.0;
-  while (*str_ptr != '\000') {
+  while (*str_ptr != '\000' && factor > 0) {
     result += ((unsigned char) (* str_ptr)) * factor;
     factor /= 256.0;
     str_ptr++;
@@ -188,7 +190,7 @@ int main(int argc, char *argv[]) {
     usage(argv0, "wrong option: only -q and -h supported");
     break;
   }
-  
+
   sscanf(argv[2], "%d", &thread_count);
   if (thread_count < 1 || thread_count > 1024) {
     printf("running with %d threads\n", thread_count);
