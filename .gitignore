@@ -148,3 +148,6 @@ threads/posix-sem-threads
 threads/sysv-sem-threads
 lib/fsort.o
 lib/sort_common.o
+lib/fsort-orig.c
+
+core
