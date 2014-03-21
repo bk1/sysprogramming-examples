@@ -5,21 +5,21 @@
  * License: GPL v2 (See https://de.wikipedia.org/wiki/GNU_General_Public_License )
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/ipc.h>
-#include <sys/sem.h>
-#include <sys/msg.h>
-#include <sys/wait.h>
 #include <errno.h>
-#include <unistd.h>
+#include <fcntl.h>
 #include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+#include <sys/sem.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <time.h>
+#include <unistd.h>
 
-#define FALSE 0
-#define TRUE  1
+#include <itskylib.h>
 
 #define ERROR_SIZE 16384
 
@@ -30,11 +30,11 @@
 int msgqid_for_cleanup = 0;
 int sempid_for_cleanup = 0;
 
-void handle_error(int return_code, const char *msg);
+const char *REF_FILE = "./semref.dat";
 
 int create_sem(key_t key, const char *txt, const char *etxt) {
   int semaphore_id = semget(key, 1, IPC_CREAT | MSGPERM);
-  handle_error(semaphore_id, etxt);
+  handle_error(semaphore_id, etxt, PROCESS_EXIT);
   printf("%s: semaphore_id=%d key=%ld\n", txt, semaphore_id, (long) key);
   fflush(stdout);
   return semaphore_id;
@@ -42,7 +42,7 @@ int create_sem(key_t key, const char *txt, const char *etxt) {
 
 int create_msg(key_t key, const char *txt, const char *etxt) {
   int msgqueue_id = msgget(key, IPC_CREAT | MSGPERM);
-  handle_error(msgqueue_id, "child msgget failed");
+  handle_error(msgqueue_id, "child msgget failed", PROCESS_EXIT);
   return msgqueue_id;
 }
 
@@ -50,12 +50,12 @@ void cleanup_queue() {
   if (msgqid_for_cleanup > 0) {
     int retcode = msgctl(msgqid_for_cleanup, IPC_RMID, NULL);
     msgqid_for_cleanup = 0;
-    handle_error(retcode, "removing of msgqueue failed");
+    handle_error(retcode, "removing of msgqueue failed", PROCESS_EXIT);
   }
   if (sempid_for_cleanup > 0) {
     int retcode = semctl(sempid_for_cleanup, 0, IPC_RMID, NULL);
     sempid_for_cleanup = 0;
-    handle_error(retcode, "removing of semaphore failed");
+    handle_error(retcode, "removing of semaphore failed", PROCESS_EXIT);
   }
 }
 
@@ -65,33 +65,13 @@ void my_handler(int signo) {
   exit(1);
 }
 
-/* helper function for dealing with errors */
-void handle_error(int return_code, const char *msg) {
-  if (return_code < 0) {
-    char extra_txt[ERROR_SIZE];
-    char error_msg[ERROR_SIZE];
-    char *extra_msg = extra_txt;
-    int myerrno = errno;
-    const char *error_str = strerror(myerrno);
-    if (msg != NULL) {
-      sprintf(extra_msg, "%s\n", msg);
-    } else {
-      extra_msg = "";
-    }
-    sprintf(error_msg, "%sreturn_code=%d\nerrno=%d\nmessage=%s\n", extra_msg, return_code, myerrno, error_str);
-    write(STDOUT_FILENO, error_msg, strlen(error_msg));
-    cleanup_queue();
-    exit(1);
-  }
-}
-
 
 void show_sem_ctl(int semaphore_id, const char *txt) {
 
   int retcode;
   struct semid_ds semctl_data;
   retcode = semctl(semaphore_id, 0, IPC_STAT, &semctl_data);
-  handle_error(retcode, "child semctl failed");
+  handle_error(retcode, "child semctl failed",  PROCESS_EXIT);
   struct ipc_perm perms = semctl_data.sem_perm;
   printf("%s: key=%ld uid=%d gid=%d cuid=%d cgid=%d mode=%d seq=%d\n", txt, (long) perms.__key, (int) perms.uid, (int) perms.gid, (int) perms.cuid, (int) perms.cgid, (int) perms.mode, (int)perms.__seq);
   fflush(stdout);
@@ -121,7 +101,7 @@ void prepare_sem(key_t sem_key) {
   short semval[1];
   semval[0] = (short) 2;
   retcode = semctl(tmp_semaphore_id, 1, SETALL, &semval);
-  handle_error(retcode, "changing of semaphore failed");
+  handle_error(retcode, "changing of semaphore failed", PROCESS_EXIT);
   union semun semunx;
   semctl(tmp_semaphore_id, 1, GETALL, &semunx);
   printf("limit=%d\n", semunx.array[0]);
@@ -139,24 +119,22 @@ int main(int argc, char *argv[]) {
   signal(SIGTERM, my_handler);
   signal(SIGINT, my_handler);
 
-  FILE *f = fopen("semref.dat", "w");
-  fwrite("X", 1, 1, f);
-  fclose(f);
+  create_if_missing(REF_FILE, S_IRUSR | S_IWUSR);
 
-  key_t msg_key = ftok("./semref.dat", 0);
+  key_t msg_key = ftok(REF_FILE, 0);
   if (msg_key < 0) {
-    handle_error(-1, "ftok failed");
+    handle_error(-1, "ftok failed", PROCESS_EXIT);
   }
-  key_t sem_key = ftok("./semref.dat", 1);
+  key_t sem_key = ftok(REF_FILE, 1);
   if (sem_key < 0) {
-    handle_error(-1, "ftok failed");
+    handle_error(-1, "ftok failed", PROCESS_EXIT);
   }
 
   prepare_sem(sem_key);
 
   /* create a worker process */
   int pid = fork();
-  handle_error(pid, "fork failed");
+  handle_error(pid, "fork failed", PROCESS_EXIT);
   if (pid == 0) {
     printf("in worker pid=%d (ppid=%d)\n", getpid(), getppid());
     fflush(stdout);
@@ -165,7 +143,7 @@ int main(int argc, char *argv[]) {
 
     while (TRUE) {
       retcode = msgrcv(msgqueue_id, &msg, SIZE, WORKER_TYPE, 0);
-      handle_error(retcode, "parent msgrcv failed");
+      handle_error(retcode, "parent msgrcv failed", PROCESS_EXIT);
       char c = msg.data.ctrl;
       if (c == 'Q') {
         break;
@@ -183,7 +161,7 @@ int main(int argc, char *argv[]) {
       printf("worker sending: y=%ld (o=%d c=%c t=%ld)\n", y, msg.data.origin, msg.data.ctrl, msg.type);
       fflush(stdout);
       retcode = msgsnd(msgqueue_id, &msg, SIZE, 0);
-      handle_error(retcode, "msgsnd failed");
+      handle_error(retcode, "msgsnd failed", PROCESS_EXIT);
     }
     printf("terminating worker\n");
     fflush(stdout);
@@ -194,7 +172,7 @@ int main(int argc, char *argv[]) {
 
   for (i = 1; i <= 5; i++) {
     int pid = fork();
-    handle_error(pid, "fork failed");
+    handle_error(pid, "fork failed", PROCESS_EXIT);
     if (pid == 0) {
       printf("in child %d\n", i);
       fflush(stdout);
@@ -215,7 +193,7 @@ int main(int argc, char *argv[]) {
         printf("%d obtaining resource\n", i);
         fflush(stdout);
         retcode = semop(semaphore_id, &sem, 1);
-        handle_error(retcode, "semop failed");
+        handle_error(retcode, "semop failed", PROCESS_EXIT);
 
         printf("%d: sending msg x=%d\n", i, j);
         fflush(stdout);
@@ -224,10 +202,10 @@ int main(int argc, char *argv[]) {
         msg.data.origin = i;
         msg.type = WORKER_TYPE;
         retcode = msgsnd(msgqueue_id, &msg, SIZE, 0);
-        handle_error(retcode, "msgsnd failed");
+        handle_error(retcode, "msgsnd failed", PROCESS_EXIT);
 
         retcode = msgrcv(msgqueue_id, &msg, SIZE, i, 0);
-        handle_error(retcode, "msgrcv failed");
+        handle_error(retcode, "msgrcv failed", PROCESS_EXIT);
 
         sem.sem_num = 0;
         sem.sem_op  = 1;
@@ -235,7 +213,7 @@ int main(int argc, char *argv[]) {
         printf("%d freeing resource\n", i);
         fflush(stdout);
         retcode = semop(semaphore_id, &sem, 1);
-        handle_error(retcode, "semop failed");
+        handle_error(retcode, "semop failed", PROCESS_EXIT);
 
         printf("%3d: %3d^2 = %6ld\n", i, j, msg.data.value);
         fflush(stdout);
@@ -257,13 +235,13 @@ int main(int argc, char *argv[]) {
     fflush(stdout);
     int status;
     retcode = wait(&status);
-    handle_error(retcode, "wait failed");
+    handle_error(retcode, "wait failed", PROCESS_EXIT);
   }
   msg.data.ctrl = 'Q';
   msg.type = WORKER_TYPE;
 
   retcode = msgsnd(msgqueue_id, &msg, SIZE, 0);
-  handle_error(retcode, "msgsnd failed");
+  handle_error(retcode, "msgsnd failed", PROCESS_EXIT);
 
   printf("terminating parent\n");
   exit(0);

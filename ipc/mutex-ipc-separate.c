@@ -21,6 +21,7 @@
 #include <signal.h>
 #include <time.h>
 #include <pthread.h>
+#include <fcntl.h>
 
 #include <itskylib.h>
 
@@ -30,7 +31,7 @@
 
 #define ALPHA_SIZE 256
 
-#define REF_FILE "./shm_sem_ref.dat"
+const char *REF_FILE = "./shm_sem_ref.dat";
 
 int shmid_for_cleanup = 0;
 
@@ -77,11 +78,13 @@ int main(int argc, char *argv[]) {
 
   int retcode;
 
-  if (argc >= 2 && (strcmp(argv[1], "-h") == 0 ||strcmp(argv[1], "-H") == 0 ||strcmp(argv[1], "-help") == 0 ||strcmp(argv[1], "--help") == 0)) {
+  if (is_help_requested(argc, argv)) {
     usage(argv[0], "");
   }
 
   int use_timeout = (argc >= 2 && strcmp(argv[1], "-t") == 0);
+
+  create_if_missing(REF_FILE, S_IRUSR | S_IWUSR);
 
   key_t shm_key = ftok(REF_FILE, 1);
   if (shm_key < 0) {

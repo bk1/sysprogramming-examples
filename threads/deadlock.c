@@ -37,6 +37,19 @@ void *thread_run(void *ptr) {
   return (void *) NULL;
 }
 
+void usage(const char *argv0, const char *msg) {
+  if (msg != NULL && strlen(msg) > 0) {
+    printf("%s\n\n", msg);
+  }
+  printf("Usage\n\n");
+  printf("%s -d\n PTHREAD_MUTEX_DEFAULT\n\n", argv0);
+  printf("%s -n\n PTHREAD_MUTEX_NORMAL\n\n", argv0);
+  printf("%s -e\n PTHREAD_MUTEX_ERRORCHECK\n\n", argv0);
+  printf("%s -r\n PTHREAD_MUTEX_RECURSIVE\n\n", argv0);
+  printf("%s -x\n no attribute used\n\n", argv0);
+  exit(1);
+}
+
 int main(int argc, char *argv[]) {
   int retcode;
   pthread_t thread1;
@@ -64,14 +77,7 @@ int main(int argc, char *argv[]) {
     // use NULL;
     break;
   default:
-    printf("unknown option, supported: -d -n -e -r -x\n");
-    printf("Usage\n\n");
-    printf("%s -d\n PTHREAD_MUTEX_DEFAULT\n\n", argv[0]);
-    printf("%s -n\n PTHREAD_MUTEX_NORMAL\n\n", argv[0]);
-    printf("%s -e\n PTHREAD_MUTEX_ERRORCHECK\n\n", argv[0]);
-    printf("%s -r\n PTHREAD_MUTEX_RECURSIVE\n\n", argv[0]);
-    printf("%s -x\n no attribute used\n\n", argv[0]);
-    exit(1);
+    usage(argv[0], "unknown option, supported: -d -n -e -r -x");
   }
   if (mutex_type == 'x') {
     retcode = pthread_mutex_init(&mutex1, NULL);

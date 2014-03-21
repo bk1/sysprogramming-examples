@@ -12,6 +12,7 @@
 #include <sys/ipc.h>
 #include <sys/sem.h>
 #include <sys/shm.h>
+#include <sys/stat.h>
 #include <sys/msg.h>
 #include <sys/wait.h>
 #include <errno.h>
@@ -30,7 +31,7 @@
 
 #define SEM_LIMIT  10
 
-#define REF_FILE "./shm_sem_ref.dat"
+const char *REF_FILE = "./shm_sem_ref.dat";
 
 int shmid_for_cleanup = 0;
 int semid_for_cleanup = 0;
@@ -109,24 +110,33 @@ void show_sem_ctl(int semaphore_id, int idx, const char *txt) {
   fflush(stdout);
 }
 
+void usage(const char *argv0, const char *msg) {
+  if (msg != NULL && strlen(msg) > 0) {
+    printf("%s\n\n", msg);
+  }
+  printf("Usage\n\n");
+  printf("%s -c\ncleanup ipc\n\n", argv0);
+  printf("%s -s\nsetup ipc\n\n", argv0);
+  printf("%s < inputfile\ncout file, show accumulated output\n\n", argv0);
+  printf("%s name < inputfile\ncout file, show output with name\n\n", argv0);
+  exit(1);
+}
+
 int main(int argc, char *argv[]) {
 
   time_t t_start = time(NULL);
 
+  if (is_help_requested(argc, argv)) {
+    usage(argv[0], "");
+  }
+
   if (argc > 2) {
-    printf("Usage\n\n");
-    printf("%s -c\ncleanup ipc\n\n", argv[0]);
-    printf("%s -s\nsetup ipc\n\n", argv[0]);
-    printf("%s < inputfile\ncout file, show accumulated output\n\n", argv[0]);
-    printf("%s name < inputfile\ncout file, show output with name\n\n", argv[0]);
-    exit(1);
+    usage(argv[0], "too many arguments");
   }
 
   int retcode = 0;
 
-  FILE *f = fopen(REF_FILE, "w");
-  fwrite("X", 1, 1, f);
-  fclose(f);
+  create_if_missing(REF_FILE, S_IRUSR | S_IWUSR);
 
   key_t shm_key = ftok(REF_FILE, 1);
   if (shm_key < 0) {

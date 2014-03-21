@@ -28,8 +28,9 @@
 
 #define ALPHA_SIZE 256
 
-#define REF_FILE "./shm_sem_ref.dat"
 #define SEM_NAME "/sem-shared-memory-count-simple-posix"
+
+const char *REF_FILE = "./shm_sem_ref.dat";
 
 struct data {
   long counter[ALPHA_SIZE];
@@ -84,9 +85,8 @@ int main(int argc, char *argv[]) {
 
   int retcode = 0;
 
-  FILE *f = fopen(REF_FILE, "w");
-  fwrite("X", 1, 1, f);
-  fclose(f);
+
+  create_if_missing(REF_FILE, S_IRUSR | S_IWUSR);
 
   key_t shm_key = ftok(REF_FILE, 1);
   if (shm_key < 0) {

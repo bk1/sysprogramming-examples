@@ -145,6 +145,30 @@ enum file_type check_file(const char *file_or_dir_name) {
   }
 }
 
+/* create a given file if it is not there */
+int create_if_missing(const char *pathname, mode_t mode) {
+  int fd = creat(pathname, mode);
+  if (fd < 0) {
+    char s[1024];
+    sprintf(s, "could not create file=\"%s\".", pathname);
+    handle_error(fd, s, NO_EXIT);
+    return fd;
+  }
+  int retcode = close(fd);
+  handle_error(fd, "close", NO_EXIT);
+  return retcode;
+}
+
+/* check if --help or similar is indicated */
+int is_help_requested(int argc, char *argv[]) {
+  return (argc >= 2 
+          && (strcmp(argv[1], "-h") == 0 
+              || strcmp(argv[1], "-H") == 0
+              || strcmp(argv[1], "-help") == 0
+              || strcmp(argv[1], "--help") == 0));
+}
+
+/* get a timestamp that is s seconds and n nanoseconds into the future from now */
 struct timespec get_future(time_t sec, long nsec) {
   int retcode;
 

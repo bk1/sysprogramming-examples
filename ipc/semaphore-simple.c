@@ -5,24 +5,27 @@
  * License: GPL v2 (See https://de.wikipedia.org/wiki/GNU_General_Public_License )
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/ipc.h>
-#include <sys/sem.h>
-#include <sys/msg.h>
-#include <sys/wait.h>
 #include <errno.h>
-#include <unistd.h>
 #include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+#include <sys/sem.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <time.h>
+#include <unistd.h>
 
 #include <itskylib.h>
 
 #define ERROR_SIZE 16384
 
 #define MSGPERM 0600
+
+const char *REF_FILE = "./semref.dat";
 
 int create_sem(key_t key) {
   int semaphore_id = semget(key, 1, IPC_CREAT | MSGPERM);
@@ -35,11 +38,9 @@ int main(int argc, char *argv[]) {
   int retcode;
   struct sembuf sem;
 
-  FILE *f = fopen("semref.dat", "w");
-  fwrite("X", 1, 1, f);
-  fclose(f);
+  create_if_missing(REF_FILE, S_IRUSR | S_IWUSR);
 
-  key_t sem_key = ftok("./semref.dat", 1);
+  key_t sem_key = ftok(REF_FILE, 1);
   handle_error(sem_key, "ftok failed", PROCESS_EXIT);
 
   int semaphore_id = create_sem(sem_key);

@@ -25,7 +25,7 @@ int mylock(const char *filename, int start, int end) {
 
 void usage(char *argv0, char *msg) {
   printf("%s\n\n", msg);
-  printf("Usage:\n\n%s\n create file to be dealt with and exit\n%s x y\n lock part of file from position x (inclusiv) to position y (exclusive), sleep 10 sec\n");
+  printf("Usage:\n\n%s\n create file to be dealt with and exit\n%s x y\n lock part of file from position x (inclusiv) to position y (exclusive), sleep 10 sec\n", argv0, argv0);
   exit(1);
 }
 

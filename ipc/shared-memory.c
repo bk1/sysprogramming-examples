@@ -5,12 +5,15 @@
  * License: GPL v2 (See https://de.wikipedia.org/wiki/GNU_General_Public_License )
  */
 
+/* WARNING: does not work currently */
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/sem.h>
+#include <sys/stat.h>
 #include <sys/shm.h>
 #include <sys/msg.h>
 #include <sys/wait.h>
@@ -39,6 +42,8 @@ struct data {
 
 const int SIZE = sizeof(struct data);
 
+const char *REF_FILE = "./shmref.dat";
+
 int create_shm(key_t key, const char *txt, const char *etxt) {
   int shm_id = shmget(key, SIZE, IPC_CREAT | PERM);
   handle_error(shm_id, etxt, PROCESS_EXIT);
@@ -57,6 +62,7 @@ void cleanup() {
 
 void my_handler(int signo) {
   if (signo == SIGUSR1) {
+    printf("received SIGUSR1\n");
     ready = TRUE;
   } else {
     cleanup();
@@ -75,8 +81,20 @@ void show_shm_ctl(int shm_id, const char *txt) {
   printf("%s: key=%ld uid=%d gid=%d cuid=%d cgid=%d mode=%d seq=%d\n", txt, (long) perms.__key, (int) perms.uid, (int) perms.gid, (int) perms.cuid, (int) perms.cgid, (int) perms.mode, (int)perms.__seq);
 }
 
+void usage(char *argv0, char *msg) {
+  printf("%s\n\n", msg);
+  printf("Usage:\n\n%s\n use shared memory to communcate between two processes\n\n", argv0);
+  exit(1);
+}
+
 int main(int argc, char *argv[]) {
+
   int retcode = 0;
+
+  if (is_help_requested(argc, argv)) {
+    usage(argv[0], "");
+  }
+
   int i;
 
   signal(SIGTERM, my_handler);
@@ -86,19 +104,17 @@ int main(int argc, char *argv[]) {
   sigset_t set, oldset, suspendset;
   sigemptyset(&set);
   sigaddset(&set, SIGUSR1);
-  // sigprocmask(SIG_BLOCK, &set, &oldset);
+  sigprocmask(SIG_BLOCK, &set, &oldset);
   suspendset = oldset;
   sigdelset(&suspendset, SIGUSR1);
 
-  FILE *f = fopen("shmref.dat", "w");
-  fwrite("X", 1, 1, f);
-  fclose(f);
+  create_if_missing(REF_FILE, S_IRUSR | S_IWUSR);
 
-  key_t shm_key = ftok("./shmref.dat", 1);
+  key_t shm_key = ftok(REF_FILE, 1);
   if (shm_key < 0) {
     handle_error(-1, "ftok failed", PROCESS_EXIT);
   }
-  
+
   /* create a worker process */
   int pid = fork();
   handle_error(pid, "fork failed", PROCESS_EXIT);
@@ -114,11 +130,13 @@ int main(int argc, char *argv[]) {
       printf("W: p=%d c=%d x=%ld y=%ld c=%c\n", shm_data->ppid, shm_data->cpid, shm_data->x, shm_data->y, shm_data->cmd);
       sleep(1);
     }
-    // kill(SIGUSR1, getppid());
+    pid_t ppid = getppid();
+    printf("child sending signal to ppid=%ld indicate readiness\n", (long) ppid);
+    kill(SIGUSR1, ppid);
     while (TRUE) {
       while (! shm_data->pready) {
-        sleep(1);
-        //retcode = pause();
+        retcode = pause();
+        handle_error(retcode, "pause", PROCESS_EXIT);
         // retcode = sigsuspend(&suspendset);
         printf("returned retcode=%d errno=%d\n", retcode, errno);
       }
@@ -132,10 +150,11 @@ int main(int argc, char *argv[]) {
       shm_data->y = shm_data->x * shm_data->x;
       shm_data->cready = TRUE;
       printf("worker sending signal to parent\n");
-      // kill(SIGUSR1, shm_data->ppid);
+      kill(SIGUSR1, shm_data->ppid);
     }
+    exit(0); // done with child
   }
-  
+
   /* in parent */
   atexit(cleanup);
   printf("in parent pid=%d\n", getpid());
@@ -158,24 +177,24 @@ int main(int argc, char *argv[]) {
     shm_data->x = i;
     shm_data->cmd = '*';
     shm_data->pready = TRUE;
-    //printf("parent sending signal to worker\n");
-    // kill(SIGUSR1, pid);
+    printf("parent sending signal to worker\n");
+    kill(SIGUSR1, pid);
     while (! shm_data->cready) {
       // sigsuspend(&suspendset);
-      // pause();
-      sleep(1);
+      pause();
+      // sleep(1);
     }
     shm_data->pready = FALSE;
     ready = FALSE;
     printf("x=%3ld y=%6ld\n", shm_data->x, shm_data->y);
   }
   shm_data->cmd = 'Q';
-  // kill(SIGUSR1, pid);
+  kill(SIGUSR1, pid);
   int status;
   wait(&status);
   printf("child terminated->terminating parent\n");
   shmdt(shm_data);
-  cleanup();
   printf("terminating parent\n");
+  printf("DONE");
   exit(0);
 }

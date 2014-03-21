@@ -5,19 +5,20 @@
  * License: GPL v2 (See https://de.wikipedia.org/wiki/GNU_General_Public_License )
  */
 
+#include <errno.h>
+#include <fcntl.h>
+#include <signal.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
-#include <sys/types.h>
+#include <string.h>
 #include <sys/ipc.h>
+#include <sys/msg.h>
 #include <sys/sem.h>
 #include <sys/shm.h>
-#include <sys/msg.h>
+#include <sys/types.h>
 #include <sys/wait.h>
-#include <errno.h>
-#include <unistd.h>
-#include <signal.h>
 #include <time.h>
+#include <unistd.h>
 
 #include <itskylib.h>
 
@@ -27,7 +28,7 @@
 
 #define ALPHA_SIZE 256
 
-#define REF_FILE "./shm_sem_ref.dat"
+const char *REF_FILE = "./shm_sem_ref.dat";
 
 int shmid_for_cleanup = 0;
 int semid_for_cleanup = 0;
@@ -109,9 +110,7 @@ int main(int argc, char *argv[]) {
 
   int retcode = 0;
 
-  FILE *f = fopen(REF_FILE, "w");
-  fwrite("X", 1, 1, f);
-  fclose(f);
+  create_if_missing(REF_FILE, S_IRUSR | S_IWUSR);
 
   key_t shm_key = ftok(REF_FILE, 1);
   if (shm_key < 0) {

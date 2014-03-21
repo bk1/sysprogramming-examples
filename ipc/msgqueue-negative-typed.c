@@ -5,16 +5,17 @@
  * License: GPL v2 (See https://de.wikipedia.org/wiki/GNU_General_Public_License )
  */
 
+#include <errno.h>
+#include <signal.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
-#include <sys/types.h>
+#include <string.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
-#include <errno.h>
-#include <unistd.h>
-#include <signal.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <time.h>
+#include <unistd.h>
 
 #include <itskylib.h>
 
@@ -25,6 +26,8 @@
 #define MSGPERM 0600
 
 int msgqid_for_cleanup = 0;
+
+const char *REF_FILE = "./msgref.dat";
 
 void cleanup_queue() {
   if (msgqid_for_cleanup > 0) {
@@ -71,11 +74,9 @@ int main(int argc, char *argv[]) {
   signal(SIGTERM, my_handler);
   signal(SIGINT, my_handler);
 
-  FILE *f = fopen("msgref.dat", "w");
-  fwrite("X", 1, 1, f);
-  fclose(f);
+  create_if_missing(REF_FILE, S_IRUSR | S_IWUSR);
 
-  key_t key = ftok("./msgref.dat", 0);
+  key_t key = ftok(REF_FILE, 0);
   handle_error(key, "ftok failed", PROCESS_EXIT);
 
   /* create a second process so communication can be tested */
