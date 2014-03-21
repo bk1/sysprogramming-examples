@@ -5,12 +5,12 @@
  * License: GPL v2 (See https://de.wikipedia.org/wiki/GNU_General_Public_License )
  */
 
-#include <hsort.h>
 #include <stdio.h>
 #include <string.h>
 #include <alloca.h>
 
 #include <itskylib.h>
+#include <hsort.h>
 
 #define PARENT(idx) (((idx) - 1) / 2)
 #define LEFT(idx) (2*(idx) + 1)
@@ -33,13 +33,6 @@ int right_child_idx(int idx) {
 int compare_extend(const void *left, const void *right, void *mem) {
   compare_fun2 compare_basic = (compare_fun2) mem;
   return compare_basic(left, right);
-}
-
-void swap_elements(void *left_ptr, void *right_ptr, size_t size) {
-  void *buff = alloca(size);
-  memcpy(buff, left_ptr, size);
-  memcpy(left_ptr, right_ptr, size);
-  memcpy(right_ptr, buff, size);
 }
 
 void sift_down(void *base,

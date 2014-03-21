@@ -9,6 +9,7 @@
 #define _LIB_ITSKY_SYSPROGRAMMING
 
 #include <time.h>
+#include <fcntl.h>
 
 #define TRUE 1
 #define FALSE 0

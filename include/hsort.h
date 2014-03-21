@@ -9,6 +9,7 @@
 #define _LIB_ITSKY_HSORT
 
 #include <sys/types.h>
+#include <sortcommon.h>
 
 typedef int (*compare_fun2)(const void *left, const void *right);
 typedef int (*compare_fun3)(const void *left, const void *right, void *mem);
