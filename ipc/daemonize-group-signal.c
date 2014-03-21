@@ -40,8 +40,9 @@ int main(int argc, char *argv[]) {
   handle_error(retcode, "setpgid", PROCESS_EXIT);
 
   /* set signal handler */
-  void *ptr = signal(SIGUSR1, signal_handler);
-  handle_ptr_error(ptr, "signal", PROCESS_EXIT);
+  signal(SIGUSR1, signal_handler);
+  // void *ptr = signal(SIGUSR1, signal_handler);
+  // handle_ptr_error(ptr, "signal", PROCESS_EXIT);
 
   /* first fork() to create child */
   fork_result = fork();

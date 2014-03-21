@@ -1,4 +1,5 @@
-unused
+unused/*
+abc-dir/*
 io/advisory-locking
 io/advisory-locking-blocking
 io/failing-io
