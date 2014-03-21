@@ -73,8 +73,9 @@ int main(int argc, char *argv[]) {
     printf("parent released semaphore\n");
     int status;
     printf("parent waiting for child to terminate\n");
-    waitpid(pid, &status, 0);
+    retcode = waitpid(pid, &status, 0);
     handle_error(retcode, "parent: error while detaching shared memory", PROCESS_EXIT);
+    printf("child terminated with status=%d\n", status);
     retcode = sem_close(semaphore);
     handle_error(retcode, "parent failed closing", PROCESS_EXIT);
     printf("parent closed semaphore\n");

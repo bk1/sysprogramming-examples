@@ -92,7 +92,6 @@ int main(int argc, char *argv[]) {
   printf("parent waiting for child to terminate\n");
   pthread_join(thread, NULL);
   pthread_mutex_destroy(&mutex);
-  pthread_mutexattr_destroy(&mutex_attr);
   printf("done\n");
   exit(0);
 }

@@ -5,10 +5,10 @@ CFLAGS=-Wall -g -std=gnu99 -I./include -L./lib
 LIBS=-lpthread -litsky
 
 
-all: processes/fork-write-twice processes/daemonize processes/fork-wait processes/daemonize-with-pipe processes/extract processes/transmit-via-pipe io/tty-read io/stdio-stat io/lowlevel-read-write io/stdin-read io/read-string-array io/reading-deleted-file io/shared-locking io/highlevel-io io/advisory-locking-blocking io/file-stat io/lowlevel-io io/lockf-file-part1 io/reading-dir-short io/lockf-file-part2 io/abc-lowlevel io/not-reading-dir io/advisory-locking io/failing-io io/reading-dir io/password-test io/abc-highlevel threads/thread_return threads/thread-param-trap threads/thread-id threads/condition threads/timedlock threads/threadf threads/thread threads/thread_write_once threads/exit-pthread-exit threads/multithreaded-sort threads/nonblocking threads/mutex-reentrance threads/mutex-order threads/mutex-attr-threads threads/deadlock threads/barriere c/int-types c/complex c/pointer c/hsort_main ipc/shared-memory ipc/signal ipc/msgqueue-positive-typed ipc/daemonize-group-signal-sigaction ipc/semaphore ipc/msgqueue-simple ipc/shared-memory-count-simple ipc/mutex-ipc-separate ipc/mutex-attr-ipc ipc/mutex-ipc ipc/posix-sem-ipc ipc/semaphore-simple ipc/daemonize-group-signal ipc/shared-memory-count-simple-posix ipc/daemonize-signal-and-pipe ipc/msgqueue ipc/msgqueue-hello ipc/sysv-sem-ipc ipc/shared-memory-count-output-semaphore ipc/msgqueue-negative-typed ipc/shared-memory-count
+all: processes/fork-write-twice processes/daemonize processes/fork-wait processes/daemonize-with-pipe processes/extract processes/transmit-via-pipe io/tty-read io/stdio-stat io/lowlevel-read-write io/stdin-read io/read-string-array io/reading-deleted-file io/shared-locking io/highlevel-io io/advisory-locking-blocking io/file-stat io/lowlevel-io io/lockf-file-part1 io/reading-dir-short io/lockf-file-part2 io/abc-lowlevel io/not-reading-dir io/advisory-locking io/failing-io io/reading-dir io/password-test io/abc-highlevel threads/thread_return threads/thread-param-trap threads/thread-id threads/sysv-sem-threads threads/condition threads/timedlock threads/threadf threads/thread threads/thread_write_once threads/posix-sem-threads threads/exit-pthread-exit threads/multithreaded-sort threads/nonblocking threads/mutex-reentrance threads/mutex-order threads/mutex-attr-threads threads/mutex-threads threads/deadlock threads/barriere c/int-types c/complex c/pointer c/hsort_main ipc/shared-memory ipc/signal ipc/msgqueue-positive-typed ipc/daemonize-group-signal-sigaction ipc/semaphore ipc/msgqueue-simple ipc/shared-memory-count-simple ipc/mutex-ipc-separate ipc/mutex-attr-ipc ipc/mutex-ipc ipc/posix-sem-ipc ipc/semaphore-simple ipc/daemonize-group-signal ipc/shared-memory-count-simple-posix ipc/daemonize-signal-and-pipe ipc/msgqueue ipc/msgqueue-hello ipc/sysv-sem-ipc ipc/shared-memory-count-output-semaphore ipc/msgqueue-negative-typed ipc/shared-memory-count
 
 clean:
-	rm -f lib/libitsky.a  lib/lib.o lib/hsort.o processes/fork-write-twice processes/daemonize processes/fork-wait processes/daemonize-with-pipe processes/extract processes/transmit-via-pipe io/tty-read io/stdio-stat io/lowlevel-read-write io/stdin-read io/read-string-array io/reading-deleted-file io/shared-locking io/highlevel-io io/advisory-locking-blocking io/file-stat io/lowlevel-io io/lockf-file-part1 io/reading-dir-short io/lockf-file-part2 io/abc-lowlevel io/not-reading-dir io/advisory-locking io/failing-io io/reading-dir io/password-test io/abc-highlevel threads/thread_return threads/thread-param-trap threads/thread-id threads/condition threads/timedlock threads/threadf threads/thread threads/thread_write_once threads/exit-pthread-exit threads/multithreaded-sort threads/nonblocking threads/mutex-reentrance threads/mutex-order threads/mutex-attr-threads threads/deadlock threads/barriere c/int-types c/complex c/pointer c/hsort_main ipc/shared-memory ipc/signal ipc/msgqueue-positive-typed ipc/daemonize-group-signal-sigaction ipc/semaphore ipc/msgqueue-simple ipc/shared-memory-count-simple ipc/mutex-ipc-separate ipc/mutex-attr-ipc ipc/mutex-ipc ipc/posix-sem-ipc ipc/semaphore-simple ipc/daemonize-group-signal ipc/shared-memory-count-simple-posix ipc/daemonize-signal-and-pipe ipc/msgqueue ipc/msgqueue-hello ipc/sysv-sem-ipc ipc/shared-memory-count-output-semaphore ipc/msgqueue-negative-typed ipc/shared-memory-count
+	rm -f lib/libitsky.a  lib/lib.o lib/hsort.o processes/fork-write-twice processes/daemonize processes/fork-wait processes/daemonize-with-pipe processes/extract processes/transmit-via-pipe io/tty-read io/stdio-stat io/lowlevel-read-write io/stdin-read io/read-string-array io/reading-deleted-file io/shared-locking io/highlevel-io io/advisory-locking-blocking io/file-stat io/lowlevel-io io/lockf-file-part1 io/reading-dir-short io/lockf-file-part2 io/abc-lowlevel io/not-reading-dir io/advisory-locking io/failing-io io/reading-dir io/password-test io/abc-highlevel threads/thread_return threads/thread-param-trap threads/thread-id threads/sysv-sem-threads threads/condition threads/timedlock threads/threadf threads/thread threads/thread_write_once threads/posix-sem-threads threads/exit-pthread-exit threads/multithreaded-sort threads/nonblocking threads/mutex-reentrance threads/mutex-order threads/mutex-attr-threads threads/mutex-threads threads/deadlock threads/barriere c/int-types c/complex c/pointer c/hsort_main ipc/shared-memory ipc/signal ipc/msgqueue-positive-typed ipc/daemonize-group-signal-sigaction ipc/semaphore ipc/msgqueue-simple ipc/shared-memory-count-simple ipc/mutex-ipc-separate ipc/mutex-attr-ipc ipc/mutex-ipc ipc/posix-sem-ipc ipc/semaphore-simple ipc/daemonize-group-signal ipc/shared-memory-count-simple-posix ipc/daemonize-signal-and-pipe ipc/msgqueue ipc/msgqueue-hello ipc/sysv-sem-ipc ipc/shared-memory-count-output-semaphore ipc/msgqueue-negative-typed ipc/shared-memory-count
 
 lib/lib.o: lib/lib.c
 	gcc -c $(CFLAGS) lib/lib.c -o lib/lib.o
@@ -106,6 +106,9 @@ threads/thread-param-trap: threads/thread-param-trap.c lib/libitsky.a include/it
 threads/thread-id: threads/thread-id.c lib/libitsky.a include/itskylib.h
 	gcc $(CFLAGS) threads/thread-id.c $(LIBS) -o threads/thread-id
 
+threads/sysv-sem-threads: threads/sysv-sem-threads.c lib/libitsky.a include/itskylib.h
+	gcc $(CFLAGS) threads/sysv-sem-threads.c $(LIBS) -o threads/sysv-sem-threads
+
 threads/condition: threads/condition.c lib/libitsky.a include/itskylib.h
 	gcc $(CFLAGS) threads/condition.c $(LIBS) -o threads/condition
 
@@ -120,6 +123,9 @@ threads/thread: threads/thread.c lib/libitsky.a include/itskylib.h
 
 threads/thread_write_once: threads/thread_write_once.c lib/libitsky.a include/itskylib.h
 	gcc $(CFLAGS) threads/thread_write_once.c $(LIBS) -o threads/thread_write_once
+
+threads/posix-sem-threads: threads/posix-sem-threads.c lib/libitsky.a include/itskylib.h
+	gcc $(CFLAGS) threads/posix-sem-threads.c $(LIBS) -o threads/posix-sem-threads
 
 threads/exit-pthread-exit: threads/exit-pthread-exit.c lib/libitsky.a include/itskylib.h
 	gcc $(CFLAGS) threads/exit-pthread-exit.c $(LIBS) -o threads/exit-pthread-exit
@@ -138,6 +144,9 @@ threads/mutex-order: threads/mutex-order.c lib/libitsky.a include/itskylib.h
 
 threads/mutex-attr-threads: threads/mutex-attr-threads.c lib/libitsky.a include/itskylib.h
 	gcc $(CFLAGS) threads/mutex-attr-threads.c $(LIBS) -o threads/mutex-attr-threads
+
+threads/mutex-threads: threads/mutex-threads.c lib/libitsky.a include/itskylib.h
+	gcc $(CFLAGS) threads/mutex-threads.c $(LIBS) -o threads/mutex-threads
 
 threads/deadlock: threads/deadlock.c lib/libitsky.a include/itskylib.h
 	gcc $(CFLAGS) threads/deadlock.c $(LIBS) -o threads/deadlock
