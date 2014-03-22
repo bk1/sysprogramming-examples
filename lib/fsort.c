@@ -142,7 +142,7 @@ void fsort_f(void *base,
   // printf("l[%ld]=NIL ll[%ld]=%ld\n", lsize, lsize, ll[lsize]); // rm
 
   swap_elements(POINTER(base, 0, size), POINTER(base, idx_max, size), size);
-  printf("prepared\n");
+  // printf("prepared\n");
 
   /* do the permutation */
   size_t nmove = 0;
