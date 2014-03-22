@@ -17,6 +17,8 @@
 #define MAX_BLOCK_COUNT 100000
 #define MAX_BLOCK_SIZE  100000
 
+typedef char *char_ptr;
+
 struct string_array {
   char **strings;
   int len;

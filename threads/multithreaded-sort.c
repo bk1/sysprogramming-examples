@@ -20,18 +20,17 @@
 #include <itskylib.h>
 #include <hsort.h>
 #include <fsort.h>
+#include <fsort-metrics.h>
 
 #define SIZE 1024
 #define THREAD_COUNT 10
-
-typedef char *char_ptr;
 
 struct thread_arg {
   struct string_array arr;
   int thread_idx;
 };
 
-enum sort_type { HEAP_SORT, QUICK_SORT, FLASH_SORT };
+enum sort_type { HEAP_SORT, QUICK_SORT, FLASH_SORT, FLASH_SORT_BIN };
 
 pthread_barrier_t start_barrier;
 pthread_barrier_t barrier;
@@ -49,19 +48,6 @@ int compare_full(const void *left, const void *right, void *ignored) {
   const char *left_ptr  = *(const char_ptr *) left;
   const char *right_ptr = *(const char_ptr *) right;
   return strcmp(left_ptr, right_ptr);
-}
-
-double metric_full(const void *element, void *ignored) {
-  const char *str = *(const char_ptr *) element;
-  const char *str_ptr = str;
-  double result = 0.0;
-  double factor = 1.0;
-  while (*str_ptr != '\000' && factor > 0) {
-    result += ((unsigned char) (* str_ptr)) * factor;
-    factor /= 256.0;
-    str_ptr++;
-  }
-  return result;
 }
 
 void *thread_run(void *ptr) {
@@ -90,6 +76,9 @@ void *thread_run(void *ptr) {
     break;
   case FLASH_SORT:
     fsort_r(strings, len, sizeof(char_ptr), compare_full, (void *) NULL, metric_full, (void *) NULL);
+    break;
+  case FLASH_SORT_BIN:
+    fsort_r(strings, len, sizeof(char_ptr), compare_full, (void *) NULL, metric_binary_printable_pref, (void *) NULL);
     break;
   default:
     /* should *never* happen: */
@@ -157,6 +146,7 @@ void usage(char *argv0, char *msg) {
   printf("%s\n\n", msg);
   printf("Usage:\n\n");
   printf("%s -f number\n\tsorts stdin using flashsort in n threads.\n\n", argv0);
+  printf("%s -b number\n\tsorts stdin using flashsort with optimized metric function for binaries in n threads.\n\n", argv0);
   printf("%s -h number\n\tsorts stdin using heapsort in n threads.\n\n", argv0);
   printf("%s -q number\n\tsorts stdin using quicksort in n threads.\n\n", argv0);
   exit(1);
@@ -182,6 +172,9 @@ int main(int argc, char *argv[]) {
     break;
   case 'f' :
     selected_sort_type = FLASH_SORT;
+    break;
+  case 'b' :
+    selected_sort_type = FLASH_SORT_BIN;
     break;
   case 'q' :
     selected_sort_type = QUICK_SORT;
