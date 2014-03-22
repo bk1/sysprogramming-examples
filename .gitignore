@@ -152,6 +152,7 @@ lib/fsort-orig.c
 core
 lib/fsort-orig.c-unused
 lib/fsort-orig.o
-
+*.log
 lib/isort.o
 test/hsort-test
+temp.txt

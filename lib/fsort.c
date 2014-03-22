@@ -67,8 +67,6 @@ void fsort_f(void *base,
     return;
   }
 
-  // printf("fsort_f\n"); // rm
-
   /* preparation: form classes */
   size_t lsize = calculate_k(nmemb, factor, nmemb) + 1;
   if (lsize < 2) {
@@ -116,17 +114,18 @@ void fsort_f(void *base,
   handle_ptr_error(ll, "malloc for ll", PROCESS_EXIT);
   ll[0] = 0;
   ll[1] = l[0];
-  size_t min_size = nmemb;
-  size_t max_size = 0;
-  for (size_t k = 0; k < lsize; k++) {
-    size_t cs = l[k];
-    if (cs < min_size) {
-      min_size = cs;
-    }
-    if (cs > max_size) {
-      max_size = cs;
-    }
-  }
+  // size_t min_size = nmemb;
+  // size_t max_size = 0;
+  // for (size_t k = 0; k < lsize; k++) {
+  //   size_t cs = l[k];
+  //   if (cs < min_size) {
+  //     min_size = cs;
+  //   }
+  //   if (cs > max_size) {
+  //     max_size = cs;
+  //   }
+  // }
+  // printf("nmemb=%ld lsize=%ld min_size=%ld max_size=%ld amin_metric=%lf amax_metric=%lf\n", (long) nmemb, (long) lsize, (long) min_size, (long) max_size, amin_metric, amax_metric); // rm
   // printf("nmemb=%ld lsize=%ld min_size=%ld max_size=%ld amin=%d amax=%d amin_metric=%lf amax_metric=%lf\n", (long) nmemb, (long) lsize, (long) min_size, (long) max_size, *(int *)amin, *(int *)amax, amin_metric, amax_metric); // rm
   // for (size_t k = 0; k < lsize; k++) { // rm
     // printf("l[%ld]=%ld\n", k, l[k]); // rm
@@ -136,10 +135,6 @@ void fsort_f(void *base,
     l[k] += l[k-1];
     ll[k+1] = l[k];
   }
-  // for (size_t k = 0; k < lsize; k++) { // rm
-    // printf("l[%ld]=%ld ll[%ld]=%ld\n", k, l[k], k, ll[k]); // rm
-  // } // rm
-  // printf("l[%ld]=NIL ll[%ld]=%ld\n", lsize, lsize, ll[lsize]); // rm
 
   swap_elements(POINTER(base, 0, size), POINTER(base, idx_max, size), size);
   // printf("prepared\n");
@@ -149,17 +144,7 @@ void fsort_f(void *base,
   size_t j = 0;
   size_t k = lsize - 1;
   while (nmove < nmemb - 1) {
-    // printf("nmove=%ld: [", nmove); // rm
-    // for (int qq=0; qq < nmemb; qq++) { // rm
-      // printf(" %d ", ((int *)base)[qq]); // rm
-    // } // rm
-    // printf("]\n"); // rm
     while (j >= l[k]) {
-      // printf("j>=l[k] nmove=%ld j=%ld k=%ld l[k]=%ld: [", nmove, j, k, l[k]); // rm
-      // for (int qq=0; qq < nmemb; qq++) { // rm
-        // printf(" %d ", ((int *)base)[qq]); // rm
-      // } // rm
-      // printf("]\n"); // rm
       j++;
       k = calculate_k(step, metric(POINTER(base, j, size), argm) - amin_metric, lsize);
     }
@@ -169,11 +154,6 @@ void fsort_f(void *base,
     /* flash_ptr takes element a[j] such that j > l[k] */
     memcpy(flash_ptr, POINTER(base, j, size), size);
     while (j != l[k]) {
-      // printf("j!=l[k] nmove=%ld j=%ld k=%ld l[k]=%ld flash=%d: [", nmove, j, k, l[k], *(int *)flash_ptr); // rm
-      // for (int qq=0; qq < nmemb; qq++) { // rm
-        // printf(" %d ", ((int *)base)[qq]); // rm
-      // } // rm
-      // printf("]\n"); // rm
       k = calculate_k(step, metric(flash_ptr, argm) - amin_metric, lsize);
       void *alkm_ptr = POINTER(base, l[k]-1, size);
       swap_elements(flash_ptr, alkm_ptr, size);
@@ -190,11 +170,6 @@ void fsort_f(void *base,
       sprintf(txt, "wrong order: k=%ld lsize=%ld nmemb=%ld n=%ld ll[k]=%ld ll[k+1]=%ld\n", k, lsize, nmemb, n, ll[k], ll[k+1]);
       handle_error_myerrno(-1, EDOM, txt, PROCESS_EXIT);
     }
-    // printf("before qsort/isort k=%ld ll[k]=%ld n=%ld: [", k, ll[k], n); // rm
-    // for (int qq=0; qq < nmemb; qq++) { // rm
-      // printf(" %d ", ((int *)base)[qq]); // rm
-    // } // rm
-    // printf("]\n"); // rm
     if (n > 7) {
       void *basek = POINTER(base, ll[k], size);
       hsort_r(basek, n, size, compare, argc);
@@ -202,16 +177,10 @@ void fsort_f(void *base,
       void *basek = POINTER(base, ll[k], size);
       isort_r(basek, n, size, compare, argc);
     }
-    // printf("after qsort/isort k=%ld ll[k]=%ld n=%ld: [", k, ll[k], n); // rm
-    // for (int qq=0; qq < nmemb; qq++) { // rm
-      // printf(" %d ", ((int *)base)[qq]); // rm
-    // } // rm
-    // printf("]\n"); // rm
   }
   free(l);
   l = NULL;
   free(ll);
   ll = NULL;
-  // fprintf(stderr, "DONE\n");
   return;
 }
