@@ -153,6 +153,11 @@ core
 lib/fsort-orig.c-unused
 lib/fsort-orig.o
 *.log
+*.o
+*.dat
 lib/isort.o
 test/hsort-test
 temp.txt
+sortable0.dat
+sortable1.dat
+sortable2.dat
