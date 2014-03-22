@@ -20,6 +20,7 @@
 #include <itskylib.h>
 #include <hsort.h>
 #include <fsort.h>
+#include <isort.h>
 #include <fsort-metrics.h>
 
 #define SIZE 1024
@@ -30,7 +31,7 @@ struct thread_arg {
   int thread_idx;
 };
 
-enum sort_type { HEAP_SORT, QUICK_SORT, FLASH_SORT, FLASH_SORT_BIN };
+enum sort_type { HEAP_SORT, QUICK_SORT, FLASH_SORT, FLASH_SORT_BIN, INSERTION_SORT };
 
 pthread_barrier_t start_barrier;
 pthread_barrier_t barrier;
@@ -43,12 +44,6 @@ pthread_t *thread;
 struct thread_arg *segments;
 
 enum sort_type selected_sort_type;
-
-int compare_full(const void *left, const void *right, void *ignored) {
-  const char *left_ptr  = *(const char_ptr *) left;
-  const char *right_ptr = *(const char_ptr *) right;
-  return strcmp(left_ptr, right_ptr);
-}
 
 void *thread_run(void *ptr) {
   int retcode;
@@ -69,16 +64,19 @@ void *thread_run(void *ptr) {
 
   switch (selected_sort_type) {
   case HEAP_SORT:
-    hsort_r(strings, len, sizeof(char_ptr), compare_full, (void *) NULL);
+    hsort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL);
     break;
   case QUICK_SORT:
-    qsort_r(strings, len, sizeof(char_ptr), compare_full, (void *) NULL);
+    qsort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL);
     break;
   case FLASH_SORT:
-    fsort_r(strings, len, sizeof(char_ptr), compare_full, (void *) NULL, metric_full, (void *) NULL);
+    fsort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL, metric_str_full, (void *) NULL);
     break;
   case FLASH_SORT_BIN:
-    fsort_r(strings, len, sizeof(char_ptr), compare_full, (void *) NULL, metric_binary_printable_pref, (void *) NULL);
+    fsort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL, metric_binary_printable_pref, (void *) NULL);
+    break;
+  case INSERTION_SORT:
+    isort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL);
     break;
   default:
     /* should *never* happen: */
@@ -149,6 +147,7 @@ void usage(char *argv0, char *msg) {
   printf("%s -b number\n\tsorts stdin using flashsort with optimized metric function for binaries in n threads.\n\n", argv0);
   printf("%s -h number\n\tsorts stdin using heapsort in n threads.\n\n", argv0);
   printf("%s -q number\n\tsorts stdin using quicksort in n threads.\n\n", argv0);
+  printf("%s -i number\n\tsorts stdin using insertionsort in n threads.\n\n", argv0);
   exit(1);
 }
 
@@ -178,6 +177,9 @@ int main(int argc, char *argv[]) {
     break;
   case 'q' :
     selected_sort_type = QUICK_SORT;
+    break;
+  case 'i' :
+    selected_sort_type = INSERTION_SORT;
     break;
   default:
     usage(argv0, "wrong option: only -q and -h supported");

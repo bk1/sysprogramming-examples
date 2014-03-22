@@ -9,9 +9,12 @@
 #define _LIB_ITSKY_FSORT_METRICS
 
 /* metric assuming even distribution */
-double metric_full(const void *element, void *ignored);
+double metric_str_full(const void *element, void *ignored);
+
 
 /* metric assuming distribution of almost only printable characters (according to what is_string_char() in lib.c understands) */
 double metric_binary_printable_pref(const void *element, void *ignored);
+
+double metric_int_full(const void *element, void *ignored);
 
 #endif

@@ -149,8 +149,9 @@ threads/sysv-sem-threads
 lib/fsort.o
 lib/sort_common.o
 lib/fsort-orig.c
-
 core
 lib/fsort-orig.c-unused
 lib/fsort-orig.o
-scripts/calculate-fmetric
+
+lib/isort.o
+test/hsort-test

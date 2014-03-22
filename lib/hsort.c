@@ -13,11 +13,11 @@
 
 #include <itskylib.h>
 #include <hsort.h>
+#include <sortimpl.h>
 
 #define PARENT(idx) (((idx) - 1) / 2)
 #define LEFT(idx) (2*(idx) + 1)
 #define RIGHT(idx) (2*(idx) + 2)
-#define POINTER(base, idx, size) ((base) + (size) * (idx))
 
 int parent_idx(int idx) {
   return PARENT(idx);
@@ -98,6 +98,10 @@ void hsort_r(void *base,
              size_t size,
              compare_fun3 compare,
              void *arg) {
+  if (nmemb <= 1) {
+    /* nothing to sort!! */
+    return;
+  }
   heapify(base, nmemb, size, compare, arg);
   size_t end = nmemb - 1;
   for (end = nmemb - 1; end > 0; end--) {

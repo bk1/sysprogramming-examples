@@ -20,6 +20,26 @@ void swap_elements(void *left_ptr, void *right_ptr, size_t size) {
   memcpy(right_ptr, buff, size);
 }
 
+/* compare for sort for strings */
+int compare_str_full(const void *left, const void *right, void *ignored) {
+  const char *left_ptr  = *(const char_ptr *) left;
+  const char *right_ptr = *(const char_ptr *) right;
+  return strcmp(left_ptr, right_ptr);
+}
+
+/* compare for sort for strings */
+int compare_int_full(const void *left, const void *right, void *ignored) {
+  const int left_val  = *(const char_ptr *) left;
+  const int right_val = *(const char_ptr *) right;
+  if (left_val < right_val) {
+    return -1;
+  } else if (left_val == right_val) {
+    return 0;
+  } else {
+    return +1;
+  }
+}
+
 /* map 3-param compare-function to 2-param-compare-function: The 2-param-function must be provided as the third parameter */
 int compare_extend(const void *left, const void *right, void *mem) {
   compare_fun2 compare_basic = (compare_fun2) mem;

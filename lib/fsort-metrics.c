@@ -224,7 +224,7 @@ static double factors_printable_pref[] = {  0.00000000000000, 0.00001525879479, 
                                             0.89223288177112, 0.89839208073320, 0.90142693447634, 0.90480110775126, 0.90888502568683, 0.91294999018044, 0.91763264675954, 0.92618502647313 };
 
 /* metric assuming even distribution */
-double metric_full(const void *element, void *ignored) {
+double metric_str_full(const void *element, void *ignored) {
   const char *str = *(const char_ptr *) element;
   const char *str_ptr = str;
   double result = 0.0;
@@ -235,6 +235,12 @@ double metric_full(const void *element, void *ignored) {
     str_ptr++;
   }
   return result;
+}
+
+/* metric assuming even distribution */
+double metric_int_full(const void *element, void *ignored) {
+  const int val = *(const int *) element;
+  return (double) val;
 }
 
 /* metric assuming distribution of almost only printable characters (according to what is_string_char() in lib.c understands) */
