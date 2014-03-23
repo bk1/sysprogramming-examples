@@ -21,6 +21,7 @@
 #include <hsort.h>
 #include <fsort.h>
 #include <isort.h>
+#include <msort.h>
 #include <fsort-metrics.h>
 
 #define SIZE 1024
@@ -31,7 +32,7 @@ struct thread_arg {
   int thread_idx;
 };
 
-enum sort_type { HEAP_SORT, QUICK_SORT, FLASH_SORT, FLASH_SORT_BIN, INSERTION_SORT };
+enum sort_type { HEAP_SORT, QUICK_SORT, FLASH_SORT, FLASH_SORT_BIN, INSERTION_SORT, MERGE_SORT };
 
 pthread_barrier_t start_barrier;
 pthread_barrier_t barrier;
@@ -77,6 +78,9 @@ void *thread_run(void *ptr) {
     break;
   case INSERTION_SORT:
     isort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL);
+    break;
+  case MERGE_SORT:
+    msort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL);
     break;
   default:
     /* should *never* happen: */
@@ -148,6 +152,7 @@ void usage(char *argv0, char *msg) {
   printf("%s -h number\n\tsorts stdin using heapsort in n threads.\n\n", argv0);
   printf("%s -q number\n\tsorts stdin using quicksort in n threads.\n\n", argv0);
   printf("%s -i number\n\tsorts stdin using insertionsort in n threads.\n\n", argv0);
+  printf("%s -m number\n\tsorts stdin using mergesort in n threads.\n\n", argv0);
   exit(1);
 }
 
@@ -180,6 +185,9 @@ int main(int argc, char *argv[]) {
     break;
   case 'i' :
     selected_sort_type = INSERTION_SORT;
+    break;
+  case 'm' :
+    selected_sort_type = MERGE_SORT;
     break;
   default:
     usage(argv0, "wrong option: only -q and -h supported");
