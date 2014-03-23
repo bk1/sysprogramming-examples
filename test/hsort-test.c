@@ -17,6 +17,7 @@
 
 #include <hsort.h>
 #include <isort.h>
+#include <msort.h>
 #include <fsort.h>
 #include <fsort-metrics.h>
 
@@ -57,6 +58,7 @@ void test_sort_empty() {
   fsort_r(arr, 0, sizeof(int), compare_int_full, NULL, metric_int_full, NULL);
   qsort_r(arr, 0, sizeof(int), compare_int_full, NULL);
   isort_r(arr, 0, sizeof(int), compare_int_full, NULL);
+  msort_r(arr, 0, sizeof(int), compare_int_full, NULL);
 }
 
 /* Simple test of sort with one-element-array
@@ -70,6 +72,8 @@ void test_sort_one() {
   qsort_r(arr, 1, sizeof(int), compare_int_full, NULL);
   CU_ASSERT_EQUAL(arr[0], 77);
   isort_r(arr, 1, sizeof(int), compare_int_full, NULL);
+  CU_ASSERT_EQUAL(arr[0], 77);
+  msort_r(arr, 1, sizeof(int), compare_int_full, NULL);
   CU_ASSERT_EQUAL(arr[0], 77);
 }
 
@@ -87,6 +91,9 @@ void test_sort_two_asc() {
   CU_ASSERT_EQUAL(arr[0], 77);
   CU_ASSERT_EQUAL(arr[1], 98);
   isort_r(arr, 2, sizeof(int), compare_int_full, NULL);
+  CU_ASSERT_EQUAL(arr[0], 77);
+  CU_ASSERT_EQUAL(arr[1], 98);
+  msort_r(arr, 2, sizeof(int), compare_int_full, NULL);
   CU_ASSERT_EQUAL(arr[0], 77);
   CU_ASSERT_EQUAL(arr[1], 98);
 }
@@ -113,6 +120,11 @@ void test_sort_two_desc() {
   isort_r(arr, 2, sizeof(int), compare_int_full, NULL);
   CU_ASSERT_EQUAL(arr[0], 77);
   CU_ASSERT_EQUAL(arr[1], 98);
+  arr[0] = 98;
+  arr[1] = 77;
+  msort_r(arr, 2, sizeof(int), compare_int_full, NULL);
+  CU_ASSERT_EQUAL(arr[0], 77);
+  CU_ASSERT_EQUAL(arr[1], 98);
 }
 
 /* Simple test of sort with two-element-array ascending
@@ -129,6 +141,9 @@ void test_sort_two_same() {
   CU_ASSERT_EQUAL(arr[0], 88);
   CU_ASSERT_EQUAL(arr[1], 88);
   isort_r(arr, 2, sizeof(int), compare_int_full, NULL);
+  CU_ASSERT_EQUAL(arr[0], 88);
+  CU_ASSERT_EQUAL(arr[1], 88);
+  msort_r(arr, 2, sizeof(int), compare_int_full, NULL);
   CU_ASSERT_EQUAL(arr[0], 88);
   CU_ASSERT_EQUAL(arr[1], 88);
 }
@@ -189,6 +204,7 @@ void check_three(int i, int j, int k) {
   int harr[3];
   int farr[3];
   int iarr[3];
+  int marr[3];
   int master_arr[3];
   master_arr[0] = i;
   master_arr[1] = j;
@@ -243,6 +259,23 @@ void check_three(int i, int j, int k) {
     printf("isort: i=%d j=%d k=%d: iarr[2]=%d (%d)\n", i, j, k, iarr[2], master_arr[2]);
   }
   CU_ASSERT_EQUAL(iarr[2], master_arr[2]);
+
+  marr[0] = i;
+  marr[1] = j;
+  marr[2] = k;
+  msort_r(marr, 3, sizeof(int), compare_int_full, NULL);
+  if (marr[0] != master_arr[0]) {
+    printf("msort: i=%d j=%d k=%d: marr[0]=%d (%d)\n", i, j, k, marr[0], master_arr[0]);
+  }
+  CU_ASSERT_EQUAL(marr[0], master_arr[0]);
+  if (marr[1] != master_arr[1]) {
+    printf("msort: i=%d j=%d k=%d: marr[1]=%d (%d)\n", i, j, k, marr[1], master_arr[1]);
+  }
+  CU_ASSERT_EQUAL(marr[1], master_arr[1]);
+  if (marr[2] != master_arr[2]) {
+    printf("msort: i=%d j=%d k=%d: marr[2]=%d (%d)\n", i, j, k, marr[2], master_arr[2]);
+  }
+  CU_ASSERT_EQUAL(marr[2], master_arr[2]);
 }
 
 void check_n(int master_arr[]);
@@ -290,6 +323,7 @@ void test_random_n() {
 void check_n(int master_arr[]) {
   int qarr[100];
   int iarr[100];
+  int marr[100];
   int harr[100];
   int farr[100];
   for (int i = 0; i <= 100; i++) {
@@ -306,6 +340,16 @@ void check_n(int master_arr[]) {
         printf("check_n: isort: i=%d j=%d: iarr[j]=%d (%d)\n", i, j, iarr[j], qarr[j]);
       }
       CU_ASSERT_EQUAL(iarr[j], qarr[j]);
+    }
+    for (int j = 0; j < i; j++) {
+      marr[j] = master_arr[j];
+    }
+    msort_r(marr, i, sizeof(int), compare_int_full, NULL);
+    for (int j = 0; j < i; j++) {
+      if (marr[j] != qarr[j]) {
+        printf("check_n: msort: i=%d j=%d: marr[j]=%d (%d)\n", i, j, marr[j], qarr[j]);
+      }
+      CU_ASSERT_EQUAL(marr[j], qarr[j]);
     }
     for (int j = 0; j < i; j++) {
       harr[j] = master_arr[j];
@@ -360,7 +404,7 @@ int main() {
       || (NULL == CU_add_test(pSuite, "test of sorts on one-element sets", test_sort_one))
       || (NULL == CU_add_test(pSuite, "test of sorts on ascending two-element sets", test_sort_two_asc))
       || (NULL == CU_add_test(pSuite, "test of sorts on descending two-element sets", test_sort_two_desc))
-      || (NULL == CU_add_test(pSuite, "test of sorts on descending two-element sets", test_sort_two_same))
+      || (NULL == CU_add_test(pSuite, "test of sorts on two-element sets with both elements the same", test_sort_two_same))
       || (NULL == CU_add_test(pSuite, "test of sorts on all kinds of positive three-element sets", test_sort_three))
       || (NULL == CU_add_test(pSuite, "test of sorts on all kinds of negative three-element sets", test_sort_neg_three))
       || (NULL == CU_add_test(pSuite, "test of sorts on all kinds of three-element sets 123", test_sort_three_123))
