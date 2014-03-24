@@ -61,6 +61,7 @@ void *thread_run(void *ptr) {
   } else {
     handle_thread_error(retcode, "pthread_barrier_wait", THREAD_EXIT);
   }
+  sleep(10);
   return (void *) NULL;
 }
 
@@ -115,11 +116,6 @@ int main(int argc, char *argv[]) {
   retcode = pthread_cond_wait(&condition_1, &mutex);
   handle_thread_error(retcode, "pthread_cond_wait", PROCESS_EXIT);
 
-  for (int i = 0; i < thread_count; i++) {
-    retcode = pthread_join(thread[i], NULL);
-    handle_thread_error(retcode, "pthread_join", PROCESS_EXIT);
-  }
-
   // total_sum = 0L;
   for (int i = 0; i < thread_count; i++) {
     printf("%s : %ld\n", argv[i+1], partial_sums[i]);
@@ -127,6 +123,12 @@ int main(int argc, char *argv[]) {
   }
   printf("\n");
   printf("total: %ld\n", total_sum);
+  for (int i = 0; i < thread_count; i++) {
+    retcode = pthread_join(thread[i], NULL);
+    handle_thread_error(retcode, "pthread_join", PROCESS_EXIT);
+  }
+
+
   pthread_barrier_destroy(&barrier);
   exit(0);
 }
