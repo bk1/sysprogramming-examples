@@ -166,3 +166,9 @@ test/sort-test
 test/psort-test
 threads/thread-once
 threads/thread-once-key
+threads/summation
+threads/thread-memory-count-by-file
+threads/thread-memory-count-mutex
+threads/thread-memory-count-posix-semaphore
+threads/thread-memory-count-readwrite
+threads/thread-once-detach
