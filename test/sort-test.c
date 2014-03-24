@@ -16,6 +16,7 @@
 #include <stdlib.h>
 
 #include <hsort.h>
+#include <ternary-hsort.h>
 #include <isort.h>
 #include <msort.h>
 #include <fsort.h>
@@ -54,6 +55,7 @@ int clean_suite1(void) {
  */
 void test_sort_empty() {
   int arr[0];
+  ternary_hsort_r(arr, 0, sizeof(int), compare_int_full, NULL);
   hsort_r(arr, 0, sizeof(int), compare_int_full, NULL);
   fsort_r(arr, 0, sizeof(int), compare_int_full, NULL, metric_int_full, NULL);
   qsort_r(arr, 0, sizeof(int), compare_int_full, NULL);
@@ -66,6 +68,8 @@ void test_sort_empty() {
 void test_sort_one() {
   int arr[] = { 77 };
   hsort_r(arr, 1, sizeof(int), compare_int_full, NULL);
+  CU_ASSERT_EQUAL(arr[0], 77);
+  ternary_hsort_r(arr, 1, sizeof(int), compare_int_full, NULL);
   CU_ASSERT_EQUAL(arr[0], 77);
   fsort_r(arr, 1, sizeof(int), compare_int_full, NULL, metric_int_full, NULL);
   CU_ASSERT_EQUAL(arr[0], 77);
@@ -82,6 +86,9 @@ void test_sort_one() {
 void test_sort_two_asc() {
   int arr[] = { 77, 98 };
   hsort_r(arr, 2, sizeof(int), compare_int_full, NULL);
+  CU_ASSERT_EQUAL(arr[0], 77);
+  CU_ASSERT_EQUAL(arr[1], 98);
+  ternary_hsort_r(arr, 2, sizeof(int), compare_int_full, NULL);
   CU_ASSERT_EQUAL(arr[0], 77);
   CU_ASSERT_EQUAL(arr[1], 98);
   fsort_r(arr, 2, sizeof(int), compare_int_full, NULL, metric_int_full, NULL);
@@ -103,6 +110,11 @@ void test_sort_two_asc() {
 void test_sort_two_desc() {
   int arr[] = { 98, 77 };
   hsort_r(arr, 2, sizeof(int), compare_int_full, NULL);
+  CU_ASSERT_EQUAL(arr[0], 77);
+  CU_ASSERT_EQUAL(arr[1], 98);
+  arr[0] = 98;
+  arr[1] = 77;
+  ternary_hsort_r(arr, 2, sizeof(int), compare_int_full, NULL);
   CU_ASSERT_EQUAL(arr[0], 77);
   CU_ASSERT_EQUAL(arr[1], 98);
   arr[0] = 98;
@@ -132,6 +144,9 @@ void test_sort_two_desc() {
 void test_sort_two_same() {
   int arr[] = { 88, 88 };
   hsort_r(arr, 2, sizeof(int), compare_int_full, NULL);
+  CU_ASSERT_EQUAL(arr[0], 88);
+  CU_ASSERT_EQUAL(arr[1], 88);
+  ternary_hsort_r(arr, 2, sizeof(int), compare_int_full, NULL);
   CU_ASSERT_EQUAL(arr[0], 88);
   CU_ASSERT_EQUAL(arr[1], 88);
   fsort_r(arr, 2, sizeof(int), compare_int_full, NULL, metric_int_full, NULL);
@@ -202,6 +217,7 @@ void print_arr(int *arr, int n) {
 
 void check_three(int i, int j, int k) {
   int harr[3];
+  int tarr[3];
   int farr[3];
   int iarr[3];
   int marr[3];
@@ -222,6 +238,14 @@ void check_three(int i, int j, int k) {
   CU_ASSERT_EQUAL(harr[0], master_arr[0]);
   CU_ASSERT_EQUAL(harr[1], master_arr[1]);
   CU_ASSERT_EQUAL(harr[2], master_arr[2]);
+
+  tarr[0] = i;
+  tarr[1] = j;
+  tarr[2] = k;
+  ternary_hsort_r(tarr, 3, sizeof(int), compare_int_full, NULL);
+  CU_ASSERT_EQUAL(tarr[0], master_arr[0]);
+  CU_ASSERT_EQUAL(tarr[1], master_arr[1]);
+  CU_ASSERT_EQUAL(tarr[2], master_arr[2]);
 
   farr[0] = i;
   farr[1] = j;
@@ -278,6 +302,18 @@ void check_three(int i, int j, int k) {
   CU_ASSERT_EQUAL(marr[2], master_arr[2]);
 }
 
+void test_ternary_hsort_seven_asc() {
+  int arr[] = {  0, 1, 2, 3, 4, 5, 6 };
+  ternary_hsort_r(arr, 7, sizeof(int), compare_int_full, NULL);
+  printf("test_ternary_hsort_seven_asc: ");
+  print_arr(arr, 7);
+  for (int i = 0; i < 7; i++) {
+    if (i != arr[i]) {
+      printf("arr[%d]=%d\n", i, arr[i]);
+    }
+    CU_ASSERT_EQUAL(i, arr[i]);
+  }
+}
 void check_n(int master_arr[]);
 
 void test_ascending_n() {
@@ -325,6 +361,7 @@ void check_n(int master_arr[]) {
   int iarr[100];
   int marr[100];
   int harr[100];
+  int tarr[100];
   int farr[100];
   for (int i = 0; i <= 100; i++) {
     for (int j = 0; j < i; j++) {
@@ -357,9 +394,19 @@ void check_n(int master_arr[]) {
     hsort_r(harr, i, sizeof(int), compare_int_full, NULL);
     for (int j = 0; j < i; j++) {
       if (harr[j] != qarr[j]) {
-        printf("check_n: hsort: i=%d j=%d: harr[j]=%d (%d)\n", i, j, harr[j], qarr[j]);
+        printf("check_n: ternary_hsort: i=%d j=%d: harr[j]=%d (%d)\n", i, j, harr[j], qarr[j]);
       }
       CU_ASSERT_EQUAL(harr[j], qarr[j]);
+    }
+    for (int j = 0; j < i; j++) {
+      tarr[j] = master_arr[j];
+    }
+    ternary_hsort_r(tarr, i, sizeof(int), compare_int_full, NULL);
+    for (int j = 0; j < i; j++) {
+      if (tarr[j] != qarr[j]) {
+        printf("check_n: ternary_hsort: i=%d j=%d: tarr[j]=%d (%d)\n", i, j, tarr[j], qarr[j]);
+      }
+      CU_ASSERT_EQUAL(tarr[j], qarr[j]);
     }
     for (int j = 0; j < i; j++) {
       farr[j] = master_arr[j];
@@ -410,6 +457,7 @@ int main() {
       || (NULL == CU_add_test(pSuite, "test of sorts on all kinds of three-element sets 123", test_sort_three_123))
       || (NULL == CU_add_test(pSuite, "test of sorts on all kinds of three-element sets 321", test_sort_three_321))
       || (NULL == CU_add_test(pSuite, "test of sorts on all kinds of three-element sets 312", test_sort_three_312))
+      || (NULL == CU_add_test(pSuite, "test of sorts on all kinds of seven-element sets 0123456", test_ternary_hsort_seven_asc))
       || (NULL == CU_add_test(pSuite, "test of sorts on all lengths from 0 to 100 of an ascending set", test_ascending_n))
       || (NULL == CU_add_test(pSuite, "test of sorts on all lengths from 0 to 100 of an descending set", test_descending_n))
       || (NULL == CU_add_test(pSuite, "test of sorts on all lengths from 0 to 100 of an negative set", test_negative_n))

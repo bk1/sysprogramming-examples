@@ -21,6 +21,7 @@
 #include <hsort.h>
 #include <fsort.h>
 #include <isort.h>
+#include <ternary-hsort.h>
 #include <msort.h>
 #include <fsort-metrics.h>
 
@@ -32,7 +33,7 @@ struct thread_arg {
   int thread_idx;
 };
 
-enum sort_type { HEAP_SORT, QUICK_SORT, FLASH_SORT, FLASH_SORT_BIN, INSERTION_SORT, MERGE_SORT };
+enum sort_type { HEAP_SORT, TERNARY_HEAP_SORT, QUICK_SORT, FLASH_SORT, FLASH_SORT_BIN, INSERTION_SORT, MERGE_SORT };
 
 pthread_barrier_t start_barrier;
 pthread_barrier_t barrier;
@@ -41,7 +42,6 @@ pthread_mutex_t output_mutex;
 
 int thread_count;
 
-pthread_t *thread;
 struct thread_arg *segments;
 
 enum sort_type selected_sort_type;
@@ -66,6 +66,9 @@ void *thread_run(void *ptr) {
   switch (selected_sort_type) {
   case HEAP_SORT:
     hsort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL);
+    break;
+  case TERNARY_HEAP_SORT:
+    ternary_hsort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL);
     break;
   case QUICK_SORT:
     qsort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL);
@@ -150,6 +153,7 @@ void usage(char *argv0, char *msg) {
   printf("%s -f number\n\tsorts stdin using flashsort in n threads.\n\n", argv0);
   printf("%s -b number\n\tsorts stdin using flashsort with optimized metric function for binaries in n threads.\n\n", argv0);
   printf("%s -h number\n\tsorts stdin using heapsort in n threads.\n\n", argv0);
+  printf("%s -t number\n\tsorts stdin using ternary heapsort in n threads.\n\n", argv0);
   printf("%s -q number\n\tsorts stdin using quicksort in n threads.\n\n", argv0);
   printf("%s -i number\n\tsorts stdin using insertionsort in n threads.\n\n", argv0);
   printf("%s -m number\n\tsorts stdin using mergesort in n threads.\n\n", argv0);
@@ -158,6 +162,7 @@ void usage(char *argv0, char *msg) {
 
 int main(int argc, char *argv[]) {
   int retcode;
+  pthread_t *thread;
 
   char *argv0 = argv[0];
   if (argc != 3) {
@@ -173,6 +178,9 @@ int main(int argc, char *argv[]) {
   switch (opt_char) {
   case 'h' :
     selected_sort_type = HEAP_SORT;
+    break;
+  case 't' :
+    selected_sort_type = TERNARY_HEAP_SORT;
     break;
   case 'f' :
     selected_sort_type = FLASH_SORT;

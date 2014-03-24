@@ -114,22 +114,6 @@ void fsort_f(void *base,
   handle_ptr_error(ll, "malloc for ll", PROCESS_EXIT);
   ll[0] = 0;
   ll[1] = l[0];
-  // size_t min_size = nmemb;
-  // size_t max_size = 0;
-  // for (size_t k = 0; k < lsize; k++) {
-  //   size_t cs = l[k];
-  //   if (cs < min_size) {
-  //     min_size = cs;
-  //   }
-  //   if (cs > max_size) {
-  //     max_size = cs;
-  //   }
-  // }
-  // printf("nmemb=%ld lsize=%ld min_size=%ld max_size=%ld amin_metric=%lf amax_metric=%lf\n", (long) nmemb, (long) lsize, (long) min_size, (long) max_size, amin_metric, amax_metric); // rm
-  // printf("nmemb=%ld lsize=%ld min_size=%ld max_size=%ld amin=%d amax=%d amin_metric=%lf amax_metric=%lf\n", (long) nmemb, (long) lsize, (long) min_size, (long) max_size, *(int *)amin, *(int *)amax, amin_metric, amax_metric); // rm
-  // for (size_t k = 0; k < lsize; k++) { // rm
-    // printf("l[%ld]=%ld\n", k, l[k]); // rm
-  // } // rm
 
   for (size_t k = 1; k < lsize; k++) {
     l[k] += l[k-1];
