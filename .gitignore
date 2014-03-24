@@ -155,6 +155,7 @@ lib/fsort-orig.o
 *.log
 *.o
 *.dat
+callgrind.out.*
 lib/isort.o
 test/hsort-test
 temp.txt
@@ -162,3 +163,4 @@ sortable0.dat
 sortable1.dat
 sortable2.dat
 test/sort-test
+test/psort-test
