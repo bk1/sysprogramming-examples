@@ -135,12 +135,24 @@ void *run(void *raw_name) {
 }
 
 
+
+void usage(const char *argv0, const char *msg) {
+  if (msg != NULL && strlen(msg) > 0) {
+    printf("%s\n\n", msg);
+  }
+  printf("Usage\n\n");
+  printf("%s file1 file2 file3 ... filen\ncount files, show accumulated output after having completed one file\n\n", argv0);
+  exit(1);
+}
+
 int main(int argc, char *argv[]) {
 
+  if (is_help_requested(argc, argv)) {
+    usage(argv[0], "");
+  }
+
   if (argc < 2) {
-    printf("Usage\n\n");
-    printf("%s file1 file2 file3 ... filen\ncount files, show accumulated output after having completed one file\n\n", argv[0]);
-    exit(1);
+    usage(argv[0], "not enough arguments: at least one file required.");
   }
 
   time_t start_time = time(NULL);

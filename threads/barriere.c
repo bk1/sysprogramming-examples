@@ -68,7 +68,21 @@ void *thread_run(void *ptr) {
   return (void *) NULL;
 }
 
+void usage(const char *argv0, const char *msg) {
+  if (msg != NULL && strlen(msg) > 0) {
+    printf("%s\n\n", msg);
+  }
+  printf("Usage\n\n");
+  printf("%s\n\tvery simple example of using barriere\n\n",argv0);
+  exit(1);
+}
+
 int main(int argc, char *argv[]) {
+
+  if (is_help_requested(argc, argv)) {
+    usage(argv[0], "");
+  }
+
   pthread_t thread[THREAD_COUNT];
   int retcode;
   retcode = pthread_barrier_init(&barrier, NULL, THREAD_COUNT);

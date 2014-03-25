@@ -31,7 +31,21 @@ void *thread_run(void *ptr) {
   return (void *) NULL;
 }
 
+void usage(const char *argv0, const char *msg) {
+  if (msg != NULL && strlen(msg) > 0) {
+    printf("%s\n\n", msg);
+  }
+  printf("Usage\n\n");
+  printf("%s\n\tExample of creating a thread and communicating from new thread to original thread via anonymous pipe\n\n", argv0);
+  exit(1);
+}
+
 int main(int argc, char *argv[]) {
+
+  if (is_help_requested(argc, argv)) {
+    usage(argv[0], "");
+  }
+
   char buff[1024];
   int retcode;
   pid_t pid;

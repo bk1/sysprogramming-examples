@@ -24,6 +24,7 @@
 #include <ternary-hsort.h>
 #include <msort.h>
 #include <fsort-metrics.h>
+#include <psort.h>
 
 #define SIZE 1024
 #define THREAD_COUNT 10
@@ -33,7 +34,7 @@ struct thread_arg {
   int thread_idx;
 };
 
-enum sort_type { HEAP_SORT, TERNARY_HEAP_SORT, QUICK_SORT, FLASH_SORT, FLASH_SORT_BIN, INSERTION_SORT, MERGE_SORT };
+enum mt_sort_type { MT_HEAP_SORT, MT_TERNARY_HEAP_SORT, MT_QUICK_SORT, MT_FLASH_SORT, MT_FLASH_SORT_BIN, MT_INSERTION_SORT, MT_MERGE_SORT };
 
 pthread_barrier_t start_barrier;
 pthread_barrier_t barrier;
@@ -44,7 +45,11 @@ int thread_count;
 
 struct thread_arg *segments;
 
-enum sort_type selected_sort_type;
+enum mt_sort_type selected_mt_sort_type;
+
+int use_psort = FALSE;
+
+int psort_internal_threads = 0;
 
 void *thread_run(void *ptr) {
   int retcode;
@@ -52,51 +57,62 @@ void *thread_run(void *ptr) {
   char **strings = arg->arr.strings;
   int len = arg->arr.len;
   int idx = arg->thread_idx;
-  /* pthread_t id = pthread_self(); */
-  /* int tid = (int) (id % 0x7fffffff); */
-
-  /* pthread_mutex_lock(&output_mutex); */
-  /* printf("before:------------------------------------------------------------\n"); */
-  /* for (int i = 0; i < len; i++) { */
-  /*   printf("[%9d/%4d] %4d: \"%s\"\n", tid, idx, i, strings[i]); */
-  /* } */
-  /* printf("/before:------------------------------------------------------------\n"); */
-  /* pthread_mutex_unlock(&output_mutex); */
-
-  switch (selected_sort_type) {
-  case HEAP_SORT:
-    hsort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL);
-    break;
-  case TERNARY_HEAP_SORT:
-    ternary_hsort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL);
-    break;
-  case QUICK_SORT:
-    qsort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL);
-    break;
-  case FLASH_SORT:
-    fsort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL, metric_str_full, (void *) NULL);
-    break;
-  case FLASH_SORT_BIN:
-    fsort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL, metric_binary_printable_pref, (void *) NULL);
-    break;
-  case INSERTION_SORT:
-    isort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL);
-    break;
-  case MERGE_SORT:
-    msort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL);
-    break;
-  default:
-    /* should *never* happen: */
-    handle_error_myerrno(-1, -1, "wrong sort_type", PROCESS_EXIT);
+  
+  if (use_psort) {
+    switch (selected_mt_sort_type) {
+    case MT_HEAP_SORT:
+      parallel_hsort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL, psort_internal_threads);
+      break;
+    case MT_TERNARY_HEAP_SORT:
+      parallel_ternary_hsort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL, psort_internal_threads);
+      break;
+    case MT_QUICK_SORT:
+      parallel_qsort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL, psort_internal_threads);
+      break;
+    case MT_FLASH_SORT:
+      parallel_fsort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL, metric_str_full, (void *) NULL, psort_internal_threads);
+      break;
+    case MT_FLASH_SORT_BIN:
+      parallel_fsort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL, metric_binary_printable_pref, (void *) NULL, psort_internal_threads);
+      break;
+    case MT_INSERTION_SORT:
+      parallel_isort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL, psort_internal_threads);
+      break;
+    case MT_MERGE_SORT:
+      parallel_msort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL, psort_internal_threads);
+      break;
+    default:
+      /* should *never* happen: */
+      handle_error_myerrno(-1, -1, "wrong mt_sort_type", PROCESS_EXIT);
+    }
+  } else {
+    switch (selected_mt_sort_type) {
+    case MT_HEAP_SORT:
+      hsort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL);
+      break;
+    case MT_TERNARY_HEAP_SORT:
+      ternary_hsort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL);
+      break;
+    case MT_QUICK_SORT:
+      qsort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL);
+      break;
+    case MT_FLASH_SORT:
+      fsort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL, metric_str_full, (void *) NULL);
+      break;
+    case MT_FLASH_SORT_BIN:
+      fsort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL, metric_binary_printable_pref, (void *) NULL);
+      break;
+    case MT_INSERTION_SORT:
+      isort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL);
+      break;
+    case MT_MERGE_SORT:
+      msort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL);
+      break;
+    default:
+      /* should *never* happen: */
+      handle_error_myerrno(-1, -1, "wrong mt_sort_type", PROCESS_EXIT);
+    }
   }
-
-  /* pthread_mutex_lock(&output_mutex); */
-  /* printf("after:------------------------------------------------------------\n"); */
-  /* for (int i = 0; i < len; i++) { */
-  /*   printf("[%9d/%4d] %4d: \"%s\"\n", tid, idx, i, strings[i]); */
-  /* } */
-  /* printf("/after:------------------------------------------------------------\n"); */
-  /* pthread_mutex_unlock(&output_mutex); */
 
   for (int step = 1; step < thread_count; step *= 2) {
     retcode = pthread_barrier_wait(& barrier);
@@ -150,13 +166,20 @@ void *thread_run(void *ptr) {
 void usage(char *argv0, char *msg) {
   printf("%s\n\n", msg);
   printf("Usage:\n\n");
-  printf("%s -f number\n\tsorts stdin using flashsort in n threads.\n\n", argv0);
-  printf("%s -b number\n\tsorts stdin using flashsort with optimized metric function for binaries in n threads.\n\n", argv0);
-  printf("%s -h number\n\tsorts stdin using heapsort in n threads.\n\n", argv0);
-  printf("%s -t number\n\tsorts stdin using ternary heapsort in n threads.\n\n", argv0);
-  printf("%s -q number\n\tsorts stdin using quicksort in n threads.\n\n", argv0);
-  printf("%s -i number\n\tsorts stdin using insertionsort in n threads.\n\n", argv0);
-  printf("%s -m number\n\tsorts stdin using mergesort in n threads.\n\n", argv0);
+  printf("%s -f n\n\tsorts stdin using flashsort in n threads.\n\n", argv0);
+  printf("%s -b n\n\tsorts stdin using flashsort with optimized metric function for binaries in n threads.\n\n", argv0);
+  printf("%s -h n\n\tsorts stdin using heapsort in n threads.\n\n", argv0);
+  printf("%s -t n\n\tsorts stdin using ternary heapsort in n threads.\n\n", argv0);
+  printf("%s -q n\n\tsorts stdin using quicksort in n threads.\n\n", argv0);
+  printf("%s -i n\n\tsorts stdin using insertionsort in n threads.\n\n", argv0);
+  printf("%s -m n\n\tsorts stdin using mergesort in n threads.\n\n", argv0);
+  printf("%s -p m -f n\n\tsorts stdin running psort with m flashsort-threads in n threads.\n\n", argv0);
+  printf("%s -p m -b n\n\tsorts stdin running psort with m flashsort-threads with optimized metric function for binaries in n threads.\n\n", argv0);
+  printf("%s -p m -h n\n\tsort-threadss stdin running psort with m heapsort in n threads.\n\n", argv0);
+  printf("%s -p m -t n\n\tsort-threadss stdin running psort with m ternary heapsort in n threads.\n\n", argv0);
+  printf("%s -p m -q n\n\tsort-threadss stdin running psort with m quicksort-threads in n threads.\n\n", argv0);
+  printf("%s -p m -i n\n\tsort-threadss stdin running psort with m insertionsort-threads in n threads.\n\n", argv0);
+  printf("%s -p m -m n\n\tsort-threadss stdin running psort with m mergesort-threads in n threads.\n\n", argv0);
   exit(1);
 }
 
@@ -165,37 +188,52 @@ int main(int argc, char *argv[]) {
   pthread_t *thread;
 
   char *argv0 = argv[0];
-  if (argc != 3) {
+  if (argc != 3 && argc != 5) {
+    printf("found %d arguments\n", argc - 1);
     usage(argv0, "wrong number of arguments");
   }
 
+  int opt_idx = 1;
+  int n_idx = 2;
+  use_psort = FALSE;
+
+  if (argc == 5) {
+    if (strcmp(argv[1], "-p") != 0) {
+      usage(argv0, "wrong first option");
+    }
+    psort_internal_threads = atoi(argv[2]);
+    opt_idx+=2;
+    n_idx+=2;
+    use_psort = TRUE;
+  }
+
   /* TODO consider using getopt instead!! */
-  char *argv_opt = argv[1];
+  char *argv_opt = argv[opt_idx];
   if (strlen(argv_opt) != 2 || argv_opt[0] != '-') {
-      usage(argv0, "wrong option");
+    usage(argv0, "wrong option");
   }
   char opt_char = argv_opt[1];
   switch (opt_char) {
   case 'h' :
-    selected_sort_type = HEAP_SORT;
+    selected_mt_sort_type = MT_HEAP_SORT;
     break;
   case 't' :
-    selected_sort_type = TERNARY_HEAP_SORT;
+    selected_mt_sort_type = MT_TERNARY_HEAP_SORT;
     break;
   case 'f' :
-    selected_sort_type = FLASH_SORT;
+    selected_mt_sort_type = MT_FLASH_SORT;
     break;
   case 'b' :
-    selected_sort_type = FLASH_SORT_BIN;
+    selected_mt_sort_type = MT_FLASH_SORT_BIN;
     break;
   case 'q' :
-    selected_sort_type = QUICK_SORT;
+    selected_mt_sort_type = MT_QUICK_SORT;
     break;
   case 'i' :
-    selected_sort_type = INSERTION_SORT;
+    selected_mt_sort_type = MT_INSERTION_SORT;
     break;
   case 'm' :
-    selected_sort_type = MERGE_SORT;
+    selected_mt_sort_type = MT_MERGE_SORT;
     break;
   default:
     usage(argv0, "wrong option: only -q and -h supported");

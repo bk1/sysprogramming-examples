@@ -35,7 +35,21 @@ void *run(void *raw) {
   return NULL;
 }
 
+void usage(const char *argv0, const char *msg) {
+  if (msg != NULL && strlen(msg) > 0) {
+    printf("%s\n\n", msg);
+  }
+  printf("Usage\n\n");
+  printf("%s\n\tExample of creating a thread when unbuffered output is pending: show that output is not duplicated as when forking.\n\n", argv0);
+  exit(1);
+}
+
 int main(int argc, char *argv[]) {
+
+  if (is_help_requested(argc, argv)) {
+    usage(argv[0], "");
+  }
+
   out = fopen("myfile", "w");
   fwrite(TEXT, 1, strlen(TEXT), out);
   fwrite(TEXTO, 1, strlen(TEXTO), stdout);

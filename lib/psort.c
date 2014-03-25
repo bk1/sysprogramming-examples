@@ -46,7 +46,7 @@ struct psort_thread_data {
   void *metric_data;
 };
 
-void *thread_run(void *ptr) {
+void *psort_thread_run(void *ptr) {
   int retcode;
   struct psort_thread_data *data = (struct psort_thread_data *) ptr;
   int idx = data->thread_idx;
@@ -88,7 +88,6 @@ void *thread_run(void *ptr) {
 
   // printf("idx=%d sorted\n", idx);
 
-  int first_loop = TRUE;
   for (unsigned int step = 1; step < thread_count; step *= 2) {
     // printf("idx=%d waiting for barrier\n", idx);
     retcode = pthread_barrier_wait(barrier_ptr);
@@ -143,18 +142,12 @@ void *thread_run(void *ptr) {
           }
         }
         segments[idx].nmemb = total_len;
-        if (! first_loop) {
-          free(segments[idx].base);
-        }
-        segments[idx].base = merge_data;
+        memcpy(segments[idx].base, merge_data, total_len * size);
+        free(merge_data);
         segments[other_idx].nmemb = 0;
-        if (! first_loop) {
-          // free(segments[other_idx].base);
-        }
         segments[other_idx].base = NULL;
       }
     }
-    first_loop = FALSE;
   }
   return (void *) NULL;
 }
@@ -215,7 +208,7 @@ void psort_r(void *base,
 
   for (unsigned int i = 0; i < thread_count; i++) {
     // printf("idx=%d=%d base=%p nmemb=%lu size=%lu\n", i, thread_data[i].thread_idx, thread_data[i].segments[i].base, thread_data[i].segments[i].nmemb, thread_data[i].segments[i].size);
-    retcode = pthread_create((thread+i), NULL, thread_run, (thread_data+i));
+    retcode = pthread_create((thread+i), NULL, psort_thread_run, (thread_data+i));
     handle_thread_error(retcode, "pthread_create", PROCESS_EXIT);
   }
   // printf("threads created\n");
@@ -235,9 +228,9 @@ void psort_r(void *base,
     memcpy(base, data, nmemb*size);
     // free(segments[0].base); TODO memory-leak!!!
   }
-  // free(segments);
-  // free(thread_data);
-  // free(thread);
+  free(segments);
+  free(thread_data);
+  free(thread);
 }
 
 

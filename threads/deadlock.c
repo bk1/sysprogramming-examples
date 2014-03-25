@@ -52,12 +52,13 @@ void usage(const char *argv0, const char *msg) {
 }
 
 int main(int argc, char *argv[]) {
-  int retcode;
-  pthread_t thread1;
 
   if (is_help_requested(argc, argv)) {
     usage(argv[0], "");
   }
+
+  int retcode;
+  pthread_t thread1;
 
   pthread_mutexattr_t mutex_attr;
   pthread_mutexattr_init(&mutex_attr);
