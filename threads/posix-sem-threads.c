@@ -51,7 +51,20 @@ void *run(void *arg) {
   return NULL;
 }
 
+void usage(const char *argv0, const char *msg) {
+  if (msg != NULL && strlen(msg) > 0) {
+    printf("%s\n\n", msg);
+  }
+  printf("Usage\n\n");
+  printf("%s\n\texample of using posix semaphores for synchronization\n\n", argv0);
+  exit(1);
+}
+
 int main(int argc, char *argv[]) {
+
+  if (is_help_requested(argc, argv)) {
+    usage(argv[0], "");
+  }
 
   int retcode;
 
