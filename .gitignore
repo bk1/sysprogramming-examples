@@ -172,3 +172,5 @@ threads/thread-memory-count-mutex
 threads/thread-memory-count-posix-semaphore
 threads/thread-memory-count-readwrite
 threads/thread-once-detach
+threads/flockfile-for-extended-output
+myfile
