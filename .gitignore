@@ -174,3 +174,5 @@ threads/thread-memory-count-readwrite
 threads/thread-once-detach
 threads/flockfile-for-extended-output
 myfile
+socket/address
+socket/socket-ipc-1
