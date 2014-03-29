@@ -5,7 +5,7 @@
  * License: GPL v2 (See https://de.wikipedia.org/wiki/GNU_General_Public_License )
  */
 
-/* implements <a href="https://de.wikipedia.org/wiki/Heapsort">Heapsort</a> */
+/* implements <a href="https://de.wikipedia.org/wiki/Insertionsort">Insertionsort</a> */
 
 #include <stdio.h>
 #include <string.h>

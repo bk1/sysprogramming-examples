@@ -5,7 +5,7 @@
  * License: GPL v2 (See https://de.wikipedia.org/wiki/GNU_General_Public_License )
  */
 
-/* implements ternary, which is slightly faster than regular <a href="https://de.wikipedia.org/wiki/Heapsort">Heapsort</a> */
+/* implements ternary heapsort, which is slightly faster than regular <a href="https://de.wikipedia.org/wiki/Heapsort">Heapsort</a> */
 
 #include <stdio.h>
 #include <string.h>
