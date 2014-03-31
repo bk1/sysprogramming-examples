@@ -55,6 +55,14 @@ void thread_once();
 void usage(char *argv0, char *msg) {
   printf("%s\n\n", msg);
   printf("Usage:\n\n");
+
+  printf("splits the given input file into words, disregarding all characters other than [A-Za-z0-9\240-\377]\n");
+  printf("(non-used characters mark word boundaries)\n");
+  printf("sorts the words and prints out the sorted words in a 200 character wide output\n");
+  printf("words longer than 200 characters exceed the width in a line by themselves\n");
+  printf("this is done 20 times in different threads started at random times 0..9 sec delayed after program start\n");
+  printf("reading and sorting is only done once by the thread that comes first, output is then rendered and printed by each thread separately\n\n");
+
   printf("%s -f file \n\tsorts contents of file using flashsort.\n\n", argv0);
   printf("%s -h file \n\tsorts contents of file using heapsort.\n\n", argv0);
   printf("%s -t file \n\tsorts contents of file using ternary heapsort.\n\n", argv0);
