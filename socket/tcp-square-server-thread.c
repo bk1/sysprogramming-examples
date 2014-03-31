@@ -100,7 +100,7 @@ int main(int argc, char *argv[]) {
 
 void* handle_tcp_client(void *client_socket_ptr) {
   int client_socket = *((int *) client_socket_ptr);
-  free(client_socket_ptr);
+  free(client_socket_ptr); /* malloc was made before starting this thread */
   char squareBuffer[RCVBUFSIZE];      /* Buffer for square string */
   int recvMsgSize;                    /* Size of received message */
 
