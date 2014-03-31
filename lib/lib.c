@@ -79,6 +79,12 @@ void handle_ptr_error(void *ptr, const char *msg, enum exit_type et) {
   }
 }
 
+
+void die_with_error(char *errorMessage) {
+    perror(errorMessage);
+    exit(1);
+}
+
 int open_retry_mode(char *file, int flags, mode_t mode, enum exit_type et) {
 
   int fd = -1;

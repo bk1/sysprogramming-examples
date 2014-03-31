@@ -44,6 +44,8 @@ void handle_error_myerrno(long return_code, int myerrno, const char *msg, enum e
 
 void handle_ptr_error(void *ptr, const char *msg, enum exit_type et);
 
+void die_with_error(char *errorMessage);
+
 int open_retry_mode(char *file, int flags, mode_t mode, enum exit_type et);
 
 int open_retry(char *file, int flags, enum exit_type et);
