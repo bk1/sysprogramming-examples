@@ -20,6 +20,7 @@
 #include <sys/socket.h> /* for socket(), bind(), recv, send(), and connect() */
 #include <sys/types.h>
 #include <unistd.h>     /* for close() */
+#include <pthread.h>
 
 #include <itskylib.h>
 
@@ -35,7 +36,7 @@ void usage(const char *argv0, const char *msg) {
   exit(1);
 }
 
-void handle_tcp_client(int clntSocket);   /* TCP client handling function */
+void *handle_tcp_client(void *client_socket_ptr);   /* TCP client handling function */
 
 int main(int argc, char *argv[]) {
 
@@ -46,7 +47,7 @@ int main(int argc, char *argv[]) {
   }
 
   int servSock;                    /* Socket descriptor for server */
-  int clntSock;                    /* Socket descriptor for client */
+  int client_socket;                    /* Socket descriptor for client */
   struct sockaddr_in squareServAddr; /* Local address */
   struct sockaddr_in squareClntAddr; /* Client address */
   unsigned short squareServPort;     /* Server port */
@@ -81,29 +82,31 @@ int main(int argc, char *argv[]) {
     clntAddrLen = sizeof(squareClntAddr);
 
     /* Wait for a client to connect */
-    clntSock = accept(servSock, (struct sockaddr *) &squareClntAddr, &clntAddrLen);
-    handle_error(clntSock, "accept() failed", PROCESS_EXIT);
+    client_socket = accept(servSock, (struct sockaddr *) &squareClntAddr, &clntAddrLen);
+    handle_error(client_socket, "accept() failed", PROCESS_EXIT);
 
-    /* clntSock is connected to a client! */
-
-    pid_t pid = fork();
-    handle_error(pid, "fork() after accept", PROCESS_EXIT);
-    if (pid == 0) {
-      printf("Handling client %s\n", inet_ntoa(squareClntAddr.sin_addr));
-      handle_tcp_client(clntSock);
-    }
+    printf("Handling client %s\n", inet_ntoa(squareClntAddr.sin_addr));
+    /* client_socket is connected to a client! */
+    
+    pthread_t thread;
+    int *client_socket_ptr = (int *) malloc(sizeof(int));
+    *client_socket_ptr = client_socket;
+    pthread_create(&thread, NULL, handle_tcp_client, client_socket_ptr);
+    pthread_detach(thread);
   }
   /* NOT REACHED: */
   exit(0);
 }
 
-void handle_tcp_client(int clntSocket) {
+void* handle_tcp_client(void *client_socket_ptr) {
+  int client_socket = *((int *) client_socket_ptr);
+  free(client_socket_ptr);
   char squareBuffer[RCVBUFSIZE];      /* Buffer for square string */
   int recvMsgSize;                    /* Size of received message */
 
   while (TRUE) {
     /* Receive message from client */
-    recvMsgSize = recv(clntSocket, squareBuffer, RCVBUFSIZE - 1, 0);
+    recvMsgSize = recv(client_socket, squareBuffer, RCVBUFSIZE - 1, 0);
     handle_error(recvMsgSize, "recv() failed", PROCESS_EXIT);
 
     if (recvMsgSize == 0) {
@@ -117,12 +120,13 @@ void handle_tcp_client(int clntSocket) {
     int y = x*x;
     sprintf(squareBuffer, "%12d", y);
     int sendMsgSize = strlen(squareBuffer);
-    ssize_t sentSize = send(clntSocket, squareBuffer, sendMsgSize, 0);
+    ssize_t sentSize = send(client_socket, squareBuffer, sendMsgSize, 0);
     if (sentSize != recvMsgSize) {
       die_with_error("send() failed");
     }
     /* See if there is more data to receive in the next round...*/
   }
 
-  close(clntSocket);    /* Close client socket */
+  close(client_socket);    /* Close client socket */
+  return NULL;
 }
