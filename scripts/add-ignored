@@ -1,3 +1,4 @@
 #!/bin/sh
-git ls-files --other --exclude-standard | grep -v '\.c$' >> .gitignore
+git ls-files --other --exclude-standard | grep -v '\.c$' | tee -a .gitignore
+git commit -m "more binary files ignored" .gitignore
 
