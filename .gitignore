@@ -184,3 +184,4 @@ socket/udp-square-server
 threads/#thread-sort-once-pd.c#
 threads/thread-sort-once-pd
 socket/tcp-square-server-fork
+socket/tcp-square-server-thread
