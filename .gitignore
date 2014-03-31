@@ -176,3 +176,4 @@ threads/flockfile-for-extended-output
 myfile
 socket/address
 socket/socket-ipc-1
+threads/thread-sort-once
