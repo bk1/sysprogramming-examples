@@ -181,3 +181,5 @@ socket/tcp-square-client
 socket/tcp-square-server
 socket/udp-square-client
 socket/udp-square-server
+threads/#thread-sort-once-pd.c#
+threads/thread-sort-once-pd
