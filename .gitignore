@@ -177,3 +177,5 @@ myfile
 socket/address
 socket/socket-ipc-1
 threads/thread-sort-once
+socket/tcp-square-client
+socket/tcp-square-server
