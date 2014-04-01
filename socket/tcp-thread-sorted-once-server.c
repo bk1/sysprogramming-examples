@@ -18,6 +18,7 @@
 #include <stdbool.h>
 
 #include <itskylib.h>
+#include <transmission-protocols.h>
 #include <hsort.h>
 #include <fsort.h>
 #include <isort.h>
@@ -30,20 +31,19 @@ const int LINE_SIZE = 200;
 
 pthread_once_t once = PTHREAD_ONCE_INIT;
 
+pthread_key_t *create_key();
+
+pthread_key_t *key;
+
 enum mt_sort_type { MT_HEAP_SORT, MT_TERNARY_HEAP_SORT, MT_QUICK_SORT, MT_FLASH_SORT, MT_INSERTION_SORT, MT_MERGE_SORT };
 
-const char *file_name;
-enum mt_sort_type selected_sort_type;
-struct string_array content;
-
-
 struct thread_arg {
+  const char *file_name;
+  enum mt_sort_type selected_sort_type;
+  struct string_array **content;
+  int client_socket;
   int thread_idx;
-  pthread_once_t *once;
 };
-
-/* needs to be global here for the sake of thread_once */
-struct thread_arg *thread_data;
 
 void *thread_run(void *ptr);
 
@@ -55,35 +55,39 @@ void usage(char *argv0, char *msg) {
   printf("%s\n\n", msg);
   printf("Usage:\n\n");
 
+  printf("starts a server listening on the given port\n");
   printf("splits the given input file into words, disregarding all characters other than [A-Za-z0-9\240-\377]\n");
   printf("(non-used characters mark word boundaries)\n");
-  printf("sorts the words and prints out the sorted words in a 200 character wide output\n");
+  printf("sorts the words and renders the sorted words for a 200 character wide output\n");
   printf("words longer than 200 characters exceed the width in a line by themselves\n");
-  printf("this is done 20 times in different threads started at random times 0..9 sec delayed after program start\n");
-  printf("reading and sorting is only done once by the thread that comes first, output is then rendered and printed by each thread separately\n\n");
+  printf("this is done for each client request and served to the client via TCP\n");
+  printf("reading and sorting is only done once by the thread that comes first.\n");
+  printf("output is then rendered and transmitted by each thread separately\n\n");
 
-  printf("%s -f file \n\tsorts contents of file using flashsort.\n\n", argv0);
-  printf("%s -h file \n\tsorts contents of file using heapsort.\n\n", argv0);
-  printf("%s -t file \n\tsorts contents of file using ternary heapsort.\n\n", argv0);
-  printf("%s -q file \n\tsorts contents of file using quicksort.\n\n", argv0);
-  printf("%s -i file \n\tsorts contents of file using insertionsort.\n\n", argv0);
-  printf("%s -m file \n\tsorts contents of file using mergesort.\n\n", argv0);
+  printf("%s port -f file \n\tsorts contents of file using flashsort.\n\n", argv0);
+  printf("%s port -h file \n\tsorts contents of file using heapsort.\n\n", argv0);
+  printf("%s port -t file \n\tsorts contents of file using ternary heapsort.\n\n", argv0);
+  printf("%s port -q file \n\tsorts contents of file using quicksort.\n\n", argv0);
+  printf("%s port -i file \n\tsorts contents of file using insertionsort.\n\n", argv0);
+  printf("%s port -m file \n\tsorts contents of file using mergesort.\n\n", argv0);
   exit(1);
 }
 
 int main(int argc, char *argv[]) {
   int retcode;
   pthread_t *thread;
+  
+  key = create_key();
 
   char *argv0 = argv[0];
-  if (argc != 3) {
+  if (argc != 4) {
     printf("found %d arguments\n", argc - 1);
     usage(argv0, "wrong number of arguments");
   }
+  
+  int opt_idx = 2;
+  enum mt_sort_type selected_sort_type;
 
-  int opt_idx = 1;
-
-  /* TODO consider using getopt instead!! */
   char *argv_opt = argv[opt_idx];
   if (strlen(argv_opt) != 2 || argv_opt[0] != '-') {
     usage(argv0, "wrong option");
@@ -113,35 +117,57 @@ int main(int argc, char *argv[]) {
     break;
   }
 
-  file_name = argv[2];
+  char *file_name = argv[3];
+  int port_number = atoi(argv[1]);
 
-  thread = (pthread_t *) malloc(sizeof(pthread_t));
-  thread_data = (struct thread_arg *) malloc(sizeof(struct thread_arg));
+  /* Create socket for incoming connections */
 
-  // server-socket-stuff
-  while (TRUE) {
-  // on connection create thread
+  /* Construct local address structure */
 
-   // thread_data[i].thread_idx = i;
-   // thread_data[i].once = &once;
-   // retcode = pthread_create(&(thread[i]), NULL, thread_run, &(thread_data[i]));
-   // handle_thread_error(retcode, "pthread_create", PROCESS_EXIT);
-  ;
-}
+  /* Bind to the local address */
 
+  int idx = 0;
+  while (TRUE) { /* Run forever */
+    /* Set the size of the in-out parameter */
+
+    /* Wait for a client to connect */
+
+    /* client_socket is connected to a client! */
+    
+    thread = (pthread_t *) malloc(sizeof(pthread_t));
+    struct thread_arg *thread_data = (struct thread_arg *) malloc(sizeof(struct thread_arg));
+
+    struct string_array **content = (struct string_array **)malloc(sizeof(struct string_array *));
+
+    thread_data->file_name = file_name;
+    thread_data->selected_sort_type = selected_sort_type;
+    thread_data->content = content;
+    // thread_data->client_socket = client_socket;
+    thread_data->thread_idx = idx;
+    
+    /* create thread: */
+
+    idx++;
+  }
+  /* never going to happen: */
   exit(0);
 }
 
 void thread_once() {
+
+  struct thread_arg *arg = (struct thread_arg *) pthread_getspecific(*key);
+
   // int retcode;
+  const char *file_name = arg->file_name;
   int fd = open(file_name, O_RDONLY);
   handle_error(fd, "open", PROCESS_EXIT);
-  content = read_to_array(fd);
+  struct string_array *content = malloc(sizeof(struct string_array *));
+  * content = read_to_array(fd);
   close(fd);
 
-  char **strings = content.strings;
-  size_t len = content.len;
-  switch (selected_sort_type) {
+  char **strings = content->strings;
+  size_t len = content->len;
+  switch (arg->selected_sort_type) {
   case MT_HEAP_SORT:
     hsort_r(strings, len, sizeof(char_ptr), compare_str_full, (void *) NULL);
     break;
@@ -164,15 +190,18 @@ void thread_once() {
     /* should *never* happen: */
     handle_error_myerrno(-1, -1, "wrong mt_sort_type", PROCESS_EXIT);
   }
+  *(arg->content) = content;
 
 }
 
 void print_sorted_words(struct thread_arg *arg) {
 
+  /** RECOMMENDATION: use transmission-protocol for communications */
   int retcode;
-  retcode = pthread_once(arg->once, thread_once);
+  retcode = pthread_once(&once, thread_once);
   handle_thread_error(retcode, "pthread_once", THREAD_EXIT);
 
+  struct string_array content = **(arg->content);
   char **strings = content.strings;
   int idx = arg->thread_idx;
 
@@ -210,6 +239,7 @@ void print_sorted_words(struct thread_arg *arg) {
 void *thread_run(void *ptr) {
   int retcode;
   struct thread_arg *arg = (struct thread_arg *) ptr;
+  pthread_setspecific(*key, arg);
   int random_number = rand();
   unsigned int duration = (unsigned int) random_number % 10;
   printf("thread %d sleeping for %d sec\n", arg->thread_idx, duration);
@@ -218,3 +248,10 @@ void *thread_run(void *ptr) {
   print_sorted_words(arg);
   return (void *) NULL;
 }
+
+pthread_key_t *create_key() {
+  pthread_key_t *key = (pthread_key_t *) malloc(sizeof(pthread_key_t));
+  pthread_key_create(key, NULL);
+  return key;
+}
+
