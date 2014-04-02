@@ -187,3 +187,5 @@ socket/tcp-square-server-fork
 socket/tcp-square-server-thread
 socket/tcp-thread-sorted-once-server
 threads/find-extreme-strings
+socket/tcp-square-client-protocol
+socket/tcp-square-server-protocol
