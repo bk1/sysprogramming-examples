@@ -244,12 +244,11 @@ int main(int argc, char *argv[]) {
     break;
   }
 
-  sscanf(argv[2], "%d", &thread_count);
+  thread_count = atoi(argv[n_idx]);
   if (thread_count < 1 || thread_count > 1024) {
     printf("running with %d threads\n", thread_count);
     usage(argv[0], "wrong number of threads");
   }
-
 
   struct string_array content = read_to_array(STDIN_FILENO);
   int len_per_thread = content.len / thread_count;
