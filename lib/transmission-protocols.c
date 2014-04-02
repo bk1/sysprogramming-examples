@@ -25,6 +25,8 @@
 #include <itskylib.h>
 #include <transmission-protocols.h>
 
+const char *EMPTY_BUFFER = "";
+
 /* transmit a string over a socket or pipe connnection
  * if len is given it is assumed to be the lenght of the string
  * if it is -1, the length is found out with strlen()
@@ -58,7 +60,7 @@ void write_eot(int client_socket) {
 }
 
 
-int read_string_fragmentable(int client_socket, char *buffer, size_t buffer_size, consumer_function consume) {
+size_t read_string_fragmentable(int client_socket, char *buffer, size_t buffer_size, consumer_function consume) {
     uint32_t ulen_net = 0;
     size_t bytes_received = read(client_socket, &ulen_net, sizeof(ulen_net));
     if (bytes_received != sizeof(ulen_net)) {
@@ -87,7 +89,21 @@ int read_string_fragmentable(int client_socket, char *buffer, size_t buffer_size
     return ulen;
 }
 
-int read_string(int client_socket, consumer_function consume) {
+size_t read_string(int client_socket, consumer_function consume) {
+  char **buffer_ptr;
+  uint32_t ulen = read_and_store_string(client_socket, buffer_ptr);
+  if (ulen == 0) {
+    return ulen;
+  }
+  char *buffer = *buffer_ptr;
+  consume(buffer, ulen);
+  free(buffer);
+  return ulen;
+}
+
+
+/* the caller has to free the buffer, unless ulen == 0 */
+size_t read_and_store_string(int client_socket, char **result) {
     uint32_t ulen_net = 0;
     size_t bytes_received = read(client_socket, &ulen_net, sizeof(ulen_net));
     if (bytes_received != sizeof(ulen_net)) {
@@ -96,6 +112,7 @@ int read_string(int client_socket, consumer_function consume) {
 
     uint32_t ulen = ntohl(ulen_net);
     if (ulen == 0) {
+      *result = (char *) EMPTY_BUFFER; /* actually the same as empty string */
       return ulen;
     }
     char *buffer = (char *) malloc(ulen + 1);
@@ -111,11 +128,20 @@ int read_string(int client_socket, consumer_function consume) {
       rest_len -= bytes_received;
       ptr += bytes_received;
     }
-    consume(buffer, ulen);
-    free(buffer);
+    *result = buffer;
     return ulen;
 }
 
+void free_read_string(size_t ulen, char *buffer) {
+  if (ulen != 0) {
+    free(buffer);
+  }
+}
+
+/*
+ * use 4 byte long strings as a simple communication command language.
+ * actually 5 bytes are transmitted, because the 0 as termination is included.
+ */
 void write_4byte_string(int client_socket, const char *str) {
   char buff[5] = { '\000' };
   sprintf(buff, "%s", str);
@@ -125,6 +151,10 @@ void write_4byte_string(int client_socket, const char *str) {
   }
 }
   
+/*
+ * use 4 byte long strings as a simple communication command language.
+ * actually 5 bytes are transmitted, because the 0 as termination is included.
+ */
 void read_4byte_string(int client_socket, char *str) {
   char buff[5] = { '\000' };
   size_t count = read(client_socket, buff, 5);

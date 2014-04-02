@@ -24,9 +24,14 @@ void write_string(int client_socket, char *str, size_t len);
 
 void write_eot(int client_socket);
 
-int read_string_fragmentable(int client_socket, char *buffer, size_t buffer_size, consumer_function consume);
+size_t read_string_fragmentable(int client_socket, char *buffer, size_t buffer_size, consumer_function consume);
 
-int read_string(int client_socket, consumer_function consume);
+size_t read_string(int client_socket, consumer_function consume);
+
+/* the caller has to free the buffer, unless ulen == 0 */
+size_t read_and_store_string(int client_socket, char **result);
+
+void free_read_string(size_t ulen, char *buffer);
 
 void write_4byte_string(int client_socket, const char *str);
 
