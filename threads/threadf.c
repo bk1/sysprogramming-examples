@@ -28,7 +28,7 @@ void *thread_run(void *ptr) {
   pid_t pid =  getpid();
   pid_t ppid =  getppid();
   pthread_t tid = pthread_self();
-  printf("In child: retcode=%d tid=%ld pid=%d ppid=%d\n", retcode, (long) tid, pid, ppid);
+  printf("In child: tid=%ld pid=%d ppid=%d\n", (long) tid, pid, ppid);
   printf("In child\n");
   retcode = write(pipes[1], message, strlen(message));
   handle_error(retcode, "Error writing to pipe retcode=%d errno=%d\n", THREAD_EXIT);

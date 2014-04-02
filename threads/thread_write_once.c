@@ -12,6 +12,8 @@
 #include <unistd.h>
 #include <pthread.h>
 
+#include <itskylib.h>
+
 static char *TEXT = "Beispieltext... ";
 static char *TEXTO = "Beispieltext (stdout)... ";
 static char *TEXTE = "Beispieltext (stderr)... ";

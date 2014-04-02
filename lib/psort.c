@@ -25,6 +25,8 @@
 #include <psort.h>
 #include <sortimpl.h>
 
+#include <time.h>
+
 struct sortable_data {
   void  *base;
   size_t nmemb;
@@ -50,6 +52,7 @@ void *psort_thread_run(void *ptr) {
   int retcode;
   struct psort_thread_data *data = (struct psort_thread_data *) ptr;
   int idx = data->thread_idx;
+  time_t t0 = time(NULL);
   void *base = data->segments[idx].base;
   size_t nmemb = data->segments[idx].nmemb;
   size_t size  = data->segments[idx].size;
@@ -86,7 +89,8 @@ void *psort_thread_run(void *ptr) {
     handle_error_myerrno(-1, -1, "wrong sort_type", PROCESS_EXIT);
   }
 
-  // printf("idx=%d sorted\n", idx);
+  time_t t1 = time(NULL);
+  printf("idx=%d sorted: t=%ld\n", idx, (long)(t1-t0));
 
   for (unsigned int step = 1; step < thread_count; step *= 2) {
     // printf("idx=%d waiting for barrier\n", idx);
@@ -94,7 +98,8 @@ void *psort_thread_run(void *ptr) {
     if (retcode != PTHREAD_BARRIER_SERIAL_THREAD) {
       handle_thread_error(retcode, "pthread_barrier_wait", THREAD_EXIT);
     }
-    // printf("idx=%d waited for barrier\n", idx);
+    time_t t1 = time(NULL);
+    printf("idx=%d waited for barrier t=%ld\n", idx, (long)(t1-t0));
 
     if (idx % (2*step) == 0) {
       int other_idx = idx + step;
@@ -148,7 +153,10 @@ void *psort_thread_run(void *ptr) {
         segments[other_idx].base = NULL;
       }
     }
+    t1 = time(NULL);
+    printf("idx=%d merged t=%ld\n", idx, (long)(t1-t0));
   }
+  printf("idx=%d done t=%ld\n", idx, (long)(t1-t0));
   return (void *) NULL;
 }
 
