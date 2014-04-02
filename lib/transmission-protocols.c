@@ -56,7 +56,7 @@ void write_string(int client_socket, char *str, size_t len) {
 }
 
 void write_eot(int client_socket) {
-  write(client_socket, "", 0);
+  write_string(client_socket, "", 0);
 }
 
 
@@ -90,7 +90,7 @@ size_t read_string_fragmentable(int client_socket, char *buffer, size_t buffer_s
 }
 
 size_t read_string(int client_socket, consumer_function consume) {
-  char **buffer_ptr;
+  char *buffer_ptr[1];
   uint32_t ulen = read_and_store_string(client_socket, buffer_ptr);
   if (ulen == 0) {
     return ulen;
@@ -105,12 +105,14 @@ size_t read_string(int client_socket, consumer_function consume) {
 /* the caller has to free the buffer, unless ulen == 0 */
 size_t read_and_store_string(int client_socket, char **result) {
     uint32_t ulen_net = 0;
-    size_t bytes_received = read(client_socket, &ulen_net, sizeof(ulen_net));
+    size_t bytes_received = recv(client_socket, &ulen_net, sizeof(ulen_net), 0);
     if (bytes_received != sizeof(ulen_net)) {
-      die_with_error("recv() failed or connection closed prematurely");
+      printf("recv() failed or connection closed prematurely");
+      return 0;
     }
 
     uint32_t ulen = ntohl(ulen_net);
+    // printf("ulen=%d\n");
     if (ulen == 0) {
       *result = (char *) EMPTY_BUFFER; /* actually the same as empty string */
       return ulen;

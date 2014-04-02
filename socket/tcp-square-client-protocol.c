@@ -77,8 +77,12 @@ int main(int argc, char *argv[]) {
   retcode = connect(sock, (struct sockaddr *) &server_address, sizeof(server_address));
   handle_error(retcode, "connect() failed", PROCESS_EXIT);
 
+  char *buffer_ptr[1];
+
   while (TRUE) {
     char line[4096];
+    printf("x=");
+    fflush(stdout);
     fgets(line, 4096, stdin);
     int n = strlen(line);
     /* ignore empty line */
@@ -96,7 +100,6 @@ int main(int argc, char *argv[]) {
     sprintf(line, "%12d", x);
     write_string(sock, line, -1);
     
-    char **buffer_ptr = NULL;
     size_t ulen = read_and_store_string(sock, buffer_ptr);
     if (ulen == 0) {
       printf("terminated by server\n");
@@ -105,7 +108,13 @@ int main(int argc, char *argv[]) {
     char *buffer = *buffer_ptr;
     int y = atoi(buffer);
     printf("x=%d y=x*x=%d\n", x, y);    /* Print the result and a final linefeed */
+    free(buffer);
   }
+  write_eot(sock);
+  printf("sent EOT\n");
+  read_and_store_string(sock, buffer_ptr);
+  printf("received EOT\n");
+  sleep(1);
   close(sock);
   exit(0);
 }

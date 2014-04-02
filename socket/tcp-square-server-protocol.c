@@ -21,12 +21,18 @@
 #include <sys/types.h>
 #include <unistd.h>     /* for close() */
 #include <pthread.h>
+#include <signal.h>
 
 #include <itskylib.h>
 #include <transmission-protocols.h>
 
 #define RCVBUFSIZE 32   /* Size of receive buffer */
 #define MAXPENDING 5    /* Maximum outstanding connection requests */
+
+
+void signal_handler(int signo) {
+  printf("closed\n");
+}
 
 void usage(const char *argv0, const char *msg) {
   if (msg != NULL && strlen(msg) > 0) {
@@ -48,6 +54,23 @@ int main(int argc, char *argv[]) {
   if (is_help_requested(argc, argv)) {
     usage(argv[0], "");
   }
+
+  sigset_t sig_mask;
+  retcode = sigemptyset(&sig_mask);
+  handle_error(retcode, "sigemptyset", PROCESS_EXIT);
+  retcode = sigaddset(&sig_mask, SIGPIPE);
+  handle_error(retcode, "sigaddset", PROCESS_EXIT);
+
+  struct sigaction new_sigaction;
+  struct sigaction old_sigaction;
+  /* assign unused fields to null *first*, so if there is a union the real values will supersede */
+  new_sigaction.sa_sigaction = NULL;
+  new_sigaction.sa_restorer = NULL;
+  new_sigaction.sa_handler = signal_handler;
+  new_sigaction.sa_mask = sig_mask;
+  new_sigaction.sa_flags = SA_NOCLDSTOP;
+  retcode = sigaction(SIGPIPE, &new_sigaction, &old_sigaction);
+  handle_error(retcode, "sigaction", PROCESS_EXIT);
 
   int server_socket;                    /* Socket descriptor for server */
   int client_socket;                    /* Socket descriptor for client */
@@ -90,7 +113,7 @@ int main(int argc, char *argv[]) {
 
     printf("Handling client %s\n", inet_ntoa(client_address.sin_addr));
     /* client_socket is connected to a client! */
-    
+
     pthread_t thread;
     int *client_socket_ptr = (int *) malloc(sizeof(int));
     *client_socket_ptr = client_socket;
@@ -108,9 +131,11 @@ void* handle_tcp_client(void *client_socket_ptr) {
 
   while (TRUE) {
     /* Receive message from client */
-    char **buffer_ptr = NULL;
+    char *buffer_ptr[1];
+    // printf("reading\n");
     size_t ulen = read_and_store_string(client_socket, buffer_ptr);
-    if (ulen == 0) {
+    // printf("read ulen=%d\n", (int) ulen);
+   if (ulen == 0) {
       break;
     }
 
@@ -126,6 +151,9 @@ void* handle_tcp_client(void *client_socket_ptr) {
     /* See if there is more data to receive in the next round...*/
   }
 
+  write_eot(client_socket);
+  printf("connection terminated by client\n");
+  sleep(1);
   close(client_socket);    /* Close client socket */
   return NULL;
 }
