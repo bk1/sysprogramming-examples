@@ -188,6 +188,10 @@ int main(int argc, char *argv[]) {
   pthread_t *thread;
 
   char *argv0 = argv[0];
+  if (is_help_requested(argc, argv)) {
+    usage(argv0, "");
+  }
+
   if (argc != 3 && argc != 5) {
     printf("found %d arguments\n", argc - 1);
     usage(argv0, "wrong number of arguments");
