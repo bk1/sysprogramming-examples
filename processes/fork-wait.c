@@ -14,15 +14,15 @@
 #include <unistd.h>
 
 int main(int argc, char *argv[]) {
-  int firstChild = fork();
-  if (firstChild == 0) {
+  int first_child = fork();
+  if (first_child == 0) {
     printf("in first child\n");
     sleep(10);
     printf("terminating first child\n");
     exit(0);
   }
-  int secondChild = fork();
-  if (secondChild == 0) {
+  int second_child = fork();
+  if (second_child == 0) {
     printf("in second child\n");
     sleep(30);
     printf("terminating second child\n");
@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
   int status;
   for (i = 0; i < 2; i++) {
     int pid = wait(&status);
-    printf("child %d terminated (firstChild=%d secondChild=%d)\n", pid, firstChild, secondChild);
+    printf("child %d terminated (first_child=%d second_child=%d)\n", pid, first_child, second_child);
   }
   printf("done\n");
   exit(0);

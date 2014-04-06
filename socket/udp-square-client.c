@@ -42,40 +42,40 @@ int main(int argc, char *argv[]) {
   }
 
   int sock;                        /* Socket descriptor */
-  struct sockaddr_in squareServAddr; /* Square server address */
-  struct sockaddr_in fromAddr;     /* Source address of square */
-  unsigned short squareServPort;     /* Square server port */
-  unsigned int fromSize;           /* In-out of address size for recvfrom() */
-  char *servIP;                    /* IP address of server */
-  char squareString[SQUAREMAX+1];                /* String to send to square server */
-  char squareBuffer[SQUAREMAX+1];      /* Buffer for receiving squared string */
-  int squareStringLen;               /* Length of string to square */
-  int respStringLen = 0;               /* Length of received response */
+  struct sockaddr_in server_address; /* Square server address */
+  struct sockaddr_in from_addr;     /* Source address of square */
+  unsigned short server_port;     /* Square server port */
+  unsigned int from_size;           /* In-out of address size for recvfrom() */
+  char *server_ip;                    /* IP address of server */
+  char square_string[SQUAREMAX+1];                /* String to send to square server */
+  char square_buffer[SQUAREMAX+1];      /* Buffer for receiving squared string */
+  int square_string_len;               /* Length of string to square */
+  int resp_string_len = 0;               /* Length of received response */
 
   if (argc < 3 || argc > 4) {
     /* Test for correct number of arguments */
     usage(argv[0], "wrong number of arguments");
   }
 
-  servIP = argv[1];           /* First arg: server IP address (dotted quad) */
+  server_ip = argv[1];           /* First arg: server IP address (dotted quad) */
 
-  squareStringLen = strlen(argv[2]);
-  if (squareStringLen > SQUAREMAX) {
+  square_string_len = strlen(argv[2]);
+  if (square_string_len > SQUAREMAX) {
     /* Check input length */
     usage(argv[0], "input word too long");
   }
   int x = atoi(argv[2]);       /* Second arg: string to square */
-  sprintf(squareString, "%12d", x);
-  squareStringLen = strlen(squareString);
-  if (squareStringLen > SQUAREMAX) {
+  sprintf(square_string, "%12d", x);
+  square_string_len = strlen(square_string);
+  if (square_string_len > SQUAREMAX) {
     /* Check input length */
     die_with_error("input word too long");
   }
 
   if (argc == 4) {
-    squareServPort = atoi(argv[3]);  /* Use given port, if any */
+    server_port = atoi(argv[3]);  /* Use given port, if any */
   } else {
-    squareServPort = 7;  /* 7 is the well-known port for the square service */
+    server_port = 7;  /* 7 is the well-known port for the square service */
   }
 
   /* Create a datagram/UDP socket */
@@ -83,33 +83,33 @@ int main(int argc, char *argv[]) {
   handle_error((long) socket, "socket() failed", PROCESS_EXIT);
 
   /* Construct the server address structure */
-  memset(&squareServAddr, 0, sizeof(squareServAddr));    /* Zero out structure */
-  squareServAddr.sin_family = AF_INET;                 /* Internet addr family */
-  squareServAddr.sin_addr.s_addr = inet_addr(servIP);  /* Server IP address */
-  squareServAddr.sin_port   = htons(squareServPort);     /* Server port */
+  memset(&server_address, 0, sizeof(server_address));    /* Zero out structure */
+  server_address.sin_family = AF_INET;                 /* Internet addr family */
+  server_address.sin_addr.s_addr = inet_addr(server_ip);  /* Server IP address */
+  server_address.sin_port   = htons(server_port);     /* Server port */
 
   /* Send the string to the server */
-  int sendStringLen = squareStringLen + 1;
-  ssize_t sentLen = sendto(sock, squareString, sendStringLen, 0, (struct sockaddr *) &squareServAddr, sizeof(squareServAddr));
-  if (sentLen != sendStringLen) {
-    printf("sentLen=%ld sendStringLen=%ld\n", (long) respStringLen, (long) sendStringLen);
+  int send_string_len = square_string_len + 1;
+  ssize_t sent_len = sendto(sock, square_string, send_string_len, 0, (struct sockaddr *) &server_address, sizeof(server_address));
+  if (sent_len != send_string_len) {
+    printf("sent_len=%ld send_string_len=%ld\n", (long) resp_string_len, (long) send_string_len);
     die_with_error("sendto() sent a different number of bytes than expected");
   }
 
   /* Recv a response */
-  fromSize = sizeof(fromAddr);
-  respStringLen = recvfrom(sock, squareBuffer, SQUAREMAX, 0, (struct sockaddr *) &fromAddr, &fromSize);
-  if (respStringLen != sendStringLen) {
-    printf("respStringLen=%ld sendStringLen=%ld\n", (long) respStringLen, (long) sendStringLen);
+  from_size = sizeof(from_addr);
+  resp_string_len = recvfrom(sock, square_buffer, SQUAREMAX, 0, (struct sockaddr *) &from_addr, &from_size);
+  if (resp_string_len != send_string_len) {
+    printf("resp_string_len=%ld send_string_len=%ld\n", (long) resp_string_len, (long) send_string_len);
     die_with_error("recvfrom() failed");
   }
-  if (squareServAddr.sin_addr.s_addr != fromAddr.sin_addr.s_addr) {
+  if (server_address.sin_addr.s_addr != from_addr.sin_addr.s_addr) {
     die_with_error("Error: received a packet from unknown source.");
   }
 
   /* null-terminate the received data */
-  squareBuffer[respStringLen] = '\0';
-  int y = atoi(squareBuffer);
+  square_buffer[resp_string_len] = '\0';
+  int y = atoi(square_buffer);
   printf("x=%d y=x*x=%d\n", x, y);    /* Print the result and a final linefeed */
     
   close(sock);

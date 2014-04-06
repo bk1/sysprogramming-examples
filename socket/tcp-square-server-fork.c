@@ -45,43 +45,43 @@ int main(int argc, char *argv[]) {
     usage(argv[0], "");
   }
 
-  int servSock;                    /* Socket descriptor for server */
+  int server_socket;                    /* Socket descriptor for server */
   int client_socket;                    /* Socket descriptor for client */
-  struct sockaddr_in squareServAddr; /* Local address */
-  struct sockaddr_in squareClntAddr; /* Client address */
-  unsigned short squareServPort;     /* Server port */
-  unsigned int clntAddrLen;            /* Length of client address data structure */
+  struct sockaddr_in server_address; /* Local address */
+  struct sockaddr_in client_address; /* Client address */
+  unsigned short server_port;     /* Server port */
+  unsigned int clnt_addr_len;            /* Length of client address data structure */
 
   if (argc != 2) {
     /* Test for correct number of arguments */
     usage(argv[0], "wrong number of arguments");
   }
-  squareServPort = atoi(argv[1]);  /* First arg:  local port */
+  server_port = atoi(argv[1]);  /* First arg:  local port */
 
   /* Create socket for incoming connections */
-  servSock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-  handle_error(servSock, "socket() failed", PROCESS_EXIT);
+  server_socket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+  handle_error(server_socket, "socket() failed", PROCESS_EXIT);
 
   /* Construct local address structure */
-  memset(&squareServAddr, 0, sizeof(squareServAddr));   /* Zero out structure */
-  squareServAddr.sin_family = AF_INET;                /* Internet address family */
-  squareServAddr.sin_addr.s_addr = htonl(INADDR_ANY); /* Any incoming interface */
-  squareServAddr.sin_port = htons(squareServPort);      /* Local port */
+  memset(&server_address, 0, sizeof(server_address));   /* Zero out structure */
+  server_address.sin_family = AF_INET;                /* Internet address family */
+  server_address.sin_addr.s_addr = htonl(INADDR_ANY); /* Any incoming interface */
+  server_address.sin_port = htons(server_port);      /* Local port */
 
   /* Bind to the local address */
-  retcode = bind(servSock, (struct sockaddr *) &squareServAddr, sizeof(squareServAddr));
+  retcode = bind(server_socket, (struct sockaddr *) &server_address, sizeof(server_address));
   handle_error(retcode, "bind() failed", PROCESS_EXIT);
 
   /* Mark the socket so it will listen for incoming connections */
-  retcode = listen(servSock, MAXPENDING);
+  retcode = listen(server_socket, MAXPENDING);
   handle_error(retcode, "listen() failed", PROCESS_EXIT);
 
   while (TRUE) { /* Run forever */
     /* Set the size of the in-out parameter */
-    clntAddrLen = sizeof(squareClntAddr);
+    clnt_addr_len = sizeof(client_address);
 
     /* Wait for a client to connect */
-    client_socket = accept(servSock, (struct sockaddr *) &squareClntAddr, &clntAddrLen);
+    client_socket = accept(server_socket, (struct sockaddr *) &client_address, &clnt_addr_len);
     handle_error(client_socket, "accept() failed", PROCESS_EXIT);
 
     /* client_socket is connected to a client! */
@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
     pid_t pid = fork();
     handle_error(pid, "fork() after accept", PROCESS_EXIT);
     if (pid == 0) {
-      printf("Handling client %s\n", inet_ntoa(squareClntAddr.sin_addr));
+      printf("Handling client %s\n", inet_ntoa(client_address.sin_addr));
       handle_tcp_client(client_socket);
       exit(0);
     }
@@ -100,27 +100,27 @@ int main(int argc, char *argv[]) {
 }
 
 void handle_tcp_client(int client_socket) {
-  char squareBuffer[RCVBUFSIZE];      /* Buffer for square string */
-  int recvMsgSize;                    /* Size of received message */
+  char square_buffer[RCVBUFSIZE];      /* Buffer for square string */
+  int recv_msg_size;                    /* Size of received message */
 
   while (TRUE) {
     /* Receive message from client */
-    recvMsgSize = recv(client_socket, squareBuffer, RCVBUFSIZE - 1, 0);
-    handle_error(recvMsgSize, "recv() failed", PROCESS_EXIT);
+    recv_msg_size = recv(client_socket, square_buffer, RCVBUFSIZE - 1, 0);
+    handle_error(recv_msg_size, "recv() failed", PROCESS_EXIT);
 
-    if (recvMsgSize == 0) {
+    if (recv_msg_size == 0) {
       /* zero indicates end of transmission */
       break;
     }
-    squareBuffer[recvMsgSize] = '\000';
+    square_buffer[recv_msg_size] = '\000';
     /* Send received string and receive again until end of transmission */
     /* Square message and send it back to client */
-    int x = atoi(squareBuffer);
+    int x = atoi(square_buffer);
     int y = x*x;
-    sprintf(squareBuffer, "%12d", y);
-    int sendMsgSize = strlen(squareBuffer);
-    ssize_t sentSize = send(client_socket, squareBuffer, sendMsgSize, 0);
-    if (sentSize != recvMsgSize) {
+    sprintf(square_buffer, "%12d", y);
+    int send_msg_size = strlen(square_buffer);
+    ssize_t sent_size = send(client_socket, square_buffer, send_msg_size, 0);
+    if (sent_size != recv_msg_size) {
       die_with_error("send() failed");
     }
     /* See if there is more data to receive in the next round...*/

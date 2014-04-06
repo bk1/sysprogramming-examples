@@ -80,8 +80,8 @@ void handle_ptr_error(void *ptr, const char *msg, enum exit_type et) {
 }
 
 
-void die_with_error(char *errorMessage) {
-    perror(errorMessage);
+void die_with_error(char *error_message) {
+    perror(error_message);
     exit(1);
 }
 

@@ -44,53 +44,53 @@ int main(int argc, char *argv[]) {
   }
 
   int sock;                        /* Socket */
-  struct sockaddr_in squareServAddr; /* Local address */
-  struct sockaddr_in squareClntAddr; /* Client address */
-  unsigned int cliAddrLen;         /* Length of incoming message */
-  char inputBuffer[SQUAREMAX+1];        /* Buffer for square string */
-  char outputBuffer[SQUAREMAX+1];        /* Buffer for square string */
-  unsigned short squareServPort;     /* Server port */
-  int recvMsgSize;                 /* Size of received message */
+  struct sockaddr_in server_address; /* Local address */
+  struct sockaddr_in client_address; /* Client address */
+  unsigned int client_address_len;         /* Length of incoming message */
+  char input_buffer[SQUAREMAX+1];        /* Buffer for square string */
+  char output_buffer[SQUAREMAX+1];        /* Buffer for square string */
+  unsigned short server_port;     /* Server port */
+  int received_message_size;                 /* Size of received message */
 
   if (argc != 2) {
     /* Test for correct number of parameters */
     usage(argv[0], "wrong number of arguments");
   }
 
-  squareServPort = atoi(argv[1]);  /* First arg:  local port */
+  server_port = atoi(argv[1]);  /* First arg:  local port */
 
   /* Create socket for sending/receiving datagrams */
   sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
   handle_error(sock, "socket() failed", PROCESS_EXIT);
 
   /* Construct local address structure */
-  memset(&squareServAddr, 0, sizeof(squareServAddr));   /* Zero out structure */
-  squareServAddr.sin_family = AF_INET;                /* Internet address family */
-  squareServAddr.sin_addr.s_addr = htonl(INADDR_ANY); /* Any incoming interface */
-  squareServAddr.sin_port = htons(squareServPort);      /* Local port */
+  memset(&server_address, 0, sizeof(server_address));   /* Zero out structure */
+  server_address.sin_family = AF_INET;                /* Internet address family */
+  server_address.sin_addr.s_addr = htonl(INADDR_ANY); /* Any incoming interface */
+  server_address.sin_port = htons(server_port);      /* Local port */
 
   /* Bind to the local address */
-  retcode = bind(sock, (struct sockaddr *) &squareServAddr, sizeof(squareServAddr));
+  retcode = bind(sock, (struct sockaddr *) &server_address, sizeof(server_address));
   handle_error(retcode, "bind() failed", PROCESS_EXIT);
 
   while (TRUE) {
     /* Run forever */
 
     /* Set the size of the in-out parameter */
-    cliAddrLen = sizeof(squareClntAddr);
+    client_address_len = sizeof(client_address);
 
     /* Block until receive message from a client */
-    recvMsgSize = recvfrom(sock, inputBuffer, SQUAREMAX, 0, (struct sockaddr *) &squareClntAddr, &cliAddrLen);
-    handle_error(recvMsgSize, "recvfrom() failed", PROCESS_EXIT);
-    printf("Handling client %s\n", inet_ntoa(squareClntAddr.sin_addr));
-    int x = atoi(inputBuffer);
+    received_message_size = recvfrom(sock, input_buffer, SQUAREMAX, 0, (struct sockaddr *) &client_address, &client_address_len);
+    handle_error(received_message_size, "recvfrom() failed", PROCESS_EXIT);
+    printf("Handling client %s\n", inet_ntoa(client_address.sin_addr));
+    int x = atoi(input_buffer);
     int y = x*x;
-    sprintf(outputBuffer, "%12d", y);
-    size_t sendMsgSize = strlen(outputBuffer) + 1;
+    sprintf(output_buffer, "%12d", y);
+    size_t send_message_size = strlen(output_buffer) + 1;
     /* Send received datagram back to the client */
-    ssize_t sentSize = sendto(sock, outputBuffer, sendMsgSize, 0, (struct sockaddr *) &squareClntAddr, sizeof(squareClntAddr));
-    if (sentSize != sendMsgSize) {
-      printf("sentSize=%ld sendMsgSize=%ld\n", sentSize, sendMsgSize);
+    ssize_t sent_size = sendto(sock, output_buffer, send_message_size, 0, (struct sockaddr *) &client_address, sizeof(client_address));
+    if (sent_size != send_message_size) {
+      printf("sent_size=%ld send_message_size=%ld\n", sent_size, send_message_size);
       die_with_error("sendto() sent a different number of bytes than expected");
     }
   }
