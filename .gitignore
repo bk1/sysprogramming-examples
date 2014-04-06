@@ -1265,3 +1265,4 @@ output-2-o2-t9-p8.log.count
 output-2-o2-t9-p9.log.count
 socket/tcp-square-client-ipv6
 socket/tcp-square-server-ipv6
+posix/.gitignore
