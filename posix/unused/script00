@@ -1,2 +1,0 @@
-#!/bin/sh
-threads/multithreaded-sort $1 $2 < sortable$4.dat > output-$4-o2-$3.log
