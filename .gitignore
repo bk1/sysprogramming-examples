@@ -153,6 +153,7 @@ core
 lib/fsort-orig.c-unused
 lib/fsort-orig.o
 *.log
+*.log.count
 *.o
 *.dat
 callgrind.out.*
