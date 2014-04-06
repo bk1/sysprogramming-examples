@@ -1,0 +1,15 @@
+#!/bin/sh
+for h in /usr/bin/* ; do
+  for i in output-2-o2-*-p*.log ; do
+    echo $i
+    for j in `ls -l $i |grep ' 436[3456][0-9][0-9][0-9][0-9][0-9] ' |perl -p -e 's/.+output/output/;'` ; do
+      egrep '^idx=[0-9]+ +tid=' < $j > $j.count
+      ls -l $j $j.count
+      sleep 30
+      /bin/rm $j
+    done
+    echo /$i
+  done
+  echo ------------------------------------------------------------
+  sleep 30
+done

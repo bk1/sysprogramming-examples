@@ -1,0 +1,24 @@
+#!/bin/bash
+
+for i in 1 2 3 4 5 6 7 8 9 15 16 17 31 32 33; do
+for j in 1 2 3 4 5 6 7 8 9 15 16 17 31 32 33; do
+echo q:$i:$j
+echo q:$i:$j 1>&2
+time ./unused/script0p -p $j -q $i q$i-p$j 2
+echo h:$i:$j
+echo h:$i:$j 1>&2
+time ./unused/script0p -p $j -h $i h$i-p$j 2
+echo t:$i:$j
+echo t:$i:$j 1>&2
+time ./unused/script0p -p $j -t $i t$i-p$j 2
+echo f:$i:$j
+echo f:$i:$j 1>&2
+time ./unused/script0p -p $j -f $i f$i-p$j 2
+echo b:$i:$j
+echo b:$i:$j 1>&2
+time ./unused/script0p -p $j -b $i f$i-p$j 2
+echo m:$i:$j
+echo m:$i:$j 1>&2
+time ./unused/script0p -p $j -m $i m$i-p$j 2
+done
+done 2> messung-o2-p2.log

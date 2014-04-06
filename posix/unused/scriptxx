@@ -1,0 +1,3 @@
+#!/bin/sh
+threads/multithreaded-sort $1 $2 </tmp/sortable2.dat > output-O3-$3.log
+

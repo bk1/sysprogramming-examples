@@ -1,0 +1,22 @@
+#!/bin/bash
+
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 32 50 64 100 128 200 256 400 512 700 1000; do 
+    echo q:$i
+    echo q:$i 1>&2
+    time ./unused/script00 -q $i q$i 1
+    echo h:$i
+    echo h:$i 1>&2
+    time ./unused/script00 -h $i h$i 1
+    echo t:$i
+    echo t:$i 1>&2
+    time ./unused/script00 -t $i t$i 1
+    echo f:$i
+    echo f:$i 1>&2
+    time ./unused/script00 -f $i f$i 1
+    echo b:$i
+    echo b:$i 1>&2
+    time ./unused/script00 -b $i f$i 1
+    echo m:$i
+    echo m:$i 1>&2
+    time ./unused/script00 -m $i m$i 1
+done 2> messung-o2-t1.log

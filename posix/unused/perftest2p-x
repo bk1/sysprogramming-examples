@@ -1,0 +1,74 @@
+#!/bin/bash
+
+(
+a=t
+i=6
+j=4
+echo $a:$i:$j
+echo $a:$i:$j 1>&2
+time ./unused/script0p -p $j -$a $i $a$i-p$j 2
+
+a=t
+i=6
+j=5
+echo $a:$i:$j
+echo $a:$i:$j 1>&2
+time ./unused/script0p -p $j -$a $i $a$i-p$j 2
+
+a=h
+i=6
+j=6
+echo $a:$i:$j
+echo $a:$i:$j 1>&2
+time ./unused/script0p -p $j -$a $i $a$i-p$j 2
+
+a=t
+i=6
+j=6
+echo $a:$i:$j
+echo $a:$i:$j 1>&2
+time ./unused/script0p -p $j -$a $i $a$i-p$j 2
+
+a=h
+i=6
+j=7
+echo $a:$i:$j
+echo $a:$i:$j 1>&2
+time ./unused/script0p -p $j -$a $i $a$i-p$j 2
+
+a=t
+i=6
+j=7
+echo $a:$i:$j
+echo $a:$i:$j 1>&2
+time ./unused/script0p -p $j -$a $i $a$i-p$j 2
+
+a=b
+i=6
+j=7
+echo $a:$i:$j
+echo $a:$i:$j 1>&2
+time ./unused/script0p -p $j -$a $i $a$i-p$j 2
+
+a=h
+i=6
+j=8
+echo $a:$i:$j
+echo $a:$i:$j 1>&2
+time ./unused/script0p -p $j -$a $i $a$i-p$j 2
+
+a=t
+i=6
+j=8
+echo $a:$i:$j
+echo $a:$i:$j 1>&2
+time ./unused/script0p -p $j -$a $i $a$i-p$j 2
+
+a=h
+i=6
+j=9
+echo $a:$i:$j
+echo $a:$i:$j 1>&2
+time ./unused/script0p -p $j -$a $i $a$i-p$j 2
+
+) 2>> messung-o2-p2.log

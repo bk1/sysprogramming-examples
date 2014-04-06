@@ -1,0 +1,4 @@
+#!/bin/sh
+echo $1 $2 $3 $4 $5 $6
+threads/multithreaded-sort $1 $2 $3 $4 < sortable$6.dat > output-$6-o2-$5.log
+cmp output-$6-o2-$5.log output-2-o2-master.log 1>&2  && rm output-$6-o2-$5.log || (echo "file output-$6-o2-$5.log incorrect" |tee -a eoutput-$6-o2-$5.diff-err.log)
