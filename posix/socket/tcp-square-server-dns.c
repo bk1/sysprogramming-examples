@@ -32,6 +32,11 @@
 
 pthread_attr_t attr;
 
+struct thread_arg {
+  int socket;
+  int family;
+};
+
 void signal_handler(int signo) {
   printf("closed\n");
 }
@@ -131,10 +136,11 @@ int main(int argc, char *argv[]) {
     if (retcode == 0) {
       /* Success */
       count_successes++;
-      int *server_socket_ptr = (int *)malloc(sizeof(int));
-      *server_socket_ptr = server_socket;
+      struct thread_arg *arg_ptr = (struct thread_arg *) malloc(sizeof(struct thread_arg));
+      arg_ptr->socket = server_socket;
+      arg_ptr->family = rp->ai_family;
       pthread_t thread;
-      retcode = pthread_create(&thread, &attr, handle_connection, server_socket_ptr);
+      retcode = pthread_create(&thread, &attr, handle_connection, arg_ptr);
       handle_thread_error(retcode, "pthread_create() for handle_connection()", PROCESS_EXIT);
     } else {
       // look errno
@@ -157,13 +163,14 @@ void *handle_connection(void *args) {
 
   int retcode;
 
-  // TODO deal with IPv6 for client address
-  int *server_socket_ptr = (int *) args;
-  int server_socket = *server_socket_ptr;
+  struct thread_arg *targ = (struct thread_arg *) args;
+  int server_socket = targ->socket;
+  int family        = targ->family;
+  char *family_s = family == AF_INET ? "IPv4" : "IPv6";
   unsigned int client_address_len;            /* Length of client address data structure */
   int client_socket;                    /* Socket descriptor for client */
-  struct sockaddr_in client_address; /* Client address */
-
+  struct sockaddr_storage client_address; /* Client address */
+           
   /* Mark the socket so it will listen for incoming connections */
   retcode = listen(server_socket, MAXPENDING);
   handle_error(retcode, "listen() failed", PROCESS_EXIT);
@@ -176,7 +183,19 @@ void *handle_connection(void *args) {
     client_socket = accept(server_socket, (struct sockaddr *) &client_address, &client_address_len);
     handle_error(client_socket, "accept() failed", PROCESS_EXIT);
 
-    printf("Handling client %s\n", inet_ntoa(client_address.sin_addr));
+    char host[NI_MAXHOST];
+    char service[NI_MAXSERV];
+
+    retcode = getnameinfo((struct sockaddr *) &client_address,
+                          client_address_len, 
+                          host, 
+                          NI_MAXHOST,
+                          service, 
+                          NI_MAXSERV, 
+                          NI_NUMERICSERV);
+    handle_error(retcode, "getnameinfo", THREAD_EXIT);
+
+    printf("Handling client %s for service=%s (%s)\n", host, service, family_s);
     /* client_socket is connected to a client! */
 
     pthread_t thread;
