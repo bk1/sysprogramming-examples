@@ -1,3 +1,4 @@
+*~
 *.dat
 *.log
 *.log-backup
@@ -128,5 +129,3 @@ threads/thread_write_once
 threads/threadf
 threads/timedlock
 unused/*
-posix/.gitignore
-posix/.gitignore~
