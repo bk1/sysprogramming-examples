@@ -30,6 +30,7 @@
 #define RCVBUFSIZE 32   /* Size of receive buffer */
 #define MAXPENDING 5    /* Maximum outstanding connection requests */
 
+pthread_attr_t attr;
 
 void signal_handler(int signo) {
   printf("closed\n");
@@ -49,6 +50,8 @@ void usage(const char *argv0, const char *msg) {
   exit(1);
 }
 
+void *handle_connection(void *args);
+
 void *handle_tcp_client(void *client_socket_ptr);   /* TCP client handling function */
 
 int main(int argc, char *argv[]) {
@@ -62,6 +65,9 @@ int main(int argc, char *argv[]) {
   if (argc < 2 || argc > 4) {    /* Test for correct number of arguments */
     usage(argv[0], "wrong number of arguments");
   }
+
+  pthread_attr_init(&attr);
+  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
   sigset_t sig_mask;
   retcode = sigemptyset(&sig_mask);
@@ -79,10 +85,6 @@ int main(int argc, char *argv[]) {
   new_sigaction.sa_flags = SA_NOCLDSTOP;
   retcode = sigaction(SIGPIPE, &new_sigaction, &old_sigaction);
   handle_error(retcode, "sigaction", PROCESS_EXIT);
-
-  int client_socket;                    /* Socket descriptor for client */
-  struct sockaddr_in client_address; /* Client address */
-  unsigned int client_address_len;            /* Length of client address data structure */
 
   char *server_name = argv[1];             /* First arg: server IP address (dotted quad) */
 
@@ -111,6 +113,8 @@ int main(int argc, char *argv[]) {
   retcode = getaddrinfo(server_name, service_or_server_port, &hints, &result);
   handle_error(retcode, "getaddrinfo() failed", PROCESS_EXIT);
 
+  int count_successes = 0;
+
   /* Create a reliable, stream socket using TCP */
   struct addrinfo *rp;
   int server_socket = -1;                    /* Socket descriptor for server */
@@ -125,15 +129,40 @@ int main(int argc, char *argv[]) {
     /* Establish the connection to the square server */
     retcode = bind(server_socket, rp->ai_addr, rp->ai_addrlen);
     if (retcode == 0) {
-      break;                  /* Success */
+      /* Success */
+      count_successes++;
+      int *server_socket_ptr = (int *)malloc(sizeof(int));
+      *server_socket_ptr = server_socket;
+      pthread_t thread;
+      retcode = pthread_create(&thread, &attr, handle_connection, server_socket_ptr);
+      handle_thread_error(retcode, "pthread_create() for handle_connection()", PROCESS_EXIT);
+    } else {
+      // look errno
+      // retcode = connect(server_socket, (struct sockaddr *) &server_address, sizeof(server_address));
+      // handle_error(retcode, "connect() failed", PROCESS_EXIT);
+      close(server_socket);
     }
-    // look errno
-    // retcode = connect(server_socket, (struct sockaddr *) &server_address, sizeof(server_address));
-    // handle_error(retcode, "connect() failed", PROCESS_EXIT);
-    close(server_socket);
     server_socket = -1;
   }
-  handle_error(server_socket, "no connection could be established", PROCESS_EXIT);
+  printf("%d connections are being handled\n", count_successes);
+  if (count_successes == 0) {
+    handle_error(server_socket, "no connection could be established", PROCESS_EXIT);
+  }
+
+  /* finish master thread */
+  pthread_exit(NULL);
+}
+
+void *handle_connection(void *args) {
+
+  int retcode;
+
+  // TODO deal with IPv6 for client address
+  int *server_socket_ptr = (int *) args;
+  int server_socket = *server_socket_ptr;
+  unsigned int client_address_len;            /* Length of client address data structure */
+  int client_socket;                    /* Socket descriptor for client */
+  struct sockaddr_in client_address; /* Client address */
 
   /* Mark the socket so it will listen for incoming connections */
   retcode = listen(server_socket, MAXPENDING);
@@ -153,8 +182,8 @@ int main(int argc, char *argv[]) {
     pthread_t thread;
     int *client_socket_ptr = (int *) malloc(sizeof(int));
     *client_socket_ptr = client_socket;
-    pthread_create(&thread, NULL, handle_tcp_client, client_socket_ptr);
-    pthread_detach(thread);
+    retcode = pthread_create(&thread, &attr, handle_tcp_client, client_socket_ptr);
+    handle_thread_error(retcode, "pthread_create() for handle_tcp_client()", PROCESS_EXIT);
   }
   /* NOT REACHED: */
   exit(0);
