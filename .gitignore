@@ -129,3 +129,4 @@ threads/thread_write_once
 threads/threadf
 threads/timedlock
 unused/*
+posix/socket/tcp-square-client-dns
