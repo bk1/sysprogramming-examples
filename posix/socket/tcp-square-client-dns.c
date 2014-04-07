@@ -7,8 +7,6 @@
  * This file is inspired by http://cs.baylor.edu/~donahoo/practical/CSockets/code/HandleTCPClient.c
  */
 
-// TODO use getaddrinfo()
-
 #include <arpa/inet.h>  /* for sockaddr_in and inet_addr() */
 #include <errno.h>
 #include <netdb.h>
@@ -44,7 +42,7 @@ void usage(const char *argv0, const char *msg) {
   printf("%s <Server (hostname)> [<Port>] [<IPVersion>]\n", argv0);
   printf("1st argument is the name of the server\n");
   printf("2nd argument is the port.  Optional, defaults to 7000\n");
-  printf("3rd argument is the Version of IP (4 or 6).  Optional, defaults to 4 (IPv4)\n");
+  printf("3rd argument is the Version of IP (4 or 6).  Optional, defaults to trying both.\n");
   printf("runs in an infinite loop reading input and sending it to the server and printing the result\n");
   printf("end with Ctrl-C or QUIT\n");
   exit(1);
@@ -74,8 +72,6 @@ int main(int argc, char *argv[]) {
   int ip_version = -1;
   if (argc >= 4) {
     ip_version = atoi(argv[3]);
-  } else {
-    ip_version = 4;
   }
 
   struct addrinfo hints;
@@ -90,11 +86,6 @@ int main(int argc, char *argv[]) {
 
   retcode = getaddrinfo(server_name, service_or_server_port, &hints, &result);
   handle_error(retcode, "getaddrinfo() failed", PROCESS_EXIT);
-  if (result->ai_family == AF_INET6) {
-    ip_version = 6;
-  } else {
-    ip_version = 4;
-  }
 
   /* Create a reliable, stream socket using TCP */
   struct addrinfo *rp;
