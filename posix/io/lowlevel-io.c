@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
   const char *CONTENT = "Dies ist ein Beispieltext 2";
   char *buffer;
   n = strlen(CONTENT) + 1; // include '\000'
-  fdout = open(FILENAME, O_WRONLY | O_CREAT);
+  fdout = open(FILENAME, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP);
   printf("fdout=%d\n", fdout);
   m = write(fdout, (void *) CONTENT, n);
   close(fdout);

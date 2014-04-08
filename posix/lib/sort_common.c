@@ -29,8 +29,8 @@ int compare_str_full(const void *left, const void *right, void *ignored) {
 
 /* compare for sort for strings */
 int compare_int_full(const void *left, const void *right, void *ignored) {
-  const int left_val  = *(const char_ptr *) left;
-  const int right_val = *(const char_ptr *) right;
+  const int left_val  = *(const int *) left;
+  const int right_val = *(const int *) right;
   if (left_val < right_val) {
     return -1;
   } else if (left_val == right_val) {

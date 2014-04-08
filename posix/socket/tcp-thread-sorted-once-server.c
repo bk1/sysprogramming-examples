@@ -74,7 +74,7 @@ void usage(char *argv0, char *msg) {
 }
 
 int main(int argc, char *argv[]) {
-  int retcode;
+  // int retcode; // TODO use later
   pthread_t *thread;
   
   key = create_key();
@@ -118,7 +118,7 @@ int main(int argc, char *argv[]) {
   }
 
   char *file_name = argv[3];
-  int port_number = atoi(argv[1]);
+  // int port_number = atoi(argv[1]); // TODO use later....
 
   /* Create socket for incoming connections */
 
