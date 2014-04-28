@@ -8,14 +8,18 @@
 /* enable qsort_r */
 #define _GNU_SOURCE
 
+#include <arpa/inet.h>  /* for sockaddr_in and inet_addr() and inet_ntoa() */
 #include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-#include <unistd.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <pthread.h>
 #include <stdbool.h>
+#include <stdio.h>      /* for printf() and fprintf() and ... */
+#include <stdlib.h>     /* for atoi() and exit() and ... */
+#include <string.h>     /* for memset() and ... */
+#include <sys/socket.h> /* for socket(), bind(), recv, send(), and connect() */
+#include <sys/types.h>
+#include <unistd.h>     /* for close() */
 
 #include <itskylib.h>
 #include <transmission-protocols.h>
@@ -28,6 +32,7 @@
 #include <psort.h>
 
 const int LINE_SIZE = 200;
+const int MAXPENDING = 5;    /* Maximum outstanding connection requests */
 
 pthread_once_t once = PTHREAD_ONCE_INIT;
 
@@ -47,7 +52,7 @@ struct thread_arg {
 
 void *thread_run(void *ptr);
 
-void print_sorted_words(struct thread_arg *arg);
+void transmit_sorted_words(struct thread_arg *arg);
 
 void thread_once();
 
@@ -74,9 +79,12 @@ void usage(char *argv0, char *msg) {
 }
 
 int main(int argc, char *argv[]) {
-  // int retcode; // TODO use later
-  pthread_t *thread;
-  
+  int retcode;
+
+  if (is_help_requested(argc, argv)) {
+    usage(argv[0], "");
+  }
+
   key = create_key();
 
   char *argv0 = argv[0];
@@ -84,7 +92,7 @@ int main(int argc, char *argv[]) {
     printf("found %d arguments\n", argc - 1);
     usage(argv0, "wrong number of arguments");
   }
-  
+
   int opt_idx = 2;
   enum mt_sort_type selected_sort_type;
 
@@ -118,36 +126,57 @@ int main(int argc, char *argv[]) {
   }
 
   char *file_name = argv[3];
-  // int port_number = atoi(argv[1]); // TODO use later....
+  int server_port = atoi(argv[1]);
 
   /* Create socket for incoming connections */
+  int server_socket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+  handle_error(server_socket, "socket() failed", PROCESS_EXIT);
+  printf("server_socket=%d server_port=%d\n", server_socket, server_port);
 
+  struct sockaddr_in  server_address;
   /* Construct local address structure */
+  memset(&server_address, 0, sizeof(server_address));   /* Zero out structure */
+  server_address.sin_family = AF_INET;                /* Internet address family */
+  server_address.sin_addr.s_addr = htonl(INADDR_ANY); /* Any incoming interface */
+  server_address.sin_port = htons(server_port);      /* Local port */
 
   /* Bind to the local address */
+  retcode = bind(server_socket, (struct sockaddr *) &server_address, sizeof(server_address));
+  handle_error(retcode, "bind() failed", PROCESS_EXIT);
+
+  /* Mark the socket so it will listen for incoming connections */
+  retcode = listen(server_socket, MAXPENDING);
+  handle_error(retcode, "listen() failed", PROCESS_EXIT);
+
+  pthread_attr_t thread_attr;
+  pthread_attr_init(&thread_attr);
+  pthread_attr_setdetachstate(&thread_attr, PTHREAD_CREATE_DETACHED);
 
   int idx = 0;
+
+  struct string_array **content = (struct string_array **)malloc(sizeof(struct string_array *));
+
   while (TRUE) { /* Run forever */
+    struct sockaddr_in client_address; /* Client address */
     /* Set the size of the in-out parameter */
+    unsigned int client_address_len = sizeof(client_address);
 
     /* Wait for a client to connect */
+    int client_socket = accept(server_socket, (struct sockaddr *) &client_address, &client_address_len);
+    handle_error(client_socket, "accept() failed", PROCESS_EXIT);
 
     /* client_socket is connected to a client! */
-    
-    thread = (pthread_t *) malloc(sizeof(pthread_t));
+    printf("Handling client %s\n", inet_ntoa(client_address.sin_addr));
+
+    pthread_t thread;
     struct thread_arg *thread_data = (struct thread_arg *) malloc(sizeof(struct thread_arg));
-
-    struct string_array **content = (struct string_array **)malloc(sizeof(struct string_array *));
-
     thread_data->file_name = file_name;
     thread_data->selected_sort_type = selected_sort_type;
     thread_data->content = content;
-    // thread_data->client_socket = client_socket;
+    thread_data->client_socket = client_socket;
     thread_data->thread_idx = idx;
-    
-    /* create thread: */
-
-    idx++;
+    retcode = pthread_create(&thread, &thread_attr, thread_run, thread_data);
+    handle_thread_error(retcode, "pthread_create", PROCESS_EXIT);
   }
   /* never going to happen: */
   exit(0);
@@ -155,6 +184,7 @@ int main(int argc, char *argv[]) {
 
 void thread_once() {
 
+  printf("in thread_once()\n");
   struct thread_arg *arg = (struct thread_arg *) pthread_getspecific(*key);
 
   // int retcode;
@@ -162,7 +192,7 @@ void thread_once() {
   int fd = open(file_name, O_RDONLY);
   handle_error(fd, "open", PROCESS_EXIT);
   struct string_array *content = malloc(sizeof(struct string_array *));
-  * content = read_to_array(fd);
+  *content = read_to_array(fd);
   close(fd);
 
   char **strings = content->strings;
@@ -194,9 +224,8 @@ void thread_once() {
 
 }
 
-void print_sorted_words(struct thread_arg *arg) {
+void transmit_sorted_words(struct thread_arg *arg) {
 
-  /** RECOMMENDATION: use transmission-protocol for communications */
   int retcode;
   retcode = pthread_once(&once, thread_once);
   handle_thread_error(retcode, "pthread_once", THREAD_EXIT);
@@ -204,24 +233,43 @@ void print_sorted_words(struct thread_arg *arg) {
   struct string_array content = **(arg->content);
   char **strings = content.strings;
   int idx = arg->thread_idx;
+  int client_socket = arg->client_socket;
 
-  flockfile(stdout);
-  printf("\n------------------------------------------------------------\n");
-  printf("thread %d\n", idx);
-  printf("------------------------------------------------------------\n");
+  char buff[5];
+  read_4byte_string(client_socket, buff);
+  if (strcmp(buff, "GETX") != 0) {
+    printf("received wrong message %s\n", buff);
+    retcode = close(arg->client_socket);
+    handle_error(retcode, "close()", THREAD_EXIT);
+    return;
+  }
+
+  //FILE *stream = fdopen(arg->client_socket,"rw");
+  //handle_ptr_error(stream, "fdopen(arg->client_socket,\"rw\")", THREAD_EXIT);
+
+  // printf("fdopen done stream=%p\n", stream);
 
   char line[LINE_SIZE+1];
+
+  write_string(client_socket, "\n------------------------------------------------------------\n", -1);
+  sprintf(line, "thread %d\n", idx);
+  write_string(client_socket, line, -1);
+  write_string(client_socket, "------------------------------------------------------------\n", -1);
+
   char *pos = line;
   size_t used_len = 0;
   for (int i = 0; i < content.len; i++) {
     int len = strlen(strings[i]) + 1; /* allow for space before... */
     if (used_len + len > LINE_SIZE) {
-      printf("%s\n", line);
+      *pos = '\n';
+      used_len++;
+      write_string(client_socket, line, used_len);
       pos = line;
       used_len = 0;
     }
     if (len > LINE_SIZE+1) {
-      printf("%s\n", strings[i]);
+      write_string(client_socket, strings[i], len - 1);
+      write_string(client_socket, "\n", 1);
     } else {
       sprintf(pos, " %s", strings[i]);
       pos += len;
@@ -229,23 +277,34 @@ void print_sorted_words(struct thread_arg *arg) {
     }
   }
   if (used_len > 0) {
-    printf("%s\n", line);
+    *pos = '\n';
+    used_len++;
+    write_string(client_socket, line, used_len);
   }
 
-  printf("------------------------------------------------------------\n\n");
-  funlockfile(stdout);
+  write_string(client_socket, "------------------------------------------------------------\n\n", -1);
+  write_string(client_socket, "", 0);
+  printf("output transmitted\n");
+  //retcode = fflush(stream);
+  //handle_error(retcode, "fflush()", THREAD_EXIT);
+  //retcode = fclose(stream);
+  //handle_error(retcode, "fclose()", THREAD_EXIT);
+  read_4byte_string(client_socket, buff);
+  if (strcmp(buff, "DONE") != 0) {
+    printf("received wrong message %s\n", buff);
+  }
+
+  retcode = close(arg->client_socket);
+  handle_error(retcode, "close()", THREAD_EXIT);
 }
 
 void *thread_run(void *ptr) {
   int retcode;
   struct thread_arg *arg = (struct thread_arg *) ptr;
-  pthread_setspecific(*key, arg);
-  int random_number = rand();
-  unsigned int duration = (unsigned int) random_number % 10;
-  printf("thread %d sleeping for %d sec\n", arg->thread_idx, duration);
-  retcode = sleep(duration);
-  handle_error(retcode, "sleep", THREAD_EXIT);
-  print_sorted_words(arg);
+  retcode = pthread_setspecific(*key, arg);
+  handle_thread_error(retcode, "pthread_setspecific", THREAD_EXIT);
+  transmit_sorted_words(arg);
+  free(ptr);
   return (void *) NULL;
 }
 

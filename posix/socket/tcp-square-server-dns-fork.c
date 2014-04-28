@@ -12,17 +12,17 @@
 
 #include <arpa/inet.h>  /* for sockaddr_in and inet_addr() and inet_ntoa() */
 #include <errno.h>
+#include <netdb.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
-#include <netdb.h>
+#include <signal.h>
 #include <stdio.h>      /* for printf() and fprintf() and ... */
 #include <stdlib.h>     /* for atoi() and exit() and ... */
 #include <string.h>     /* for memset() and ... */
 #include <sys/socket.h> /* for socket(), bind(), recv, send(), and connect() */
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>     /* for close() */
-#include <pthread.h>
-#include <signal.h>
 
 #include <itskylib.h>
 #include <transmission-protocols.h>
@@ -30,7 +30,6 @@
 #define RCVBUFSIZE 32   /* Size of receive buffer */
 #define MAXPENDING 5    /* Maximum outstanding connection requests */
 
-pthread_attr_t attr;
 
 struct thread_arg {
   int socket;
@@ -55,9 +54,9 @@ void usage(const char *argv0, const char *msg) {
   exit(1);
 }
 
-void *handle_connection(void *args);
+void handle_connection(void *args);
 
-void *handle_tcp_client(void *client_socket_ptr);   /* TCP client handling function */
+void handle_tcp_client(void *client_socket_ptr);   /* TCP client handling function */
 
 int main(int argc, char *argv[]) {
 
@@ -71,8 +70,10 @@ int main(int argc, char *argv[]) {
     usage(argv[0], "wrong number of arguments");
   }
 
-  pthread_attr_init(&attr);
-  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+  /* set pgid to pid */
+  pid_t pid = getpid();
+  retcode = setpgid(pid, pid);
+  handle_error(retcode, "setpgid", PROCESS_EXIT);
 
   sigset_t sig_mask;
   retcode = sigemptyset(&sig_mask);
@@ -118,6 +119,7 @@ int main(int argc, char *argv[]) {
   retcode = getaddrinfo(server_name, service_or_server_port, &hints, &result);
   handle_error(retcode, "getaddrinfo() failed", PROCESS_EXIT);
 
+  /* needs to wait for all children in the end */
   int count_successes = 0;
 
   /* Create a reliable, stream socket using TCP */
@@ -135,19 +137,22 @@ int main(int argc, char *argv[]) {
     retcode = bind(server_socket, rp->ai_addr, rp->ai_addrlen);
     if (retcode == 0) {
       /* Success */
-      count_successes++;
       struct thread_arg *arg_ptr = (struct thread_arg *) malloc(sizeof(struct thread_arg));
       arg_ptr->socket = server_socket;
       arg_ptr->family = rp->ai_family;
-      pthread_t thread;
-      retcode = pthread_create(&thread, &attr, handle_connection, arg_ptr);
-      handle_thread_error(retcode, "pthread_create() for handle_connection()", PROCESS_EXIT);
-    } else {
-      // look errno
-      // retcode = connect(server_socket, (struct sockaddr *) &server_address, sizeof(server_address));
-      // handle_error(retcode, "connect() failed", PROCESS_EXIT);
-      close(server_socket);
+      pid_t child_pid = fork();
+      handle_error(child_pid, "fork() for connect", PROCESS_EXIT);
+      if (child_pid == 0) {
+        handle_connection(arg_ptr);
+        exit(0);
+      } else {
+        count_successes++;
+      }
     }
+    // look errno
+    // retcode = connect(server_socket, (struct sockaddr *) &server_address, sizeof(server_address));
+    // handle_error(retcode, "connect() failed", PROCESS_EXIT);
+    close(server_socket);
     server_socket = -1;
   }
   printf("%d connections are being handled\n", count_successes);
@@ -155,11 +160,16 @@ int main(int argc, char *argv[]) {
     handle_error(server_socket, "no connection could be established", PROCESS_EXIT);
   }
 
-  /* finish master thread */
-  pthread_exit(NULL);
+  /* wait for child processes to finish */
+  for (int i = 0; i < count_successes; i++) {
+    int status;
+    wait(&status);
+    printf("process terminated with status=%d\n", status);
+  }
+  exit(0);
 }
 
-void *handle_connection(void *args) {
+void handle_connection(void *args) {
 
   int retcode;
 
@@ -174,6 +184,7 @@ void *handle_connection(void *args) {
   /* Mark the socket so it will listen for incoming connections */
   retcode = listen(server_socket, MAXPENDING);
   handle_error(retcode, "listen() failed", PROCESS_EXIT);
+  int count_connections = 0;
 
   while (TRUE) { /* Run forever */
     /* Set the size of the in-out parameter */
@@ -198,17 +209,29 @@ void *handle_connection(void *args) {
     printf("Handling client %s for service=%s (%s)\n", host, service, family_s);
     /* client_socket is connected to a client! */
 
-    pthread_t thread;
     int *client_socket_ptr = (int *) malloc(sizeof(int));
     *client_socket_ptr = client_socket;
-    retcode = pthread_create(&thread, &attr, handle_tcp_client, client_socket_ptr);
-    handle_thread_error(retcode, "pthread_create() for handle_tcp_client()", PROCESS_EXIT);
+    pid_t child_pid = fork();
+    handle_error(child_pid, "fork() for client", PROCESS_EXIT);
+    if (child_pid == 0) {
+      handle_tcp_client(client_socket_ptr);
+      exit(0);
+    } else {
+      count_connections++;
+    }
   }
   /* NOT REACHED: */
+
+  /* wait for child processes to finish */
+  for (int i = 0; i < count_connections; i++) {
+    int status;
+    wait(&status);
+    printf("process terminated with status=%d\n", status);
+  }
   exit(0);
 }
 
-void* handle_tcp_client(void *client_socket_ptr) {
+void handle_tcp_client(void *client_socket_ptr) {
   int client_socket = *((int *) client_socket_ptr);
   free(client_socket_ptr); /* malloc was made before starting this thread */
   char square_buffer[RCVBUFSIZE];      /* Buffer for square string */
@@ -239,5 +262,4 @@ void* handle_tcp_client(void *client_socket_ptr) {
   printf("connection terminated by client\n");
   sleep(1);
   close(client_socket);    /* Close client socket */
-  return NULL;
 }
