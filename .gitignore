@@ -177,3 +177,16 @@ win32/startup.bat
 win32/temp/test-h.txt
 win32/temp/test-w.txt
 win32/temp/test.txt
+win32/io/create-directory.exe
+win32/io/create-directory.obj
+win32/io/find-files.exe
+win32/io/find-files.obj
+win32/io/redirect-stdout.exe
+win32/io/redirect-stdout.obj
+win32/io/win-handle-not-twice.exe
+win32/io/win-handle-not-twice.obj
+win32/io/win-handle-twice.exe
+win32/io/win-handle-twice.obj
+win32/temp/test-redirect-stdout.txt
+win32/temp/test-w-not2.txt
+win32/temp/test-w-twice.txt
