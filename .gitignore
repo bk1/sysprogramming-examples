@@ -5,6 +5,7 @@
 *.log.count
 *.o
 *~
+abc-dir/*
 posix/TODO
 posix/abc-dir/*
 posix/c/complex
@@ -13,7 +14,6 @@ posix/c/int-types
 posix/c/pointer
 posix/callgrind.out.*
 posix/core
-posix/io/abc-dir/abc_file_00*
 posix/io/abc-highlevel
 posix/io/abc-lowlevel
 posix/io/advisory-locking
@@ -59,11 +59,12 @@ posix/ipc/shared-memory-count-simple
 posix/ipc/shared-memory-count-simple-posix
 posix/ipc/signal
 posix/ipc/sysv-sem-ipc
+posix/lib/*.o
 posix/lib/TODO
 posix/lib/fsort-orig.c
 posix/lib/fsort-orig.c-unused
 posix/lib/fsort-orig.o
-posix/lib/*.o
+posix/lib/libitsky.a
 posix/myfile
 posix/processes/daemonize
 posix/processes/daemonize-group-signal
@@ -129,6 +130,7 @@ posix/threads/thread_write_once
 posix/threads/threadf
 posix/threads/timedlock
 posix/unused/*
+template
 win32/.env
 win32/Debug/*
 win32/System-Programming.sln
@@ -143,7 +145,3 @@ win32/io/*.exe
 win32/io/*.obj
 win32/startup.bat
 win32/temp/*
-abc-dir/abc_file_000000000
-abc-dir/abc_file_000000001
-posix/lib/libitsky.a
-template
