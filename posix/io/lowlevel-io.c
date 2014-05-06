@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
   int k,m,n;
   int fdout;
   int fdin;
-  const char *FILENAME = "/tmp/out-highlevel.txt";
+  const char *FILENAME = "/tmp/out-lowlevel.txt";
   const char *CONTENT = "Dies ist ein Beispieltext 2";
   char *buffer;
   n = strlen(CONTENT) + 1; // include '\000'
@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
   printf("fdout=%d\n", fdout);
   m = write(fdout, (void *) CONTENT, n);
   close(fdout);
-  printf("%d bytes written (lenght %d)\n", m, n);
+  printf("%d bytes written (length %d)\n", m, n);
   buffer = (char *) malloc(m);
   fdin = open(FILENAME, O_RDONLY);
   printf("fdin=%d\n", fdin);

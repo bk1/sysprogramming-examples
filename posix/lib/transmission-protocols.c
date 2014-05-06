@@ -50,6 +50,7 @@ void write_string(int client_socket, char *str, size_t len) {
   size_t rest_len = len;
   while (rest_len > 0) {
     size_t partial_len = write(client_socket, ptr, rest_len);
+    // 
     rest_len -= partial_len;
     ptr += partial_len;
   }
