@@ -145,3 +145,6 @@ win32/io/*.exe
 win32/io/*.obj
 win32/startup.bat
 win32/temp/*
+win32/io/#win-handle-not-twice.c#
+win32/io/#win-handle-twice.c#
+win32/io/funny.txt
