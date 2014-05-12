@@ -147,3 +147,10 @@ win32/startup.bat
 win32/temp/*
 win32/io/#*#
 win32/io/funny.txt
+posix/io/seek-beyond
+posix/processes/fork-write-once
+posix/processes/fork-write-once-simple
+posix/processes/fork-write-twice-simple
+posix/socket/bk1@atari
+posix/threads/increment-speed
+win32/io/out.txt
