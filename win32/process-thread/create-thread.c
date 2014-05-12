@@ -9,6 +9,7 @@
 
 #include <windows.h>
 #include <string.h>
+#include <stdio.h>
 
 VOID HandleError(LPCTSTR msg, BOOL failure) {
   if (failure) {
@@ -33,6 +34,9 @@ VOID HandleError(LPCTSTR msg, BOOL failure) {
   }
 }
 
+DWORD WINAPI MyThreadFunction(LPVOID param);
+
+
 int main(int argc, char *argv[]) {
   BOOL result;
   const char *msg1 = "Hello, World!\n(CreateFile/WriteFile/CloseHandle)\n++++++++++++++(1)\n\n";
@@ -44,25 +48,30 @@ int main(int argc, char *argv[]) {
   DWORD errorCode;
   DWORD nWritten;
   
-  PROCESS_INFORMATION processInformation;
-  STARTUPINFO startupInfo;
+  HANDLE threadHandle;
+  DWORD threadId;
 
-  GetStartupInfo(&startupInfo);
-  result = CreateProcess("child-process.exe", /* LPCTSTR lpApplicationName, */
-                            "", /* LPTSTR lpCommandLine, */
-                            NULL, /* LPSECURITY_ATTRIBUTES lpProcessAttributes, */
-                            NULL, /* LPSECURITY_ATTRIBUTES lpThreadAttributes, */
-                            FALSE, /* bInheritHandles, */
-                            CREATE_NEW_CONSOLE, /* DWORD dwCreationFlags, */
-                            NULL, /* LPVOID lpEnvironment, */
-                            NULL, /* LPCTSTR lpCurrentDirectory,*/
-                            &startupInfo, /* LPSTARTUPINFO lpStartupInfo, */
-                            &processInformation); /* LPPROCESS_INFORMATION lpProcessInformation */
-  printf("in parent process\n");
-  Sleep(5000);
-  TerminateProcess(processInformation.hProcess, 0);
-  printf("child terminated");
+
+  threadHandle = CreateThread(NULL, /* LPSECURITY_ATTRIBUTES lpThreadAttributes, */
+                               0, /* SIZE_T dwStackSize, */
+                               MyThreadFunction, /* LPTHREAD_START_ROUTINE lpStartAddress, */
+                               NULL, /* LPVOID lpParameter, */
+                               0, /* DWORD dwCreationFlags, */
+                               &threadId); /* LPDWORD lpThreadId */
+  printf("thread created threadId=%d\n", threadId);
+  Sleep(3000);
+  printf("ending thread from parent\n");
+  TerminateThread(threadHandle, 0);
+  printf("terminated thread\n");
+  Sleep(3000);
 
   ExitProcess(0);
 }
 
+
+DWORD WINAPI MyThreadFunction(LPVOID param) {
+  printf("in thread\n");
+  Sleep(5000);
+  printf("done with thread\n");
+  return 0;
+}

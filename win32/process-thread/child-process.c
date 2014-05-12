@@ -35,55 +35,9 @@ VOID HandleError(LPCTSTR msg, BOOL failure) {
 
 int main(int argc, char *argv[]) {
   BOOL result;
-  const char *msg1 = "Hello, World!\n(CreateFile/WriteFile/CloseHandle)\n++++++++++++++(1)\n\n";
-  const char *msg2 = "Hello, World!\n(CreateFile/WriteFile/CloseHandle)\n(2)\n\n";
-  const char *fileName = "../temp/test-w-twice.txt";
-
-  HANDLE fh1, fh2;
-
-  DWORD errorCode;
-  DWORD nWritten;
-
-  fh1 = CreateFile(fileName,         /* lpName */
-                   GENERIC_WRITE, /* or GENERIC_READ: dwAccess */
-                   FILE_SHARE_READ | FILE_SHARE_WRITE, /* share mode: not shared: dwShareMode */
-                   NULL, /* lp security attributes (here alway null) */
-                   CREATE_ALWAYS, /* or CREATE_NEW OPEN_EXISTING, OPEN_ALWAYS, TRUNCATE_EXISTING dwCreate */
-                   FILE_ATTRIBUTE_NORMAL, /* or FILE_ATTRIBUTE_READONLY or FILE_FLAGE_DELETE_ON_CLOSE or FILE_FLAG_OVERLAPPED (assync I/O) .... dwAttrAndFlags */
-                   NULL); /* hTemplateFile */
-  HandleError("fh1=CreateFile(...) -> errorCode=%ld\n", (fh1 == INVALID_HANDLE_VALUE));
-
-  fh2 = CreateFile(fileName,         /* lpName */
-                   GENERIC_WRITE, /* or GENERIC_READ: dwAccess */
-                   FILE_SHARE_READ | FILE_SHARE_WRITE, /* share mode: not shared: dwShareMode */
-                   NULL, /* lp security attributes (here alway null) */
-                   CREATE_ALWAYS, /* or CREATE_NEW OPEN_EXISTING, OPEN_ALWAYS, TRUNCATE_EXISTING dwCreate */
-                   FILE_ATTRIBUTE_NORMAL, /* or FILE_ATTRIBUTE_READONLY or FILE_FLAGE_DELETE_ON_CLOSE or FILE_FLAG_OVERLAPPED (assync I/O) .... dwAttrAndFlags */
-                   NULL); /* hTemplateFile */
-  HandleError("fh2=CreateFile(...) -> errorCode=%ld\n", (fh2 == INVALID_HANDLE_VALUE));
-
-  nWritten = 0;
-  result = WriteFile(fh1, /* HANDLE */
-                     (void *) msg1, /* lpBuffer */
-                     (DWORD) strlen(msg1), /* nNumberOfBytesToWrite */
-                     &nWritten, /* lpNumberOfBytesWritten */
-                     NULL); /* lpOverlapped */
-  HandleError("WriteFile(fh1...)", ! result);
-
-  nWritten = 0;
-  result = WriteFile(fh2, /* HANDLE */
-                     (void *) msg2, /* lpBuffer */
-                     (DWORD) strlen(msg2), /* nNumberOfBytesToWrite */
-                     &nWritten, /* lpNumberOfBytesWritten */
-                     NULL); /* lpOverlapped */
-  HandleError("WriteFile(fh2...)", ! result);
-
-  result = CloseHandle(fh2);
-  HandleError("CloseHandle(fh2)", ! result);
-
-  result = CloseHandle(fh1);
-  HandleError("CloseHandle(fh1)", ! result);
-
+  
+  printf("in child process\n");
+  Sleep(10000);
   ExitProcess(0);
 }
 
