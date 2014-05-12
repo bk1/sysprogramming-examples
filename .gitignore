@@ -154,3 +154,9 @@ posix/processes/fork-write-twice-simple
 posix/socket/bk1@atari
 posix/threads/increment-speed
 win32/io/out.txt
+win32/process-thread/child-process.exe
+win32/process-thread/child-process.obj
+win32/process-thread/create-process.exe
+win32/process-thread/create-process.obj
+win32/process-thread/create-thread.exe
+win32/process-thread/create-thread.obj
