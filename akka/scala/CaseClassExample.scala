@@ -9,7 +9,7 @@ object CaseClassExample {
   }
     def f(cce : CaseClassExample) {
       cce match {
-      case CaseClassExample(3, u, v) => println("u=" + u + " v=" +v);
+        case CaseClassExample(3, u, v) => println("u=" + u + " v=" +v);
         case CaseClassExample(_, _, _) => println("not interesting");
       }
         
