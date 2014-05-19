@@ -15,9 +15,14 @@ object ListExample {
     // not possible:
     // l+=4
     // but this works:
-    val l4 = l + 4
+    val l4 = 4 :: l
     println("l=" + l)
     println("l4=" + l4)
-
+    val l5 = l ++ List(5)
+    println("l=" + l)
+    println("l5=" + l5)
+    val ll = l ++ l
+    println("l=" + l)
+    println("ll=" + ll)
   }
 }
