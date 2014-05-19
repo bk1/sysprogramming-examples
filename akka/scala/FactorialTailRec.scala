@@ -15,7 +15,7 @@ class FactorialTailRec {
   }
   
   @tailrec
-  private def factorial2(n : BigInt, partial : BigInt) : BigInt = {
+  private[this] def factorial2(n : BigInt, partial : BigInt) : BigInt = {
     if (n <= 1) {
       partial
     } else {

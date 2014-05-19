@@ -13,6 +13,8 @@ object MapExample {
     val m : Map[Int,Int] = Map(1 -> 3, 2->8, 4->24, 6->48, 10->120)
     println("m=" + m)
     // not possible:
+    // m(12)=168
+    // but this works:
     val m12 = m +(12->168)
     println("m=" + m)
     println("m12=" + m12)
@@ -20,6 +22,5 @@ object MapExample {
     println("m=" + m)
     println("m12=" + m12)
     println("m1214=" + m1214)
-    // but this works:
   }
 }
