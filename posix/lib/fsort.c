@@ -68,6 +68,7 @@ void fsort_f(void *base,
   }
 
   /* preparation: form classes */
+  /* use calculate_k for a purpose it has not been made for, but since it is identical with what is needed here it is correct */
   size_t lsize = calculate_k(nmemb, factor, nmemb) + 1;
   if (lsize < 2) {
     lsize = 2;
