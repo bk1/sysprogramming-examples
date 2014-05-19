@@ -47,9 +47,11 @@ int main(int argc, char *argv[]) {
 
   HANDLE search = FindFirstFile("*", &findData);
   
-  while (search != INVALID_HANDLE_VALUE && result) {
-    printf("found file=%s (%s)\n", findData.cFileName, findData.cAlternateFileName);
-    result = FindNextFile(search, &findData);
+  if (search != INVALID_HANDLE_VALUE) {
+    while (result) {
+      printf("found file=%s (%s)\n", findData.cFileName, findData.cAlternateFileName);
+      result = FindNextFile(search, &findData);
+    }
   }
   printf("nothing found\n");
 

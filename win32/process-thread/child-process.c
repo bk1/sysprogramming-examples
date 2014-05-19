@@ -38,6 +38,7 @@ int main(int argc, char *argv[]) {
   
   printf("in child process\n");
   Sleep(10000);
+  printf("done in child process\n");
   ExitProcess(0);
 }
 

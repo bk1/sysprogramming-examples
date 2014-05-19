@@ -53,13 +53,14 @@ int main(int argc, char *argv[]) {
                             NULL, /* LPSECURITY_ATTRIBUTES lpProcessAttributes, */
                             NULL, /* LPSECURITY_ATTRIBUTES lpThreadAttributes, */
                             FALSE, /* bInheritHandles, */
-                            CREATE_NEW_CONSOLE, /* DWORD dwCreationFlags, */
+                         0, /* CREATE_NEW_CONSOLE,  DWORD dwCreationFlags, */
                             NULL, /* LPVOID lpEnvironment, */
                             NULL, /* LPCTSTR lpCurrentDirectory,*/
                             &startupInfo, /* LPSTARTUPINFO lpStartupInfo, */
                             &processInformation); /* LPPROCESS_INFORMATION lpProcessInformation */
   printf("in parent process\n");
   Sleep(5000);
+  printf("terminating child\n");
   TerminateProcess(processInformation.hProcess, 0);
   printf("child terminated");
 
