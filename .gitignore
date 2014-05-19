@@ -5,6 +5,8 @@
 *.log.count
 *.o
 *~
+._*
+*.class
 abc-dir/*
 posix/TODO
 posix/abc-dir/*
