@@ -236,3 +236,5 @@ akka/scala/target/streams/compile/unmanagedJars/$global/streams/export
 akka/hakkyhour
 akka/akka/target
 akka/akka/project/target
+akka/akka/lib_managed
+akka/akka/project/project/target
