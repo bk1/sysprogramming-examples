@@ -233,3 +233,6 @@ akka/scala/target/streams/compile/internalDependencyClasspath/$global/streams/ex
 akka/scala/target/streams/compile/managedClasspath/$global/streams/export
 akka/scala/target/streams/compile/unmanagedClasspath/$global/streams/export
 akka/scala/target/streams/compile/unmanagedJars/$global/streams/export
+akka/hakkyhour
+akka/akka/target
+akka/akka/project/target
