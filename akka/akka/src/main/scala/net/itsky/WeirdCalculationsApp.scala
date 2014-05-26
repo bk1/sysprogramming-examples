@@ -20,14 +20,14 @@ object WeirdCalculationsApp extends App {
     println("command=" + command)
     command match {
       case "c" => { 
-        val fn : BigInt = (System.currentTimeMillis % 10000+5000)
+        val fn : BigInt = ((System.currentTimeMillis * 731) % 100+50)
         println("new client fn=" + fn)
         val client = system.actorOf(Client.props(fn, sqRef))
         // context.watch(client)
         commandLoop()
       }
       case "s" => {
-        println("shutdown")
+        println("s:\n------------------------------------------------------------\nshutdown\n------------------------------------------------------------")
         system.shutdown()
       }        
     }

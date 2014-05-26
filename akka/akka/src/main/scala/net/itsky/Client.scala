@@ -18,21 +18,27 @@ class Client(val favoriteNumber: BigInt,
 
   log.info("client created")
   override def receive: Receive = {
-    case Result(y) => {
-      val txt = "client with favoriteNumber=" + favoriteNumber + " received result=" + y
-      println(txt)
+    case Result(y, msg) => {
+      val txt = "client with favoriteNumber=" + favoriteNumber + " received result=" + y + " (msg=" + msg + ")"
       log.info(txt)
-      val r = System.currentTimeMillis % 10000
-      Thread.sleep(r)
-      val x = favoriteNumber + r - 5000
-      println("client with favoriteNumber=" + favoriteNumber + " sending x=" + x)
+
+      val waitingTime = (System.currentTimeMillis * 997) % 10000
+      val txt2 = "client with favoriteNumber=" + favoriteNumber + " will sleep for " + waitingTime + " msec"
+      log.info(txt2)      
+      Thread.sleep(waitingTime)
+
+      val correction = (System.currentTimeMillis * 851) % 100
+      val x = favoriteNumber + correction - 50
+      log.info("client with favoriteNumber=" + favoriteNumber + " sending x=" + x)
       squarer ! OrderSquare(x)
+    }
+    case x => {
+      log.warning("received unexpected message=" + x);
     }
   }
   
   override def postStop = {
     val txt = "client with favoriteNumber=" + favoriteNumber + ": Good-bye!"
-    println(txt)
     log.info(txt)
   }
 

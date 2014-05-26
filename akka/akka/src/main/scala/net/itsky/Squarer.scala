@@ -11,13 +11,15 @@ class Squarer() extends Actor with ActorLogging {
   override def receive: Receive = {
     case OrderSquare(x: BigInt) => {
       val y = x*x
-      println("squarer squaring: x=" + x + " -> y=" + y)
-      sender ! Result(y)
+      val msg = "x=" + x + " y=x^2=" + y;
+      log.info("squarer squaring: " + msg)
+      sender ! Result(y, msg)
     }
     case OrderCube(x: BigInt) => {
       val y = x*x*x
-      println("squarer cubing: x=" + x + " -> y=" + y)
-      sender ! Result(y)
+      val msg = "x=" + x + " y=x^3=" + y;
+      log.info("squarer cubing: " + msg)
+      sender ! Result(y, msg)
     }
   }
 }
@@ -27,7 +29,7 @@ object Squarer {
 
   case class OrderCube(x: BigInt)
 
-  case class Result(y : BigInt)
+  case class Result(y : BigInt, s : String)
   
   def props(): Props = {
     Props(new Squarer())
