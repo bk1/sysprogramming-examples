@@ -21,6 +21,7 @@ class Squarer() extends Actor with ActorLogging {
       log.info("squarer cubing: " + msg)
       sender ! Result(y, msg)
     }
+    case _ => { println("bad message") }
   }
 }
 

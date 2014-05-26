@@ -29,7 +29,11 @@ object WeirdCalculationsApp extends App {
       case "s" => {
         println("s:\n------------------------------------------------------------\nshutdown\n------------------------------------------------------------")
         system.shutdown()
-      }        
+      }
+      case _ => {
+        println("command not understood")
+        commandLoop()
+      }
     }
   }
 }

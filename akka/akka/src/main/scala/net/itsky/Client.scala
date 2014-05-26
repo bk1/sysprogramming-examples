@@ -3,6 +3,7 @@ package net.itsky
 import akka.actor.{ Actor, ActorLogging, Props, ActorRef }
 import scala.concurrent.duration.FiniteDuration
 import akka.actor.Cancellable
+import scala.concurrent.duration._
 
 class Client(val favoriteNumber: BigInt,
 	     val squarer: ActorRef) extends Actor with ActorLogging {
@@ -22,11 +23,13 @@ class Client(val favoriteNumber: BigInt,
       val txt = "client with favoriteNumber=" + favoriteNumber + " received result=" + y + " (msg=" + msg + ")"
       log.info(txt)
 
-      val waitingTime = (System.currentTimeMillis * 997) % 10000
+      val waitingTimeMesc = (System.currentTimeMillis * 997) % 10000
+      val waitingTime : FiniteDuration = waitingTimeMesc.toInt.millis
       val txt2 = "client with favoriteNumber=" + favoriteNumber + " will sleep for " + waitingTime + " msec"
       log.info(txt2)      
-      Thread.sleep(waitingTime)
-
+      context.system.scheduler.scheduleOnce(waitingTime, self, NextCalculation)
+    }
+    case NextCalculation => {
       val correction = (System.currentTimeMillis * 851) % 100
       val x = favoriteNumber + correction - 50
       log.info("client with favoriteNumber=" + favoriteNumber + " sending x=" + x)
@@ -45,6 +48,8 @@ class Client(val favoriteNumber: BigInt,
 }
 
 object Client {
+
+  private case object NextCalculation;
 
   def props(favoriteNumber: BigInt, squarer: ActorRef) : Props = {
     Props(new Client(favoriteNumber, squarer))
