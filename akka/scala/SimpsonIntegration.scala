@@ -1,3 +1,18 @@
+//-*- coding: utf-8-unix -*-
+/**
+ * (C) IT Sky Consulting GmbH 2014
+ * http://www.it-sky-consulting.com/
+ * Author: Karl Brodowsky
+ * Date: 2014-05-20
+ * License: GPL v2 (See https://de.wikipedia.org/wiki/GNU_General_Public_License )
+ *
+ * Calculation of the simpson integral of a quadratic function.
+ * Remark:  Since the simpson integral is accurate for polynomial
+ * functions up to a degree of three, this splitting in subintervals is
+ * not really needed here, but the function could off course be extended
+ * to support more functions.
+ */
+
 object SimpsonIntegration {
   def main(args : Array[String]) : Unit = {
     val a = args(0).toDouble
@@ -8,7 +23,7 @@ object SimpsonIntegration {
     val B = args(5).toDouble
     val s : SimpsonIntegration = new SimpsonIntegration()
     val f : (Double => Double) = ( (x : Double) => (a*x*x + b*x + c) : Double)
-    val i : Double = s.integrate(f, A, B, n)  
+    val i : Double = s.integrate(f, A, B, n)
     println("\\int_{A=" + A + "}^{B=" + B + "} (" + a + "x^2 + " + b + "x + " + c + ") dx = " + i)
   }
 
@@ -20,7 +35,7 @@ class SimpsonIntegration {
     val step : Double = len / (2*n)
     val step3 : Double = step/3
     var sum : Double = 0
-    (0 to (n-1)).foreach( i => { 
+    (0 to (n-1)).foreach( i => {
       val x0 = A+2*i*step;
       val x1 = x0+step;
       val x2 = x1+step;
