@@ -11,11 +11,12 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <unistd.h>
-
+#include <string.h>
 #include <itskylib.h>
 
 /*Start of main C language program*/
 int main(int argc, char **argv) {
+  int retcode;
   if (argc < 2 || argc > 4) {
     printf("USAGE:\n\n%s buffersize infile outfile\n", argv[0]);
     exit(1);
@@ -25,17 +26,21 @@ int main(int argc, char **argv) {
   char *buffer = malloc(buffer_size + 1);
   
   int fdin, fdout;
-  if (argc >= 3) {
+  if (argc >= 3 && strcmp(argv[2], "-") != 0) {
     fdin = open(argv[2], O_RDONLY |O_NONBLOCK);
+    handle_error(fdin, "open", PROCESS_EXIT);
   } else {
     fdin = STDIN_FILENO;
-    fcntl(fdin, F_SETFL, fcntl(fdin, F_GETFL) |O_NONBLOCK);
+    retcode = fcntl(fdin, F_SETFL, fcntl(fdin, F_GETFL) |O_NONBLOCK);
+    handle_error(retcode, "fcntl", PROCESS_EXIT);
   }
-  if (argc >= 4) {
+  if (argc >= 4 && strcmp(argv[3], "-") != 0) {
     fdout = open(argv[3], O_WRONLY|O_NONBLOCK);
+    handle_error(fdout, "open", PROCESS_EXIT);
   } else {
     fdout = STDOUT_FILENO;
-    fcntl(fdout, F_SETFL, fcntl(fdout, F_GETFL) |O_NONBLOCK);
+    retcode = fcntl(fdout, F_SETFL, fcntl(fdout, F_GETFL) |O_NONBLOCK);
+    handle_error(retcode, "fcntl", PROCESS_EXIT);
   }
   while (1) {
     int n = read(fdin, buffer, buffer_size);
