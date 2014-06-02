@@ -29,13 +29,13 @@ int main(int argc, char **argv) {
     fdin = open(argv[2], O_RDONLY |O_NONBLOCK);
   } else {
     fdin = STDIN_FILENO;
-    fcntl(fdin, F_SETFL, O_WRONLY|O_NONBLOCK);
+    fcntl(fdin, F_SETFL, fcntl(fdin, F_GETFL) |O_NONBLOCK);
   }
   if (argc >= 4) {
     fdout = open(argv[3], O_WRONLY|O_NONBLOCK);
   } else {
     fdout = STDOUT_FILENO;
-    fcntl(fdout, F_SETFL, O_WRONLY|O_NONBLOCK);
+    fcntl(fdout, F_SETFL, fcntl(fdout, F_GETFL) |O_NONBLOCK);
   }
   while (1) {
     int n = read(fdin, buffer, buffer_size);
