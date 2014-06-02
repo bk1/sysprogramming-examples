@@ -238,3 +238,10 @@ akka/akka/target
 akka/akka/project/target
 akka/akka/lib_managed
 akka/akka/project/project/target
+akka/akka/.history
+akka/java7/#ClosureExample.java#
+akka/java7/#FinalExample.java#
+akka/java7/.#ClosureExample.java
+akka/java7/.#FinalExample.java
+posix/.gitignore
+posix/adv-io/non-blocking-uebung
