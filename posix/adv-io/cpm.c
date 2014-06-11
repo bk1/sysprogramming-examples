@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
 
   int src_fd = open(src, O_RDONLY);
   handle_error(src_fd, "open src", PROCESS_EXIT);
-  int dest_fd = open(dest, O_RDWR | O_CREAT | O_EXCL, 0600);
+  int dest_fd = open(dest, O_RDWR | O_CREAT, 0600);
   handle_error(dest_fd, "open dest", PROCESS_EXIT);
   
   struct stat sbuf;
@@ -59,8 +59,6 @@ int main(int argc, char *argv[]) {
   off_t size = sbuf.st_size;
   retcode = ftruncate(dest_fd, size);
   handle_error(retcode, "resize destination", PROCESS_EXIT);
-  retcode = fsync(dest_fd);
-  handle_error(retcode, "fsync destination", PROCESS_EXIT);
 
   void *src_addr = mmap(NULL, size, PROT_READ, MAP_SHARED, src_fd, 0);
   if (src_addr == MAP_FAILED) {
