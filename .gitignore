@@ -251,3 +251,7 @@ posix/adv-io/select-input
 posix/adv-io/select-input-writev
 posix/daemon/daemon
 posix/adv-io/multi-threaded-multi-pipe
+posix/a.out
+posix/adv-io/cpm
+posix/lsc
+posix/ora.log2
