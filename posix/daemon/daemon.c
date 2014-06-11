@@ -229,8 +229,6 @@ int main(int argc, char *argv[]) {
   handle_error_syslog(retcode, "sigaddset", PROCESS_EXIT);
   retcode = sigaddset(&sig_mask, SIGTERM);
   handle_error_syslog(retcode, "sigaddset", PROCESS_EXIT);
-  retcode = sigaddset(&sig_mask, SIGUSR1);
-  handle_error_syslog(retcode, "sigaddset", PROCESS_EXIT);
   retcode = sigaddset(&sig_mask, SIGINT);
   handle_error_syslog(retcode, "sigaddset", PROCESS_EXIT);
 
@@ -250,11 +248,6 @@ int main(int argc, char *argv[]) {
   retcode = sigaction(SIGTERM, &new_sigaction_term, &old_sigaction_term);
   handle_error_syslog(retcode, "sigaction SIGTERM", PROCESS_EXIT);
 
-  struct sigaction new_sigaction_usr1 = new_sigaction_pipe;
-  struct sigaction old_sigaction_usr1;
-  retcode = sigaction(SIGUSR1, &new_sigaction_usr1, &old_sigaction_usr1);
-  handle_error_syslog(retcode, "sigaction SIGUSR1", PROCESS_EXIT);
-
   struct sigaction new_sigaction_int = new_sigaction_pipe;
   struct sigaction old_sigaction_int;
   retcode = sigaction(SIGINT, &new_sigaction_int, &old_sigaction_int);
@@ -263,9 +256,9 @@ int main(int argc, char *argv[]) {
   char *server_name;
   if (argc >= 3) {
     server_name = argv[2];             /* First arg: server IP address (dotted quad) */
-} else {
-  server_name = "localhost";
-}
+  } else {
+    server_name = "localhost";
+  }
 
   char service_or_server_port[1024];
   if (argc >= 3) {

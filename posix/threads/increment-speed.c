@@ -7,6 +7,7 @@ int x;
 
 void *thread_run(void *ptr) {
   x++;
+  return NULL;
 }
 
 int main(int argc, char *argv[]) {

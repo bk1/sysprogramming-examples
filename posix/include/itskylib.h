@@ -71,5 +71,9 @@ int is_string_char(char c);
 /* read the contents of a file and convert it to an array of strings containing the readable characters interpreted as 8-bit-charset */
 struct string_array read_to_array(int fd);
 
+ssize_t readn(int fd, void *buf, size_t count);
+
+ssize_t writen(int fd, void *buf, size_t count);
+
 #endif
 

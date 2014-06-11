@@ -1,4 +1,4 @@
-/* (C) IT Sky Consulting GmbH 2014
+/* (C) IT Sky Consulting GmbH / Steve Heller 2014
  * http://www.it-sky-consulting.com/
  * Author: Steve Heller
  * Date: 2014-06-02
@@ -59,7 +59,7 @@ void do_stuff() {
   }
 }
 
-void main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
   if (argc < 2) {
     printf("usage:\n%s -b for blocking\n%s -n for non-blocking\n",argv[0],argv[0]);
     exit(1);

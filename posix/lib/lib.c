@@ -342,4 +342,50 @@ struct string_array read_to_array(int fd) {
   return result;
 }
 
+
+ssize_t readn(int fd, void *buf, size_t total_size) {
+  if (fd < 0) {
+    return fd;
+  }
+  size_t rest_size = total_size;
+  size_t read_size = 0;
+  void *buf_ptr = buf;
+  while (rest_size > 0) {
+    ssize_t partial_size = read(fd, buf_ptr, rest_size);
+    if (partial_size < 0) {
+      return partial_size;
+    }
+    if (partial_size == 0) {
+      return read_size;
+    }
+    read_size += partial_size;
+    rest_size -= partial_size;
+    buf_ptr += partial_size;
+  }
+  return read_size;
+}
+
+ssize_t writen(int fd, void *buf, size_t total_size) {
+  if (fd < 0) {
+    return fd;
+  }
+  size_t rest_size = total_size;
+  size_t written_size = 0;
+  void *buf_ptr = buf;
+  while (rest_size > 0) {
+    ssize_t partial_size = write(fd, buf_ptr, rest_size);
+    if (partial_size < 0) {
+      return partial_size;
+    }
+    if (partial_size == 0) {
+      return written_size;
+    }
+    written_size += partial_size;
+    rest_size -= partial_size;
+    buf_ptr += partial_size;
+  }
+  return written_size;
+}
+
+
 /* end of file lib.c */
