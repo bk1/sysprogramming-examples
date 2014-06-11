@@ -26,6 +26,8 @@ struct string_array {
 
 enum exit_type { PROCESS_EXIT, THREAD_EXIT, NO_EXIT };
 
+enum log_type { LT_SYSLOG, LT_STDOUT, LT_STDERR };
+
 enum file_type { NOT_EXISTENT, DIRECTORY, REGULAR_FILE, OTHER };
 
 /* check if --help or similar is indicated */
@@ -37,12 +39,21 @@ void exit_by_type(enum exit_type et);
 
 void handle_thread_error(int retcode, const char *msg, enum exit_type et);
 
+void handle_thread_error_syslog(int retcode, const char *msg, enum exit_type et);
+
 /* helper function for dealing with errors */
 void handle_error(long return_code, const char *msg, enum exit_type et);
 
+/* helper function for dealing with errors */
+void handle_error_syslog(long return_code, const char *msg, enum exit_type et);
+
 void handle_error_myerrno(long return_code, int myerrno, const char *msg, enum exit_type et);
 
+void handle_error_myerrno_syslog(long return_code, int myerrno, const char *msg, enum exit_type et);
+
 void handle_ptr_error(void *ptr, const char *msg, enum exit_type et);
+
+void handle_ptr_error_syslog(void *ptr, const char *msg, enum exit_type et);
 
 void die_with_error(char *error_message);
 

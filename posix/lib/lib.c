@@ -19,6 +19,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <syslog.h>
 
 #include <itskylib.h>
 
@@ -43,8 +44,7 @@ void exit_by_type(enum exit_type et) {
 }
 
 
-/* helper function for dealing with errors */
-void handle_error_myerrno(long return_code, int myerrno, const char *msg, enum exit_type et) {
+void handle_error_myerrno_internal(long return_code, int myerrno, const char *msg, enum exit_type et, enum log_type lt) {
   if (return_code < 0) {
     char extra_msg[ERROR_SIZE];
     char error_msg[ERROR_SIZE];
@@ -55,28 +55,75 @@ void handle_error_myerrno(long return_code, int myerrno, const char *msg, enum e
       extra_msg[0] = '\000';
     }
     sprintf(error_msg, "%sreturn_code=%ld\nerrno=%d\nmessage=%s\n", extra_msg, return_code, myerrno, error_str);
-    write(STDOUT_FILENO, error_msg, strlen(error_msg));
+    switch (lt) {
+    case LT_SYSLOG:
+      syslog(LOG_ERR, error_msg);
+      break;
+    case LT_STDOUT:
+      write(STDOUT_FILENO, error_msg, strlen(error_msg));
+      break;
+    case LT_STDERR:
+      write(STDERR_FILENO, error_msg, strlen(error_msg));
+      break;
+    default:
+      handle_error_myerrno_internal(return_code, myerrno, msg, NO_EXIT, LT_STDERR);
+      handle_error_myerrno_internal(return_code, myerrno, "wrong log_type", NO_EXIT, LT_STDERR);
+    }
     exit_by_type(et);
   }
 }
 
-void handle_thread_error(int retcode, const char *msg, enum exit_type et) {
+/* helper function for dealing with errors */
+void handle_error_myerrno(long return_code, int myerrno, const char *msg, enum exit_type et) {
+  handle_error_myerrno_internal(return_code, myerrno, msg, et, LT_STDOUT);
+}
+
+/* helper function for dealing with errors */
+void handle_error_myerrno_syslog(long return_code, int myerrno, const char *msg, enum exit_type et) {
+  handle_error_myerrno_internal(return_code, myerrno, msg, et, LT_SYSLOG);
+}
+
+void handle_thread_error_internal(int retcode, const char *msg, enum exit_type et, enum log_type lt) {
   if (retcode != 0) {
-    handle_error_myerrno(-abs(retcode), retcode, msg, et);
+    handle_error_myerrno_internal(-abs(retcode), retcode, msg, et, lt);
   }
+}
+
+void handle_thread_error(int retcode, const char *msg, enum exit_type et) {
+  handle_thread_error_internal(retcode, msg, et, LT_STDERR);
+}
+
+void handle_thread_error_syslog(int retcode, const char *msg, enum exit_type et) {
+  handle_thread_error_internal(retcode, msg, et, LT_SYSLOG);
+}
+
+void handle_error_internal(long return_code, const char *msg, enum exit_type et, enum log_type lt) {
+  int myerrno = errno;
+  handle_error_myerrno_internal(return_code, myerrno, msg, et, lt);
 }
 
 /* helper function for dealing with errors */
 void handle_error(long return_code, const char *msg, enum exit_type et) {
-  int myerrno = errno;
-  handle_error_myerrno(return_code, myerrno, msg, et);
+  handle_error_internal(return_code, msg, et, LT_STDOUT);
+}
+
+void handle_error_syslog(long return_code, const char *msg, enum exit_type et) {
+  handle_error_internal(return_code, msg, et, LT_SYSLOG);
+}
+
+void handle_ptr_error_internal(void *ptr, const char *msg, enum exit_type et, enum log_type lt) {
+  if (ptr == NULL) {
+    handle_error_internal(-1L, msg, et, lt);
+  }
 }
 
 
 void handle_ptr_error(void *ptr, const char *msg, enum exit_type et) {
-  if (ptr == NULL) {
-    handle_error(-1L, msg, et);
-  }
+  handle_ptr_error_internal(ptr, msg, et, LT_STDOUT);
+}
+
+void handle_ptr_error_syslog(void *ptr, const char *msg, enum exit_type et) {
+  handle_ptr_error_internal(ptr, msg, et, LT_SYSLOG);
 }
 
 

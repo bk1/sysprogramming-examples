@@ -42,12 +42,17 @@ struct thread_arg {
 char lock_file[300];
 
 void exit_handler() {
-  printf("removing lock_file=%s\n", lock_file);
+  syslog(LOG_NOTICE, "exit_handler: removing lock_file=%s", lock_file);
   unlink(lock_file);
+  syslog(LOG_NOTICE, "exit_handler: exiting");
 }
 
 void signal_handler(int signo) {
-  printf("closed\n");
+  if (signo == SIGUSR1 || signo == SIGUSR2) {
+    /* ignore */
+    return;
+  }
+  syslog(LOG_NOTICE, "signal_handler: exiting");
   exit_handler();
   exit(0);
 }
@@ -78,7 +83,6 @@ void *handle_tcp_client(void *client_socket_ptr);   /* TCP client handling funct
 int get_daemon_pid() {
   int fd = open(lock_file, O_RDONLY);
   if (fd < 0 && errno == ENOENT) {
-    printf("not running\n");
     return -1;
   } else if (fd < 0) {
     handle_error(fd, "open", PROCESS_EXIT);
@@ -89,26 +93,37 @@ int get_daemon_pid() {
     handle_error(n, "read", PROCESS_EXIT);
     buf[n] = 0;
     int pid = atoi(buf);
-    return pid;
+    int retcode = kill(pid, 0);
+    printf("pid=%d retcode of kill(pid, 0)=%d\n", pid, retcode);
+    if (retcode < 0 && errno == ESRCH) {
+      unlink(lock_file);
+      return -1;
+    } else {
+      return pid;
+    }
   }
 }
     
 void show_status() {
   int pid = get_daemon_pid();
-  if (pid > 0) {
+  if (pid < 0) {
+    printf("not running\n");
+  } else {
     printf("running (process %d)\n", pid);
   }
 }
 
 void stop_daemon() {
   int pid = get_daemon_pid();
-  if (pid > 0) {
-    printf("stopping process %d\n", pid);
+  if (pid < 0) {
+    printf("not running\n");
+  } else {
+    printf("stopping (process %d)\n", pid);
     int retcode = kill(pid, SIGTERM);
-    if (retcode < 0 && errno == ESRCH) {
-      printf("process does not exist\n");
-      unlink(lock_file);
-    }
+    handle_error(retcode, "stopping daemon with SIGTERM", PROCESS_EXIT);
+    sleep(1);
+    printf("status after stopping:\n");
+    show_status();
   }
 }
 
@@ -142,10 +157,17 @@ int main(int argc, char *argv[]) {
 
   if (strcmp(argv[1], "stop") == 0) {
     stop_daemon();
-    show_status();
     exit(0);
   } else if (strcmp(argv[1], "status") == 0) {
     show_status();
+    exit(0);
+  } else if (strcmp(argv[1], "start") != 0) {
+    usage(argv[0], "unsupported value for first argument: only start|stop|status");
+  }
+
+  int old_pid = get_daemon_pid();
+  if (old_pid > 0) {
+    printf("already running (process %d)\n", old_pid);
     exit(0);
   }
 
@@ -187,35 +209,56 @@ int main(int argc, char *argv[]) {
   retcode = close(lock_fd);
   handle_error(retcode, "close", PROCESS_EXIT);
 
-
-  retcode = close(STDIN_FILENO);
-  handle_error(retcode, "close(STDIN_FILENO)", PROCESS_EXIT);
-  //retcode = close(STDOUT_FILENO);
-  handle_error(retcode, "close(STDOUT_FILENO)", PROCESS_EXIT);
-  // retcode = close(STDERR_FILENO);
-  handle_error(retcode, "close(STDERR_FILENO)", PROCESS_EXIT);
-
   openlog(argv[0], LOG_PID, LOG_USER);
   syslog(LOG_NOTICE, "%s started", argv[0]);
+
+  retcode = close(STDIN_FILENO);
+  handle_error_syslog(retcode, "close(STDIN_FILENO)", PROCESS_EXIT);
+  retcode = close(STDOUT_FILENO);
+  handle_error_syslog(retcode, "close(STDOUT_FILENO)", PROCESS_EXIT);
+  retcode = close(STDERR_FILENO);
+  handle_error_syslog(retcode, "close(STDERR_FILENO)", PROCESS_EXIT);
+
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
   sigset_t sig_mask;
   retcode = sigemptyset(&sig_mask);
-  handle_error(retcode, "sigemptyset", PROCESS_EXIT);
+  handle_error_syslog(retcode, "sigemptyset", PROCESS_EXIT);
   retcode = sigaddset(&sig_mask, SIGPIPE);
-  handle_error(retcode, "sigaddset", PROCESS_EXIT);
+  handle_error_syslog(retcode, "sigaddset", PROCESS_EXIT);
+  retcode = sigaddset(&sig_mask, SIGTERM);
+  handle_error_syslog(retcode, "sigaddset", PROCESS_EXIT);
+  retcode = sigaddset(&sig_mask, SIGUSR1);
+  handle_error_syslog(retcode, "sigaddset", PROCESS_EXIT);
+  retcode = sigaddset(&sig_mask, SIGINT);
+  handle_error_syslog(retcode, "sigaddset", PROCESS_EXIT);
 
-  struct sigaction new_sigaction;
-  struct sigaction old_sigaction;
+  struct sigaction new_sigaction_pipe;
+  struct sigaction old_sigaction_pipe;
   /* assign unused fields to null *first*, so if there is a union the real values will supersede */
-  new_sigaction.sa_sigaction = NULL;
-  new_sigaction.sa_restorer = NULL;
-  new_sigaction.sa_handler = signal_handler;
-  new_sigaction.sa_mask = sig_mask;
-  new_sigaction.sa_flags = SA_NOCLDSTOP;
-  retcode = sigaction(SIGPIPE, &new_sigaction, &old_sigaction);
-  handle_error(retcode, "sigaction", PROCESS_EXIT);
+  new_sigaction_pipe.sa_sigaction = NULL;
+  new_sigaction_pipe.sa_restorer = NULL;
+  new_sigaction_pipe.sa_handler = signal_handler;
+  new_sigaction_pipe.sa_mask = sig_mask;
+  new_sigaction_pipe.sa_flags = SA_NOCLDSTOP;
+  retcode = sigaction(SIGPIPE, &new_sigaction_pipe, &old_sigaction_pipe);
+  handle_error_syslog(retcode, "sigaction SIGPIPE", PROCESS_EXIT);
+
+  struct sigaction new_sigaction_term = new_sigaction_pipe;
+  struct sigaction old_sigaction_term;
+  retcode = sigaction(SIGTERM, &new_sigaction_term, &old_sigaction_term);
+  handle_error_syslog(retcode, "sigaction SIGTERM", PROCESS_EXIT);
+
+  struct sigaction new_sigaction_usr1 = new_sigaction_pipe;
+  struct sigaction old_sigaction_usr1;
+  retcode = sigaction(SIGUSR1, &new_sigaction_usr1, &old_sigaction_usr1);
+  handle_error_syslog(retcode, "sigaction SIGUSR1", PROCESS_EXIT);
+
+  struct sigaction new_sigaction_int = new_sigaction_pipe;
+  struct sigaction old_sigaction_int;
+  retcode = sigaction(SIGINT, &new_sigaction_int, &old_sigaction_int);
+  handle_error_syslog(retcode, "sigaction SIGINT", PROCESS_EXIT);
   
   char *server_name;
   if (argc >= 3) {
@@ -247,7 +290,7 @@ int main(int argc, char *argv[]) {
   struct addrinfo *result;
 
   retcode = getaddrinfo(server_name, service_or_server_port, &hints, &result);
-  handle_error(retcode, "getaddrinfo() failed", PROCESS_EXIT);
+  handle_error_syslog(retcode, "getaddrinfo() failed", PROCESS_EXIT);
 
   int count_successes = 0;
 
@@ -258,7 +301,7 @@ int main(int argc, char *argv[]) {
     server_socket = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
     if (server_socket == -1) {
       // look errno
-      //   handle_error(server_socket, "socket() failed", PROCESS_EXIT);
+      //   handle_error_syslog(server_socket, "socket() failed", PROCESS_EXIT);
 
       continue;
     }
@@ -272,18 +315,18 @@ int main(int argc, char *argv[]) {
       arg_ptr->family = rp->ai_family;
       pthread_t thread;
       retcode = pthread_create(&thread, &attr, handle_connection, arg_ptr);
-      handle_thread_error(retcode, "pthread_create() for handle_connection()", PROCESS_EXIT);
+      handle_thread_error_syslog(retcode, "pthread_create() for handle_connection()", PROCESS_EXIT);
     } else {
       // look errno
       // retcode = connect(server_socket, (struct sockaddr *) &server_address, sizeof(server_address));
-      // handle_error(retcode, "connect() failed", PROCESS_EXIT);
+      // handle_error_syslog(retcode, "connect() failed", PROCESS_EXIT);
       close(server_socket);
     }
     server_socket = -1;
   }
   syslog(LOG_NOTICE, "%d connections are being handled\n", count_successes);
   if (count_successes == 0) {
-    handle_error(server_socket, "no connection could be established", PROCESS_EXIT);
+    handle_error_syslog(server_socket, "no connection could be established", PROCESS_EXIT);
   }
 
   /* finish master thread */
@@ -304,7 +347,7 @@ void *handle_connection(void *args) {
            
   /* Mark the socket so it will listen for incoming connections */
   retcode = listen(server_socket, MAXPENDING);
-  handle_error(retcode, "listen() failed", PROCESS_EXIT);
+  handle_error_syslog(retcode, "listen() failed", PROCESS_EXIT);
 
   while (TRUE) { /* Run forever */
     /* Set the size of the in-out parameter */
@@ -312,7 +355,7 @@ void *handle_connection(void *args) {
 
     /* Wait for a client to connect */
     client_socket = accept(server_socket, (struct sockaddr *) &client_address, &client_address_len);
-    handle_error(client_socket, "accept() failed", PROCESS_EXIT);
+    handle_error_syslog(client_socket, "accept() failed", PROCESS_EXIT);
 
     char host[NI_MAXHOST];
     char service[NI_MAXSERV];
@@ -324,7 +367,7 @@ void *handle_connection(void *args) {
                           service, 
                           NI_MAXSERV, 
                           NI_NUMERICSERV);
-    handle_error(retcode, "getnameinfo", THREAD_EXIT);
+    handle_error_syslog(retcode, "getnameinfo", THREAD_EXIT);
 
     syslog(LOG_INFO, "Handling client %s for service=%s (%s)\n", host, service, family_s);
     /* client_socket is connected to a client! */
@@ -333,7 +376,7 @@ void *handle_connection(void *args) {
     int *client_socket_ptr = (int *) malloc(sizeof(int));
     *client_socket_ptr = client_socket;
     retcode = pthread_create(&thread, &attr, handle_tcp_client, client_socket_ptr);
-    handle_thread_error(retcode, "pthread_create() for handle_tcp_client()", PROCESS_EXIT);
+    handle_thread_error_syslog(retcode, "pthread_create() for handle_tcp_client()", PROCESS_EXIT);
   }
   /* NOT REACHED: */
   exit(0);
