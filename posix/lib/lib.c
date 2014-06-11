@@ -353,6 +353,10 @@ ssize_t readn(int fd, void *buf, size_t total_size) {
   while (rest_size > 0) {
     ssize_t partial_size = read(fd, buf_ptr, rest_size);
     if (partial_size < 0) {
+      if (errno == EINTR) {
+        partial_size = 0;
+        continue;
+      }
       return partial_size;
     }
     if (partial_size == 0) {
@@ -375,6 +379,10 @@ ssize_t writen(int fd, void *buf, size_t total_size) {
   while (rest_size > 0) {
     ssize_t partial_size = write(fd, buf_ptr, rest_size);
     if (partial_size < 0) {
+      if (errno == EINTR) {
+        partial_size = 0;
+        continue;
+      }
       return partial_size;
     }
     if (partial_size == 0) {
