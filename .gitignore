@@ -250,3 +250,4 @@ posix/adv-io/non-blocking-cat
 posix/adv-io/select-input
 posix/adv-io/select-input-writev
 posix/daemon/daemon
+posix/adv-io/multi-threaded-multi-pipe
