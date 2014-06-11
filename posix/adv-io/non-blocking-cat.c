@@ -1,9 +1,10 @@
-
-/*This is a program to illustrate
- *the semaphore operations, semop(),
- *system call capabilities.
+/* (C) IT Sky Consulting GmbH 2014
+ * http://www.it-sky-consulting.com/
+ * Author: Karl Brodowsky
+ * Date: 2014-06-02
+ * License: GPL v2 (See https://de.wikipedia.org/wiki/GNU_General_Public_License )
  */
-/*Include necessary header files.*/
+
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -35,7 +36,7 @@ int main(int argc, char **argv) {
     handle_error(retcode, "fcntl", PROCESS_EXIT);
   }
   if (argc >= 4 && strcmp(argv[3], "-") != 0) {
-    fdout = open(argv[3], O_WRONLY|O_NONBLOCK);
+    fdout = open(argv[3], O_WRONLY|O_NONBLOCK|O_CREAT|O_APPEND);
     handle_error(fdout, "open", PROCESS_EXIT);
   } else {
     fdout = STDOUT_FILENO;
