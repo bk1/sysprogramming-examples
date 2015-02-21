@@ -1,0 +1,4 @@
+H1 (2015-02-16):
+Write a program that opens a file for writing, truncates it, if it already exists, creates it, if it does not exist and writes the squares of integral number 0..99 into lines. The lines are 4 characters wide plus linefeed as fifth character. The output should be created using low-level I/O (open, write, close,...) and starting with the last square.
+
+H2 (2015-02-23):
