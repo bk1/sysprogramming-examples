@@ -1,4 +1,4 @@
-﻿/* -*- coding: utf-8-with-signature-unix -*-
+/* -*- coding: utf-8-unix -*-
  * (C) IT Sky Consulting GmbH 2014
  * http://www.it-sky-consulting.com/
  * Author: Karl Brodowsky
