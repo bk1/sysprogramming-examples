@@ -2,3 +2,10 @@ H1 (2015-02-16):
 Write a program that opens a file for writing, truncates it, if it already exists, creates it, if it does not exist and writes the squares of integral number 0..99 into lines. The lines are 4 characters wide plus linefeed as fifth character. The output should be created using low-level I/O (open, write, close,...) and starting with the last square.
 
 H2 (2015-02-23):
+Write a program that works like a simplified version of less or more:
+* read a file from command line or stdin (both need to work)
+* react to keyboard input
+* support vi style or emacs style or arrow keys (most difficult) or multiple of those for line up / line down
+* optional: support character forward/backward, page down / page up, beginning/end of file or more
+* always react on a single key without waiting for return to be pressed, unless return is your key for some function
+* use tcgetattr and tcsetattr, possibly ioctl
