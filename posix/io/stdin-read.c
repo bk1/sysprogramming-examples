@@ -36,6 +36,9 @@ int main(int argc, char *argv[]) {
 
   tcgetattr(STDIN_FILENO, &orig_termios_struct);
   tcgetattr(STDIN_FILENO, &termios_struct);
+  // could be done like this also:
+  // termios_struct = orig_termios_struct;
+
   termios_struct.c_lflag &= (~ICANON) & (~ECHO);
   termios_struct.c_cc[VTIME] = 0;
   termios_struct.c_cc[VMIN] = 1;
