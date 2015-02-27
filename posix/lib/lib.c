@@ -27,7 +27,7 @@
 
 void exit_by_type(enum exit_type et) {
   switch (et) {
-  case PROCESS_EXIT: 
+  case PROCESS_EXIT:
     exit(1);
     break;
   case THREAD_EXIT:
@@ -214,8 +214,8 @@ int create_if_missing(const char *pathname, mode_t mode) {
 
 /* check if --help or similar is indicated */
 int is_help_requested(int argc, char *argv[]) {
-  return (argc >= 2 
-          && (strcmp(argv[1], "-h") == 0 
+  return (argc >= 2
+          && (strcmp(argv[1], "-h") == 0
               || strcmp(argv[1], "-H") == 0
               || strcmp(argv[1], "-help") == 0
               || strcmp(argv[1], "--help") == 0));
@@ -260,6 +260,10 @@ struct string_array read_to_array(int fd) {
     /* TODO we should be more generous with read not taking all of the file contents at once */
     handle_error(-1, error, PROCESS_EXIT);
   }
+  return split_to_array(content, size);
+}
+
+struct string_array split_to_array(char *content, off_t size) {
   /* temporarily make a two-level structure for the string pointers */
   struct string_array blocks[MAX_BLOCK_COUNT]; // 1048576]; // 1024*1024
   // printf("blocks created\n");
@@ -267,6 +271,7 @@ struct string_array read_to_array(int fd) {
     blocks[i].len = 0;
     blocks[i].strings = (char **) NULL;
   }
+
   //printf("blocks initialized\n");
   long string_count = 0;
   long block_count = 0;
