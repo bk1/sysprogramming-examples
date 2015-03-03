@@ -9,3 +9,15 @@ Write a program that works like a simplified version of less or more:
 * optional: support character forward/backward, page down / page up, beginning/end of file or more
 * always react on a single key without waiting for return to be pressed, unless return is your key for some function
 * use tcgetattr and tcsetattr, possibly ioctl
+
+H3 (2015-03-02):
+Write a program that starts a daemon process for calculating squares:
+* main forks child
+* child forks daemon
+* child ends itself
+* parent observes termination of child
+* a named pipe is used to communicate from parent to daemon that child has ended (for example by sending an "S" for "start")
+* the same named pipe can then be used to send numbers to the daemon
+* it will write the squares of the numbers to a file (or another named pipe) given on the command line
+* sending "Q" or "QUIT" terminates the daemon
+* other non-numberic messages are ignored
