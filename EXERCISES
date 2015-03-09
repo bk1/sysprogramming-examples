@@ -21,3 +21,14 @@ Write a program that starts a daemon process for calculating squares:
 * it will write the squares of the numbers to a file (or another named pipe) given on the command line
 * sending "Q" or "QUIT" terminates the daemon
 * other non-numberic messages are ignored
+
+H4 (2015-03-09)
+Write a program that starts a daemon process.
+* main forks child
+* child forks daemon
+* child exits
+* parent observes termination of child
+* a signal is used to communicate to daemon from parent that the child has terminated.
+* daemon sends a signal back to parent that it has become active as daemon
+* parent terminates on receipt of that signal
+* hints: either use pgid or come up with some mechanism to communicate pid of daemon to parent.
