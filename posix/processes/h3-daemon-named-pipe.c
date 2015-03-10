@@ -138,7 +138,11 @@ int main(int argc, char *argv[]) {
     usage(argv, NULL);
   }
   int retcode = unlink(argv[1]);
-  handle_error(retcode, "unlink", PROCESS_EXIT);
+  if (retcode == -1 && errno == ENOENT) {
+    printf("file %s does not exist nothing to delete\n", argv[0]);
+  } else {
+    handle_error(retcode, "unlink", PROCESS_EXIT);
+  }
   retcode = mkfifo(argv[1], 0666 );
   handle_error(retcode, "mkfifo", PROCESS_EXIT);
 
