@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
   int retcode;
 
   int fork_result;
-  int status;
+  int status2;
   int pid = getpid();
   int pgid = pid;
   parent_pid = pid;
@@ -142,7 +142,7 @@ int main(int argc, char *argv[]) {
     exit(0);
   } else {
     printf("parent waiting for child\n");
-    retcode = wait(&status);
+    retcode = wait(&status2);
     handle_error(retcode, "wait", PROCESS_EXIT);
     printf("child terminated\n");
 
