@@ -5,9 +5,12 @@
  * License: GPL v2 (See https://de.wikipedia.org/wiki/GNU_General_Public_License )
  */
 
+/* WARNING: This file has moved to a new project: https://github.com/bk1/c-arithmetic
+ * it will be removed from here soon
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
-
 #include <itskylib.h>
 
 #define CHECK_HIGHEST_BIT(x) ((sint64) (x) < 0)
@@ -137,7 +140,7 @@ void short_add_test() {
 }
 
 void add_test() {
-  printf("def test(x,y,ci,z,co)\n    zz=x+y+ci;\n    msg=\"x=#{x} y=#{y} ci=#{ci} z=#{z} co=#{co} zz=#{zz}\"\n    puts(msg+\" zz\") if (zz&0xffffffffffffffff != z);\n    puts(msg+ \" co\") if (zz>>64 != co)\nend\n\n");
+  printf("def atest(x,y,ci,z,co)\n    zz=x+y+ci;\n    msg=\"x=#{x} y=#{y} ci=#{ci} z=#{z} co=#{co} zz=#{zz}\"\n    puts(msg+\" zz\") if (zz&0xffffffffffffffff != z);\n    puts(msg+ \" co\") if (zz>>64 != co)\nend\n\n");
   for (uint64 xh = 1; xh > 0; xh <<= 1) {
     //printf("xh=%llu\n", xh);
     for (uint64 yh = 1; yh > 0; yh <<= 1) {
@@ -150,7 +153,29 @@ void add_test() {
           //printf("yh=%llu yl=%llu y=%llu\n", yh, yl, y);
           for (uint8 carry = 0; carry <= 1; carry++) {
             unsigned_result_with_carry z = adc(x, y, carry);
-            printf("x=%llu; y=%llu; ci=%d; z=%llu; co=%d;\ntest(x,y,ci,z,co);\n", x, y, (int) carry, z.value, (int) z.carry);
+            printf("x=%llu; y=%llu; ci=%d; z=%llu; co=%d;\natest(x,y,ci,z,co);\n", x, y, (int) carry, z.value, (int) z.carry);
+          }
+        }
+      }
+    }
+  }
+}
+
+void sub_test() {
+  printf("def stest(x,y,ci,z,co)\n    zz=x-y-ci+(1<<64);\n    msg=\"x=#{x} y=#{y} ci=#{ci} z=#{z} co=#{co} zz=#{zz}\"\n    puts(msg+\" zz\") if (zz&0xffffffffffffffff != z);\n    puts(msg+ \" co\") if (1-(zz>>64) != co)\nend\n\n");
+  for (uint64 xh = 1; xh > 0; xh <<= 1) {
+    //printf("xh=%llu\n", xh);
+    for (uint64 yh = 1; yh > 0; yh <<= 1) {
+      //printf("yh=%llu\n", yh);
+      for (uint64 xl = 0; xl <= 5; xl++) {
+        uint64 x = xh + xl - 1;
+        //printf("xh=%llu xl=%llu x=%llu\n", xh, xl, x);
+        for (uint64 yl = 0; yl <= 5; yl++) {
+          uint64 y = yh + yl - 1;
+          //printf("yh=%llu yl=%llu y=%llu\n", yh, yl, y);
+          for (uint8 carry = 0; carry <= 1; carry++) {
+            unsigned_result_with_carry z = sbb(x, y, carry);
+            printf("x=%llu; y=%llu; ci=%d; z=%llu; co=%d;\nstest(x,y,ci,z,co);\n", x, y, (int) carry, z.value, (int) z.carry);
           }
         }
       }
@@ -192,6 +217,6 @@ void short_sub_test() {
 }
 
 int main(int argc, char **argv) {
-  add_test();
+  sub_test();
   exit(0);
 }
