@@ -40,11 +40,21 @@ void *run(void *arg) {
   printf("in child %d: sleeping\n", my_tidx);
   sleep(2);
   if (use_timeout) {
-    retcode = pthread_mutex_timedlock(&mutex, &timeout);
+    while (TRUE) {
+      retcode = pthread_mutex_timedlock(&mutex, &timeout);
+      if (retcode == 0) {
+        break;
+      } else if (retcode == ETIMEDOUT) {
+        printf("timed out in child %d\n", my_tidx);
+        sleep(1);
+      } else {
+        handle_thread_error(retcode, "child failed timed lock", PROCESS_EXIT);
+      }
+    }
   } else {
     retcode = pthread_mutex_lock(&mutex);
+    handle_thread_error(retcode, "child failed lock", PROCESS_EXIT);
   }
-  handle_thread_error(retcode, "child failed (timed)lock", PROCESS_EXIT);
   printf("child %d got mutex\n", my_tidx);
   sleep(5);
   printf("child %d releases mutex\n", my_tidx);
@@ -92,11 +102,21 @@ int main(int argc, char *argv[]) {
   sleep(2);
   printf("in parent: getting mutex\n");
   if (use_timeout) {
-    retcode = pthread_mutex_timedlock(&mutex, &timeout);
+    while (TRUE) {
+      retcode = pthread_mutex_timedlock(&mutex, &timeout);
+      if (retcode == 0) {
+        break;
+      } else if (retcode == ETIMEDOUT) {
+        printf("timed out in parent\n");
+        sleep(1);
+      } else {
+        handle_thread_error(retcode, "parent failed (timed)lock", PROCESS_EXIT);
+      }
+    }
   } else {
     retcode = pthread_mutex_lock(&mutex);
+    handle_thread_error(retcode, "parent failed lock", PROCESS_EXIT);
   }
-  handle_thread_error(retcode, "parent failed (timed)lock", PROCESS_EXIT);
   printf("parent got mutex\n");
   sleep(5);
   printf("parent releases mutex\n");
