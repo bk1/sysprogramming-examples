@@ -145,7 +145,6 @@ int main(int argc, char *argv[]) {
   retcode = sem_wait(sem_ptr);
   handle_error(retcode, "error while getting semaphore", PROCESS_EXIT);
   time_t dt = time(NULL) - t1;
-  // show_sem_ctl(semaphore_id, 0, "semaphore reserved");
 
   for (int i = 0; i < ALPHA_SIZE; i++) {
     long *tcounter = shm_data->counter;
