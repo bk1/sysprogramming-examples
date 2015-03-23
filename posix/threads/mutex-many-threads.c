@@ -24,6 +24,8 @@
 
 #include <itskylib.h>
 
+const size_t N_THREADS = 20;
+
 pthread_mutex_t mutex;
 
 struct timespec timeout;
@@ -31,8 +33,11 @@ struct timespec timeout;
 int use_timeout;
 
 void *run(void *arg) {
+  int *argi = (int *) arg;
+  int my_tidx = *argi;
+  
   int retcode;
-  printf("in child: sleeping\n");
+  printf("in child %d: sleeping\n", my_tidx);
   sleep(2);
   if (use_timeout) {
     retcode = pthread_mutex_timedlock(&mutex, &timeout);
@@ -40,13 +45,13 @@ void *run(void *arg) {
     retcode = pthread_mutex_lock(&mutex);
   }
   handle_thread_error(retcode, "child failed (timed)lock", PROCESS_EXIT);
-  printf("child got mutex\n");
+  printf("child %d got mutex\n", my_tidx);
   sleep(5);
-  printf("child releases mutex\n");
+  printf("child %d releases mutex\n", my_tidx);
   pthread_mutex_unlock(&mutex);
-  printf("child released mutex\n");
+  printf("child %d released mutex\n", my_tidx);
   sleep(10);
-  printf("child exiting\n");
+  printf("child %d exiting\n", my_tidx);
   return NULL;
 }
 
@@ -73,9 +78,14 @@ int main(int argc, char *argv[]) {
     timeout.tv_sec = (time_t) t;
   }
   printf("timout(%ld sec %ld msec)\n", (long) timeout.tv_sec, (long) timeout.tv_nsec);
-
-  pthread_t thread;  
-  pthread_create(&thread, NULL, run, NULL);
+  
+  pthread_t thread[N_THREADS];
+  int tidx[N_THREADS];
+  for (size_t i = 0; i < N_THREADS; i++) {
+    tidx[i] = (int) i;
+    retcode = pthread_create(thread + i, NULL, run, (void *) (tidx + i));
+    handle_thread_error(retcode, "creating thread failed", PROCESS_EXIT);
+  }
   printf("in parent: setting up\n");
 
   pthread_mutex_init(&mutex, NULL);
@@ -93,7 +103,11 @@ int main(int argc, char *argv[]) {
   pthread_mutex_unlock(&mutex);
   printf("parent released mutex\n");
   printf("parent waiting for child to terminate\n");
-  pthread_join(thread, NULL);
+  for (size_t i = 0; i < N_THREADS; i++) {
+    retcode = pthread_join(thread[i], NULL);
+    handle_thread_error(retcode, "join failed", PROCESS_EXIT);
+    printf("joined thread %d\n", (int) i);
+  }
   pthread_mutex_destroy(&mutex);
   printf("done\n");
   exit(0);
