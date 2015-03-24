@@ -20,7 +20,7 @@ Write a program that starts a daemon process for calculating squares:
 * the same named pipe can then be used to send numbers to the daemon
 * it will write the squares of the numbers to a file (or another named pipe) given on the command line
 * sending "Q" or "QUIT" terminates the daemon
-* other non-numberic messages are ignored
+* other non-numeric messages are ignored
 
 H4 (2015-03-09)
 Write a program that starts a daemon process.
@@ -32,3 +32,18 @@ Write a program that starts a daemon process.
 * daemon sends a signal back to parent that it has become active as daemon
 * parent terminates on receipt of that signal
 * hints: either use pgid or come up with some mechanism to communicate pid of daemon to parent.
+
+H5 (2015-03-16)
+Write a program that can run with the following options:
+* my_prog -s sets up shared memory and semaphores
+* my_prog -c cleans up shared memory and semaphores
+* my_prog name < some_file reads shorts (byte pairs) from some_file and counts the frequencies of occurrences of values.
+* these are accumulated in some shared memory structure, secured by semaphores.
+* in the end the result including the calculations and counts of the current run of my_prog are shown. Entries with 0 occurrences may be suppressed.
+
+H6 (2015-03-23)
+Write a program that can run with a large number of files as command line arguments
+* for each command line argument a thread is started that reads the file with that name.
+* each thread reads shorts (byte pairs) from its file and counts the frequencies of occurrences of values.
+* these are accumulated in some memory structure, secured by mutexes or rwlocks.
+* in the end the result including the calculations and counts of the current run of my_prog are shown. Entries with 0 occurrences may be suppressed.
