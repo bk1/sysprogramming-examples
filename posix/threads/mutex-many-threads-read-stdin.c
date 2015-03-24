@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
   int tidx[N_THREADS];
   for (size_t i = 0; i < N_THREADS; i++) {
     tidx[i] = (int) i;
-    retcode = pthread_create(thread + i, NULL, run, (void *) (tidx + i));
+    retcode = pthread_create(thread + i, NULL, run, (void *) (tidx + i)); // equivalent: ((void *) tidx) + sizeof(int)*i
     handle_thread_error(retcode, "creating thread failed", PROCESS_EXIT);
   }
   printf("in parent: setting up\n");
@@ -111,7 +111,6 @@ int main(int argc, char *argv[]) {
         break;
       } else if (retcode == ETIMEDOUT) {
         printf("timed out in parent\n");
-        sleep(1);
       } else {
         handle_thread_error(retcode, "parent failed (timed)lock", PROCESS_EXIT);
       }
