@@ -259,3 +259,4 @@ posix/lib/libcitsky.a
 posix/io/ha1-write-squares-to-file
 sysprog-src.tar.gz
 posix/threads/mutex-many-threads-read-stdin
+posix/threads/thread-sort-bytes
