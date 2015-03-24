@@ -66,7 +66,7 @@ void print_data() {
       printf("%c", x);
       w++;
     }
-    if (w > 180) {
+    if (w > 168) {
       printf("\n");
       w = 0;
     }
