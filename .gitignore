@@ -260,3 +260,6 @@ posix/io/ha1-write-squares-to-file
 sysprog-src.tar.gz
 posix/threads/mutex-many-threads-read-stdin
 posix/threads/thread-sort-bytes
+posix/threads/thread-memory-count-shorts-mutex
+posix/threads/thread-sort-shorts
+win32/startup10.bat
