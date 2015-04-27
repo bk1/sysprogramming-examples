@@ -4,6 +4,8 @@
 *.log-backup
 *.log.count
 *.o
+*.exe
+*.obj
 *~
 ._*
 *.class
