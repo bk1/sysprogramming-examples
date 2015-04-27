@@ -47,3 +47,12 @@ Write a program that can run with a large number of files as command line argume
 * each thread reads shorts (byte pairs) from its file and counts the frequencies of occurrences of values.
 * these are accumulated in some memory structure, secured by mutexes or rwlocks.
 * in the end the result including the calculations and counts of the current run of my_prog are shown. Entries with 0 occurrences may be suppressed.
+
+H7 (2015-04-27)
+Write a program for MS-Windows (Win32 or Win64) that
+* opens a file
+* reads the file
+* does a sleep of a few seconds
+* closes the file again.
+Depending on the command line arguments, the file is opened exclusively or sharable. The actual file can be hard coded or preferably be given as command line argument.
+Run the program multiple times simultanously to see the effect of exclusive and sharable usage of a file.
