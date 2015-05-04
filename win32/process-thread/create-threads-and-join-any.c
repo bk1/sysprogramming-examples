@@ -47,8 +47,6 @@ DWORD threadId[5];
 int main(int argc, char *argv[]) {
   BOOL result;
 
-  HANDLE fh1, fh2;
-
   DWORD errorCode;
   DWORD nWritten;
   
@@ -74,7 +72,7 @@ int main(int argc, char *argv[]) {
   for (i = 0; i  < 5; i++) {
     DWORD result = WaitForMultipleObjects(5 - i, threadHandle, FALSE, MAX_TIME);
     if (0 <= result && result < 5) {
-      printf("thread %d result=%u ", i, result);
+      printf("thread %d result=%u\n", i, result);
       for (j = result; j < 5; j++) {
         threadHandle[j] = threadHandle[j+1];
       }

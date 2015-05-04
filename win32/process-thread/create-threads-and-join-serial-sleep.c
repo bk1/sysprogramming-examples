@@ -24,6 +24,8 @@ struct tdata {
   HANDLE handle;
 };
 
+HANDLE mutex;
+
 VOID HandleError(LPCTSTR msg, BOOL failure) {
   if (failure) {
     DWORD errorCode =GetLastError();
@@ -48,6 +50,19 @@ VOID HandleError(LPCTSTR msg, BOOL failure) {
 }
 
 
+VOID MySleep(DWORD duration) {
+  printf("wanting to sleep %d\n", duration);
+  DWORD result = WaitForSingleObject(mutex, INFINITE);
+  if (result != WAIT_OBJECT_0) {
+    HandleError("wait failed", TRUE);
+  }
+  printf("starting to sleep %d\n", duration);
+  Sleep(duration);
+  printf("slept %d\n", duration);
+  ReleaseMutex(mutex);
+  printf("released mutex after having slept %d\n", duration);
+}
+
 DWORD WINAPI MyThreadFunction(LPVOID param);
 
 DWORD threadId[5];
@@ -56,11 +71,12 @@ int main(int argc, char *argv[]) {
   BOOL result;
 
   DWORD errorCode;
-  DWORD nWritten;
-  
+
+  mutex = CreateMutex(NULL, FALSE, "mymutex");
+
   struct tdata threadData[5];
 
-  DWORD MAX_TIME = 100000;
+  DWORD MAX_TIME = 10000;
 
   int i;
   for (i = 0; i < 5; i++) {
@@ -76,12 +92,12 @@ int main(int argc, char *argv[]) {
                                    &threadData[i].tid); /* LPDWORD lpThreadId */
     printf("thread created i=%d threadId=%d i=%d\n", i, threadData[i].tid);
   }
-  Sleep(1000);
+  MySleep(1000);
   HANDLE handles[5];
   for (i = 0; i < 5; i++) {
     handles[i] = threadData[i].handle;
   }
-  result = WaitForMultipleObjects(5, handles, TRUE, MAX_TIME);
+  result = WaitForMultipleObjects(5, handles, TRUE, 10*MAX_TIME);
   printf("threads waited result=%ud ", result);
   switch (result) {
   case WAIT_ABANDONED:
@@ -100,7 +116,7 @@ int main(int argc, char *argv[]) {
     printf("OTHER");
   }
   printf("\n");
-  Sleep(3000);
+  MySleep(3000);
   ExitProcess(0);
 }
 
@@ -111,7 +127,7 @@ DWORD WINAPI MyThreadFunction(LPVOID param) {
   tdata->tnum = num;
   DWORD duration = tdata->duration;
   printf("in thread i=%d n=%d t=%d\n", (int) tdata->idx, tdata->tnum, tdata->tid);
-  Sleep(duration);
+  MySleep(duration);
   printf("done with thread i=%d n=%d t=%d\n", (int) tdata->idx, tdata->tnum, tdata->tid);
   return 0;
 }
