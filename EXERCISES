@@ -56,3 +56,11 @@ Write a program for MS-Windows (Win32 or Win64) that
 * closes the file again.
 Depending on the command line arguments, the file is opened exclusively or sharable. The actual file can be hard coded or preferably be given as command line argument.
 Run the program multiple times simultanously to see the effect of exclusive and sharable usage of a file.
+
+H8 (2015-05-04)
+Write a program for MS-Windows like H6
+The program that can run with a large number of files as command line arguments
+* for each command line argument a thread is started that reads the file with that name.
+* each thread reads shorts (byte pairs) from its file and counts the frequencies of occurrences of values.
+* these are accumulated in some memory structure, secured by critical section, mutexes, semaphores or rwlocks.
+* in the end the result including the calculations and counts of the current run of my_prog are shown. Entries with 0 occurrences may be suppressed.
