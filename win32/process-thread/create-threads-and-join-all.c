@@ -71,27 +71,25 @@ int main(int argc, char *argv[]) {
     printf("thread created threadId=%d i=%d p=%d\n", threadId[i], i, param[i]);
   }
   Sleep(1000);
-  for (i = 0; i  < 5; i++) {
-    DWORD result = WaitForSingleObject(threadHandle[i], MAX_TIME);
-    printf("thread %d result=%ud ", i, result);
-    switch (result) {
-    case WAIT_ABANDONED:
-      printf("WAIT_ABANDONED");
-      break;
-    case WAIT_OBJECT_0:
-      printf("WAIT_OBJECT_0");
-      break;
-    case WAIT_TIMEOUT:
-      printf("WAIT_TIMEOUT");
-      break;
-    case WAIT_FAILED:
-      printf("WAIT_FAILED");
-      break;
-    default:
-      printf("OTHER");
-    }
-    printf("\n");
+  result = WaitForMultipleObjects(5, threadHandle, TRUE, MAX_TIME);
+  printf("threads waited result=%ud ", result);
+  switch (result) {
+  case WAIT_ABANDONED:
+    printf("WAIT_ABANDONED");
+    break;
+  case WAIT_OBJECT_0:
+    printf("WAIT_OBJECT_0");
+    break;
+  case WAIT_TIMEOUT:
+    printf("WAIT_TIMEOUT");
+    break;
+  case WAIT_FAILED:
+    printf("WAIT_FAILED");
+    break;
+  default:
+    printf("OTHER");
   }
+  printf("\n");
   Sleep(3000);
   ExitProcess(0);
 }

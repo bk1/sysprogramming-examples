@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
 
   DWORD MAX_TIME = 100000;
 
-  int i;
+  int i,j;
   for (i = 0; i < 5; i++) {
     param[i] = rand() % MAX_TIME;
     printf("creating thread i=%d p=%d\n", i, param[i]);
@@ -72,8 +72,16 @@ int main(int argc, char *argv[]) {
   }
   Sleep(1000);
   for (i = 0; i  < 5; i++) {
-    DWORD result = WaitForSingleObject(threadHandle[i], MAX_TIME);
-    printf("thread %d result=%ud ", i, result);
+    DWORD result = WaitForMultipleObjects(5 - i, threadHandle, FALSE, MAX_TIME);
+    if (0 <= result && result < 5) {
+      printf("thread %d result=%u ", i, result);
+      for (j = result; j < 5; j++) {
+        threadHandle[j] = threadHandle[j+1];
+      }
+      continue;
+    }
+      
+    printf("thread %d result=%u ", i, result);
     switch (result) {
     case WAIT_ABANDONED:
       printf("WAIT_ABANDONED");
