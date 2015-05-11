@@ -69,6 +69,7 @@ int main(int argc, char *argv[]) {
                                        lsize); /* _In_ SIZE_T dwNumberOfBytesToMap */
   int *iptr = (int *) sptr;
   int i;
+  Sleep(1000);
   for (i = 0; i < 20; i++) {
     int y = iptr[i];
     printf("x=%4d y=%8d\n", i, y);
