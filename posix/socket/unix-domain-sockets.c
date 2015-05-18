@@ -65,7 +65,7 @@ void *server(void *arg) {
     ssize_t sent_size = write(socket, buff, RCVBUFSIZE - 1);
     handle_error(sent_size, "write", PROCESS_EXIT);
   }
-
+  close(socket);
   return NULL;
 }
 
@@ -79,7 +79,7 @@ void *client(void *arg) {
     int size = write(socket, buff, RCVBUFSIZE - 1);
     handle_error(size, "write() failed", PROCESS_EXIT);
     size = read(socket, buff, RCVBUFSIZE - 1);
-    handle_error(size, "write() failed", PROCESS_EXIT);
+    handle_error(size, "read() failed", PROCESS_EXIT);
     if (size == 0) {
       /* zero indicates end of transmission */
       break;
