@@ -10,18 +10,23 @@
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <fcntl.h>  
+#include <fcntl.h>
+#include <errno.h>
+
+
+#include <itskylib.h>
 
 enum blocking { BLOCKING, NON_BLOCKING };
 
 int setup = 0;
 
 void do_blocking() {
-  while(1) {
+  while(TRUE) {
     char input_string[256];
     char *p;
-    unsigned int inputStringLen; 
-    fgets(input_string, sizeof(input_string), stdin);       
+    unsigned int inputStringLen;
+    char *is = fgets(input_string, sizeof(input_string), stdin);
+    handle_ptr_error(is, "fgets", PROCESS_EXIT);
     if ((p = strchr(input_string, '\n')) != NULL) {
       *p = '\0';
     }
@@ -30,20 +35,24 @@ void do_blocking() {
 }
 
 void do_non_blocking() {
-  fcntl(0, F_SETFL, fcntl(0, F_GETFL) | O_NONBLOCK);
-  while(1) {
+  int retcode = fcntl(0, F_SETFL, fcntl(0, F_GETFL) | O_NONBLOCK);
+  handle_error(retcode, "fctnl F_SETFL O_NONBLOCK", PROCESS_EXIT);
+  while(TRUE) {
     char input_string[256];
     char *p;
     unsigned int inputStringLen;
     memset(input_string, 0, sizeof(input_string));
-    fgets(input_string, sizeof(input_string), stdin);       
+    char *is = fgets(input_string, sizeof(input_string), stdin);
+    if (is == NULL && errno != EAGAIN) {
+      handle_ptr_error(is, "fgets", PROCESS_EXIT);
+    }
     if ((p = strchr(input_string, '\n')) != NULL) {
       *p = '\0';
     }
-    if (input_string[0] == 0) {
+    if (input_string[0] == (char) 0) {
       printf("You entered nothing!\n");
     } else {
-      printf("You entered: %s\n",input_string);
+      printf("You entered: %s\n", input_string);
     }
     sleep(1);
   }
