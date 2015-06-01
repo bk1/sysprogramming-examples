@@ -21,7 +21,7 @@ void usage(char *msg, char *argv0) {
   if (msg != NULL) {
     printf("%s\n\n", msg);
   }
-  printf("USAGE:\n\n%s buffersize sec usec inpipe1 inpipe2 ... inpipen\n", argv0);
+  printf("USAGE:\n\n%s buffersize sec nsec inpipe1 inpipe2 ... inpipen\n", argv0);
   if (msg != NULL) {
     exit(1);
   }
@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
   int buffer_size = atoi(argv[1]);
   char *buffer = malloc(buffer_size + 1);
   int sec = atoi(argv[2]);
-  int usec = atoi(argv[3]);
+  int nsec = atoi(argv[3]);
   int npipes = argc-4;
 
   int fdin[npipes];
@@ -55,16 +55,17 @@ int main(int argc, char **argv) {
     FD_SET(fdin[i], &fdin_set);
     max_fdin = fdin[i];
   }
-
+ 
   int nfds = max_fdin + 1;
 
-  if (sec >= 0 && usec >= 0) {
-    struct timeval timeout;
+  sigset_t *mask = NULL;
+  if (sec >= 0 && nsec >= 0) {
+    struct timespec timeout;
     timeout.tv_sec = sec;
-    timeout.tv_usec = usec;
-    retcode = select(nfds, &fdin_set, NULL, NULL, &timeout);
+    timeout.tv_nsec = nsec;
+    retcode = pselect(nfds, &fdin_set, NULL, NULL, &timeout, mask);
   } else {
-    retcode = select(nfds, &fdin_set, NULL, NULL, NULL);
+    retcode = pselect(nfds, &fdin_set, NULL, NULL, NULL, mask);
   }
   handle_error(retcode, "select", PROCESS_EXIT);
   printf("found entries for %d descriptors\n", retcode);
