@@ -66,3 +66,20 @@ The program that can run with a large number of files as command line arguments
 * in the end the result including the calculations and counts of the current run of my_prog are shown. Entries with 0 occurrences may be suppressed.
 
 H9 (2015-05-18)
+Write a program that sorts shorts, like thread-sort-shorts.c, which can be used as starting point.
+Change it to a TCP-based Server socket-thread-sort-shorts-once.c
+Each connection results in a thread
+Client/Server can be seen from tcp-square-server.c and tcp-square-client.c
+Idea:  client program gets started, gets output content from server and displays it.
+Same output as thread-sort-once.c 
+
+2015-05-25 no lesson
+
+H10 (2015-06-01)
+Write a program that can run with a large number of files as command line arguments
+* for each command line argument an assynchronous read is started that reads the file with that name.
+* assynchronity is done using threads, not signals
+* each file is interpreted as sequence of shorts (byte pairs)
+* for each file the frequencies of occurrences of values are counted
+* these are accumulated in some memory structure
+* in the end the result including the calculations and counts of the current run of my_prog are shown. Entries with 0 occurrences may be suppressed.
