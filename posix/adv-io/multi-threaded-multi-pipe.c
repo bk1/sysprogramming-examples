@@ -23,6 +23,18 @@ int buffer_size;
 
 pthread_barrier_t start_barrier;
 
+void usage(char *msg, char *argv0) {
+  if (msg != NULL && strlen(msg) > 0) {
+    printf("%s\n\n", msg);
+  }
+  printf("USAGE:\n\n%s buffersize inpipe1 inpipe2 ... inpipen\n", argv0);
+  if (msg != NULL && strlen(msg) > 0) {
+    exit(1);
+  } else {
+    exit(0);
+  }
+}
+
 void *handle_pipe(void *targ) {
   char *name = (char *) targ;
   int retcode;
@@ -49,12 +61,17 @@ void *handle_pipe(void *targ) {
 
 int main(int argc, char **argv) {
   int retcode;
+  if (argc == 2 && strcmp(argv[1], "--help") == 0) {
+    usage(NULL, argv[0]);
+  }
   if (argc < 3) {
-    printf("USAGE:\n\n%s buffersize inpipe1 inpipe2 ... inpipen\n", argv[0]);
-    exit(1);
+    usage("not enough arguments", argv[0]);
   }
 
   buffer_size = atoi(argv[1]);
+  if (buffer_size <= 0) {
+    usage("buffersize must be > 0", argv[0]);
+  }
   int nfds = argc-2;
   // printf("nfds=%d\n", nfds);
 

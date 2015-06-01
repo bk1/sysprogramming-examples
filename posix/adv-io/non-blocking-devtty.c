@@ -19,7 +19,7 @@
 const int SIZE = 256;
 const int SIZE_PLUS = 256 + 1;
 
-enum blocking { BLOCKING, NON_BLOCKING };
+enum blocking { BLOCKING, NON_BLOCKING, NONE };
 
 int read_mode = 0;
 int open_mode = 0;
@@ -54,7 +54,6 @@ void do_non_blocking(int fd) {
   handle_error(retcode, "fctnl F_SETFL O_NONBLOCK", PROCESS_EXIT);
   while(TRUE) {
     char input_string[SIZE_PLUS];
-    memset(input_string, 0, SIZE_PLUS);
     int retcode = read(fd, input_string, SIZE);
     if (retcode == 0) {
       break;
