@@ -47,7 +47,7 @@ void *handle_pipe(void *targ) {
   int fd = open(name, O_RDONLY);
   // printf("opened fd=%d for pipe name=%s\n", fd, name);
   handle_error(fd, "open", THREAD_EXIT);
-  char buffer[buffer_size + 1];
+  char *buffer = (char *) malloc((buffer_size + 1) * sizeof(char));
   // printf("starting thread on fd=%d\n", fd);
   int n = read(fd, buffer, buffer_size);
   handle_error(n, "read", THREAD_EXIT);
