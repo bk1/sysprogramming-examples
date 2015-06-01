@@ -53,7 +53,10 @@ int main(int argc, char **argv) {
     fdin[i] = open(argv[4+i], O_RDONLY | O_NONBLOCK);
     handle_error(fdin[i], "open", PROCESS_EXIT);
     FD_SET(fdin[i], &fdin_set);
-    max_fdin = fdin[i];
+    // is always the case anyway because of the way file descriptors are allocated
+    if (fdin[i] > max_fdin) {
+      max_fdin = fdin[i];
+    }
   }
 
   int nfds = max_fdin + 1;

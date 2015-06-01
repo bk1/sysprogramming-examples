@@ -20,7 +20,20 @@
 
 int buffer_size;
 
+void usage(char *msg, char *argv0) {
+  if (msg != NULL && strlen(msg) > 0) {
+    printf("%s\n\n", msg);
+  }
+  printf("USAGE:\n\n%s buffersize inpipe1 inpipe2 ... inpipen\n", argv0);
+  if (msg != NULL && strlen(msg) > 0) {
+    exit(1);
+  } else {
+    exit(0);
+  }
+}
+
 void *handle_pipe_data(void *arg) {
+  printf("thread started\n");
   struct aiocb *aiocbp = (struct aiocb *) arg;
   int retcode = aio_error(aiocbp);
   handle_error(retcode, "aio_error", THREAD_EXIT);
@@ -34,18 +47,20 @@ void *handle_pipe_data(void *arg) {
 }
 
 int main(int argc, char **argv) {
-  int retcode;
+  if (argc == 2 && strcmp(argv[1], "--help") == 0) {
+    usage(NULL, argv[0]);
+  }
   if (argc < 3) {
-    printf("USAGE:\n\n%s buffersize inpipe1 inpipe2 ... inpipen\n", argv[0]);
+    usage("not enough arguments", argv[0]);
     exit(1);
   }
 
+  int retcode;
+
   buffer_size = atoi(argv[1]);
   int nfds = argc-2;
-  // printf("nfds=%d\n", nfds);
 
-  struct aiocb aiocbs[nfds];
-
+  struct aiocb *aiocbs = (struct aiocb *) malloc(nfds * sizeof(struct aiocb));
 
   struct sigevent sigevent;
   memset(&sigevent, 0, sizeof(sigevent));
@@ -54,21 +69,14 @@ int main(int argc, char **argv) {
   
   for (int i = 0; i < nfds; i++) {
     char *name = argv[2+i];
-    // printf("creating thread for pipe name=%s\n", name);
     int fd = open(name, O_RDONLY | O_NONBLOCK);
+
     handle_error(fd, "open", PROCESS_EXIT);
     int flags = fcntl(fd, F_GETFL, 0);
     handle_error(flags, "fcntl F_GETFL", PROCESS_EXIT);
-    printf("old flags=%0x\n", flags);
     flags &= ~O_NONBLOCK;
-    printf("new flags=%0x\n", flags);
     retcode = fcntl(fd, F_SETFL, flags);
-    flags = fcntl(fd, F_GETFL, 0);
-    handle_error(flags, "fcntl F_GETFL", PROCESS_EXIT);
-    printf("changed flags=%0x\n", flags);
-    //char buffer[buffer_size];
-    //read(fd, buffer, buffer_size);
-    handle_error(retcode, "fcntl F_SETFL", PROCESS_EXIT);
+
     memset(&(aiocbs[i]), 0, sizeof(struct aiocb));
     sigevent.sigev_value.sival_ptr = &aiocbs[i];
     aiocbs[i].aio_fildes = fd;
@@ -80,7 +88,7 @@ int main(int argc, char **argv) {
     handle_error(retcode, "aio_read", PROCESS_EXIT);
   }
   /* let the child threads do the work */
-  // printf("exiting main thread\n");
+  printf("all assync reads started\n");
   sleep(120);
   exit(0);
 }
