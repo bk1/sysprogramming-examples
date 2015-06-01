@@ -64,3 +64,5 @@ The program that can run with a large number of files as command line arguments
 * each thread reads shorts (byte pairs) from its file and counts the frequencies of occurrences of values.
 * these are accumulated in some memory structure, secured by critical section, mutexes, semaphores or rwlocks.
 * in the end the result including the calculations and counts of the current run of my_prog are shown. Entries with 0 occurrences may be suppressed.
+
+H9 (2015-05-18)
