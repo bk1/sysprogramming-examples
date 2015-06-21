@@ -48,7 +48,10 @@ Write a program that can run with a large number of files as command line argume
 * these are accumulated in some memory structure, secured by mutexes or rwlocks.
 * in the end the result including the calculations and counts of the current run of my_prog are shown. Entries with 0 occurrences may be suppressed.
 
-H7 (2015-04-27)
+H7 (2015-04-20)
+* Get Win32 or Win64-Environment working
+
+H8 (2015-04-27)
 Write a program for MS-Windows (Win32 or Win64) that
 * opens a file
 * reads the file
@@ -57,7 +60,10 @@ Write a program for MS-Windows (Win32 or Win64) that
 Depending on the command line arguments, the file is opened exclusively or sharable. The actual file can be hard coded or preferably be given as command line argument.
 Run the program multiple times simultanously to see the effect of exclusive and sharable usage of a file.
 
-H8 (2015-05-04)
+H9 (2015-05-04)
+* Prepare mid exam
+
+H10 (2015-05-11)
 Write a program for MS-Windows like H6
 The program that can run with a large number of files as command line arguments
 * for each command line argument a thread is started that reads the file with that name.
@@ -65,7 +71,8 @@ The program that can run with a large number of files as command line arguments
 * these are accumulated in some memory structure, secured by critical section, mutexes, semaphores or rwlocks.
 * in the end the result including the calculations and counts of the current run of my_prog are shown. Entries with 0 occurrences may be suppressed.
 
-H9 (2015-05-18)
+
+H11 (2015-05-18)
 Write a program that sorts shorts, like thread-sort-shorts.c, which can be used as starting point.
 Change it to a TCP-based Server socket-thread-sort-shorts-once.c
 Each connection results in a thread
@@ -75,7 +82,7 @@ Same output as thread-sort-once.c
 
 2015-05-25 no lesson
 
-H10 (2015-06-01)
+H12 (2015-06-01)
 Write a program that can run with a large number of files as command line arguments
 * for each command line argument an assynchronous read is started that reads the file with that name.
 * assynchronity is done using threads, not signals
