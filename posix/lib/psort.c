@@ -90,7 +90,7 @@ void *psort_thread_run(void *ptr) {
   }
 
   time_t t1 = time(NULL);
-  printf("idx=%d tid=%ld sorted: t=%ld\n", idx, (long) pthread_self(), (long)(t1-t0));
+  // printf("idx=%d tid=%ld sorted: t=%ld\n", idx, (long) pthread_self(), (long)(t1-t0));
 
   for (unsigned int step = 1; step < thread_count; step *= 2) {
     // printf("idx=%d waiting for barrier\n", idx);
@@ -99,7 +99,7 @@ void *psort_thread_run(void *ptr) {
       handle_thread_error(retcode, "pthread_barrier_wait", THREAD_EXIT);
     }
     time_t t1 = time(NULL);
-    printf("idx=%d tid=%ld waited for barrier step=%d t=%ld\n", idx, (long) pthread_self(), (int) step, (long)(t1-t0));
+    // printf("idx=%d tid=%ld waited for barrier step=%d t=%ld\n", idx, (long) pthread_self(), (int) step, (long)(t1-t0));
 
     if (idx % (2*step) == 0) {
       int other_idx = idx + step;
@@ -154,10 +154,10 @@ void *psort_thread_run(void *ptr) {
       }
     }
     t1 = time(NULL);
-    printf("idx=%d tid=%ld merged step=%d t=%ld\n", idx, (long) pthread_self(), (int) step, (long)(t1-t0));
+    // printf("idx=%d tid=%ld merged step=%d t=%ld\n", idx, (long) pthread_self(), (int) step, (long)(t1-t0));
   }
   t1 = time(NULL);
-  printf("idx=%d tid=%ld done t=%ld\n", idx, (long) pthread_self(), (long)(t1-t0));
+  // printf("idx=%d tid=%ld done t=%ld\n", idx, (long) pthread_self(), (long)(t1-t0));
   return (void *) NULL;
 }
 
