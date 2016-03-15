@@ -34,17 +34,84 @@ int clean_suite1(void) {
   return 0;
 }
 
+void parallel_sort_any_r(enum sort_type selected_sort_type,
+                         void *base,
+                         size_t nmemb,
+                         size_t size,
+                         compare_fun3 compare,
+                         void *argc,
+                         metric_fun2 metric,
+                         void *argm,
+                         unsigned int thread_count) {
+  switch (selected_sort_type) {
+  case HEAP_SORT:
+    parallel_hsort_r(base,
+                     nmemb,
+                     size,
+                     compare,
+                     argc,
+                     thread_count);
+    break; 
+  case TERNARY_HEAP_SORT:
+    parallel_ternary_hsort_r(base,
+                             nmemb,
+                             size,
+                             compare,
+                             argc,
+                             thread_count);
+    break; 
+  case QUICK_SORT:
+    parallel_qsort_r(base,         
+                     nmemb,        
+                     size,         
+                     compare,      
+                     argc,         
+                     thread_count);
+    break; 
+    case FLASH_SORT:
+      parallel_fsort_r(base,
+                       nmemb,
+                       size,
+                       compare,
+                       argc,
+                       metric,
+                       argm,
+                       thread_count);
+      break; 
+  case INSERTION_SORT:
+    parallel_isort_r(base,         
+                     nmemb,        
+                     size,         
+                     compare,      
+                     argc,         
+                     thread_count);
+    break; 
+  case MERGE_SORT:
+    parallel_msort_r(base,         
+                     nmemb,        
+                     size,         
+                     compare,      
+                     argc,         
+                     thread_count);
+    break;
+  default:
+    fprintf(stderr, "invalid parameter selected_sort_type=%d\n", selected_sort_type);
+    exit(1);
+  }
+}
+
+static const enum sort_type SORT_TYPES[] =  { HEAP_SORT, TERNARY_HEAP_SORT, QUICK_SORT, FLASH_SORT, INSERTION_SORT, MERGE_SORT };
+static const size_t ST_COUNT = 6;
+
 /* Simple test of sort with empty array
  */
 void test_sort_empty() {
   int arr[0];
   for (int thread_count = 1; thread_count < 5; thread_count++) {
-    parallel_ternary_hsort_r(arr, 0, sizeof(int), compare_int_full, NULL, thread_count);
-    parallel_hsort_r(arr, 0, sizeof(int), compare_int_full, NULL, thread_count);
-    parallel_fsort_r(arr, 0, sizeof(int), compare_int_full, NULL, metric_int_full, NULL, thread_count);
-    parallel_qsort_r(arr, 0, sizeof(int), compare_int_full, NULL, thread_count);
-    parallel_isort_r(arr, 0, sizeof(int), compare_int_full, NULL, thread_count);
-    parallel_msort_r(arr, 0, sizeof(int), compare_int_full, NULL, thread_count);
+    for (int st = 0; st < ST_COUNT; st++) {
+      enum sort_type ste = SORT_TYPES[st];
+      parallel_sort_any_r(ste, arr, 0, sizeof(int), compare_int_full, NULL, metric_int_full, NULL, thread_count);
+    }
   }
 }
 
@@ -53,18 +120,11 @@ void test_sort_empty() {
 void test_sort_one() {
   int arr[] = { 77 };
   for (int thread_count = 1; thread_count < 5; thread_count++) {
-    parallel_hsort_r(arr, 1, sizeof(int), compare_int_full, NULL, thread_count);
-    CU_ASSERT_EQUAL(arr[0], 77);
-    parallel_ternary_hsort_r(arr, 1, sizeof(int), compare_int_full, NULL, thread_count);
-    CU_ASSERT_EQUAL(arr[0], 77);
-    parallel_fsort_r(arr, 1, sizeof(int), compare_int_full, NULL, metric_int_full, NULL, thread_count);
-    CU_ASSERT_EQUAL(arr[0], 77);
-    parallel_qsort_r(arr, 1, sizeof(int), compare_int_full, NULL, thread_count);
-    CU_ASSERT_EQUAL(arr[0], 77);
-    parallel_isort_r(arr, 1, sizeof(int), compare_int_full, NULL, thread_count);
-    CU_ASSERT_EQUAL(arr[0], 77);
-    parallel_msort_r(arr, 1, sizeof(int), compare_int_full, NULL, thread_count);
-    CU_ASSERT_EQUAL(arr[0], 77);
+    for (int st = 0; st < ST_COUNT; st++) {
+      enum sort_type ste = SORT_TYPES[st];
+      parallel_sort_any_r(ste, arr, 1, sizeof(int), compare_int_full, NULL, metric_int_full, NULL, thread_count);
+      CU_ASSERT_EQUAL(arr[0], 77);
+    }
   }
 }
 
@@ -73,30 +133,14 @@ void test_sort_one() {
 void test_sort_two_asc() {
   int arr[] = { 77, 98 };
   for (int thread_count = 1; thread_count < 5; thread_count++) {
-    // printf("thread_count=%d hsort:\n", thread_count);
-    parallel_hsort_r(arr, 2, sizeof(int), compare_int_full, NULL, thread_count);
-    CU_ASSERT_EQUAL(arr[0], 77);
-    CU_ASSERT_EQUAL(arr[1], 98);
-    // printf("thread_count=%d ternary_hsort:\n", thread_count);
-    parallel_ternary_hsort_r(arr, 2, sizeof(int), compare_int_full, NULL, thread_count);
-    CU_ASSERT_EQUAL(arr[0], 77);
-    CU_ASSERT_EQUAL(arr[1], 98);
-    // printf("thread_count=%d fsort:\n", thread_count);
-    parallel_fsort_r(arr, 2, sizeof(int), compare_int_full, NULL, metric_int_full, NULL, thread_count);
-    CU_ASSERT_EQUAL(arr[0], 77);
-    CU_ASSERT_EQUAL(arr[1], 98);
-    // printf("thread_count=%d qsort:\n", thread_count);
-    parallel_qsort_r(arr, 2, sizeof(int), compare_int_full, NULL, thread_count);
-    CU_ASSERT_EQUAL(arr[0], 77);
-    CU_ASSERT_EQUAL(arr[1], 98);
-    // printf("thread_count=%d isort:\n", thread_count);
-    parallel_isort_r(arr, 2, sizeof(int), compare_int_full, NULL, thread_count);
-    CU_ASSERT_EQUAL(arr[0], 77);
-    CU_ASSERT_EQUAL(arr[1], 98);
-    // printf("thread_count=%d msort:\n", thread_count);
-    parallel_msort_r(arr, 2, sizeof(int), compare_int_full, NULL, thread_count);
-    CU_ASSERT_EQUAL(arr[0], 77);
-    CU_ASSERT_EQUAL(arr[1], 98);
+    for (int st = 0; st < ST_COUNT; st++) {
+      enum sort_type ste = SORT_TYPES[st];
+      parallel_sort_any_r(ste, arr, 2, sizeof(int), compare_int_full, NULL, metric_int_full, NULL, thread_count);
+      CU_ASSERT_EQUAL(arr[0], 77);
+      CU_ASSERT_EQUAL(arr[1], 98);
+      arr[0] = 77;
+      arr[1] = 98;
+    }
   }
 }
 
@@ -105,40 +149,14 @@ void test_sort_two_asc() {
 void test_sort_two_desc() {
   int arr[] = { 98, 77 };
   for (int thread_count = 1; thread_count < 5; thread_count++) {
-    // printf("thread_count=%d hsort:\n", thread_count);
-    parallel_hsort_r(arr, 2, sizeof(int), compare_int_full, NULL, thread_count);
-    CU_ASSERT_EQUAL(arr[0], 77);
-    CU_ASSERT_EQUAL(arr[1], 98);
-    arr[0] = 98;
-    arr[1] = 77;
-    // printf("thread_count=%d hsort:\n", thread_count);
-    parallel_ternary_hsort_r(arr, 2, sizeof(int), compare_int_full, NULL, thread_count);
-    CU_ASSERT_EQUAL(arr[0], 77);
-    CU_ASSERT_EQUAL(arr[1], 98);
-    arr[0] = 98;
-    arr[1] = 77;
-    // printf("thread_count=%d hsort:\n", thread_count);
-    parallel_fsort_r(arr, 2, sizeof(int), compare_int_full, NULL, metric_int_full, NULL, thread_count);
-    CU_ASSERT_EQUAL(arr[0], 77);
-    CU_ASSERT_EQUAL(arr[1], 98);
-    arr[0] = 98;
-    arr[1] = 77;
-    // printf("thread_count=%d hsort:\n", thread_count);
-    parallel_qsort_r(arr, 2, sizeof(int), compare_int_full, NULL, thread_count);
-    CU_ASSERT_EQUAL(arr[0], 77);
-    CU_ASSERT_EQUAL(arr[1], 98);
-    arr[0] = 98;
-    arr[1] = 77;
-    // printf("thread_count=%d hsort:\n", thread_count);
-    parallel_isort_r(arr, 2, sizeof(int), compare_int_full, NULL, thread_count);
-    CU_ASSERT_EQUAL(arr[0], 77);
-    CU_ASSERT_EQUAL(arr[1], 98);
-    arr[0] = 98;
-    arr[1] = 77;
-    // printf("thread_count=%d hsort:\n", thread_count);
-    parallel_msort_r(arr, 2, sizeof(int), compare_int_full, NULL, thread_count);
-    CU_ASSERT_EQUAL(arr[0], 77);
-    CU_ASSERT_EQUAL(arr[1], 98);
+    for (int st = 0; st < ST_COUNT; st++) {
+      enum sort_type ste = SORT_TYPES[st];
+      parallel_sort_any_r(ste, arr, 2, sizeof(int), compare_int_full, NULL, metric_int_full, NULL, thread_count);
+      CU_ASSERT_EQUAL(arr[0], 77);
+      CU_ASSERT_EQUAL(arr[1], 98);
+      arr[0] = 98;
+      arr[1] = 77;
+    }
   }
 }
 
@@ -147,24 +165,12 @@ void test_sort_two_desc() {
 void test_sort_two_same() {
   int arr[] = { 88, 88 };
   for (int thread_count = 1; thread_count < 5; thread_count++) {
-    parallel_hsort_r(arr, 2, sizeof(int), compare_int_full, NULL, thread_count);
-    CU_ASSERT_EQUAL(arr[0], 88);
-    CU_ASSERT_EQUAL(arr[1], 88);
-    parallel_ternary_hsort_r(arr, 2, sizeof(int), compare_int_full, NULL, thread_count);
-    CU_ASSERT_EQUAL(arr[0], 88);
-    CU_ASSERT_EQUAL(arr[1], 88);
-    parallel_fsort_r(arr, 2, sizeof(int), compare_int_full, NULL, metric_int_full, NULL, thread_count);
-    CU_ASSERT_EQUAL(arr[0], 88);
-    CU_ASSERT_EQUAL(arr[1], 88);
-    parallel_qsort_r(arr, 2, sizeof(int), compare_int_full, NULL, thread_count);
-    CU_ASSERT_EQUAL(arr[0], 88);
-    CU_ASSERT_EQUAL(arr[1], 88);
-    parallel_isort_r(arr, 2, sizeof(int), compare_int_full, NULL, thread_count);
-    CU_ASSERT_EQUAL(arr[0], 88);
-    CU_ASSERT_EQUAL(arr[1], 88);
-    parallel_msort_r(arr, 2, sizeof(int), compare_int_full, NULL, thread_count);
-    CU_ASSERT_EQUAL(arr[0], 88);
-    CU_ASSERT_EQUAL(arr[1], 88);
+    for (int st = 0; st < ST_COUNT; st++) {
+      enum sort_type ste = SORT_TYPES[st];
+      parallel_sort_any_r(ste, arr, 2, sizeof(int), compare_int_full, NULL, metric_int_full, NULL, thread_count);
+      CU_ASSERT_EQUAL(arr[0], 88);
+      CU_ASSERT_EQUAL(arr[1], 88);
+    }
   }
 }
 
@@ -203,97 +209,27 @@ void print_arr(int *arr, int n) {
 }
 
 void check_three(int i, int j, int k) {
-  int harr[3];
-  int qarr[3];
-  int tarr[3];
-  int farr[3];
-  int iarr[3];
-  int marr[3];
   int master_arr[3];
+  int arr[3];
   master_arr[0] = i;
   master_arr[1] = j;
   master_arr[2] = k;
   /* we assume that qsort is quite correct */
   qsort_r(master_arr, 3, sizeof(int), compare_int_full, NULL);
+  CU_ASSERT(master_arr[0] <= master_arr[1]);
+  CU_ASSERT(master_arr[1] <= master_arr[2]);
 
   for (int thread_count = 1; thread_count < 5; thread_count++) {
-    qarr[0] = i;
-    qarr[1] = j;
-    qarr[2] = k;
-    parallel_qsort_r(qarr, 3, sizeof(int), compare_int_full, NULL, thread_count);
-    /* make some incomplete check anyway */
-    CU_ASSERT(master_arr[0] <= master_arr[1]);
-    CU_ASSERT(master_arr[1] <= master_arr[2]);
-
-    harr[0] = i;
-    harr[1] = j;
-    harr[2] = k;
-    parallel_hsort_r(harr, 3, sizeof(int), compare_int_full, NULL, thread_count);
-    CU_ASSERT_EQUAL(harr[0], master_arr[0]);
-    CU_ASSERT_EQUAL(harr[1], master_arr[1]);
-    CU_ASSERT_EQUAL(harr[2], master_arr[2]);
-
-    tarr[0] = i;
-    tarr[1] = j;
-    tarr[2] = k;
-    parallel_ternary_hsort_r(tarr, 3, sizeof(int), compare_int_full, NULL, thread_count);
-    CU_ASSERT_EQUAL(tarr[0], master_arr[0]);
-    CU_ASSERT_EQUAL(tarr[1], master_arr[1]);
-    CU_ASSERT_EQUAL(tarr[2], master_arr[2]);
-
-    farr[0] = i;
-    farr[1] = j;
-    farr[2] = k;
-    parallel_fsort_r(farr, 3, sizeof(int), compare_int_full, NULL, metric_int_full, NULL, thread_count);
-    if (farr[0] != master_arr[0]) {
-      print_arr(farr, 3);
-      printf(": fsort: i=%d j=%d k=%d: farr[0]=%d (%d)\n", i, j, k, farr[0], master_arr[0]);
+    for (int st = 0; st < ST_COUNT; st++) {
+      enum sort_type ste = SORT_TYPES[st];
+      arr[0] = i;
+      arr[1] = j;
+      arr[2] = k;
+      parallel_sort_any_r(ste, arr, 3, sizeof(int), compare_int_full, NULL, metric_int_full, NULL, thread_count);
+      CU_ASSERT_EQUAL(arr[0], master_arr[0]);
+      CU_ASSERT_EQUAL(arr[1], master_arr[1]);
+      CU_ASSERT_EQUAL(arr[2], master_arr[2]);
     }
-    CU_ASSERT_EQUAL(farr[0], master_arr[0]);
-    if (farr[1] != master_arr[1]) {
-      print_arr(farr, 3);
-      printf(": fsort: i=%d j=%d k=%d: farr[1]=%d (%d)\n", i, j, k, farr[1], master_arr[1]);
-    }
-    CU_ASSERT_EQUAL(farr[1], master_arr[1]);
-    if (farr[2] != master_arr[2]) {
-      print_arr(farr, 3);
-      printf(": fsort: i=%d j=%d k=%d: farr[2]=%d (%d)\n", i, j, k, farr[2], master_arr[2]);
-    }
-    CU_ASSERT_EQUAL(farr[2], master_arr[2]);
-
-    iarr[0] = i;
-    iarr[1] = j;
-    iarr[2] = k;
-    parallel_isort_r(iarr, 3, sizeof(int), compare_int_full, NULL, thread_count);
-    if (iarr[0] != master_arr[0]) {
-      printf("isort: i=%d j=%d k=%d: iarr[0]=%d (%d)\n", i, j, k, iarr[0], master_arr[0]);
-    }
-    CU_ASSERT_EQUAL(iarr[0], master_arr[0]);
-    if (iarr[1] != master_arr[1]) {
-      printf("isort: i=%d j=%d k=%d: iarr[1]=%d (%d)\n", i, j, k, iarr[1], master_arr[1]);
-    }
-    CU_ASSERT_EQUAL(iarr[1], master_arr[1]);
-    if (iarr[2] != master_arr[2]) {
-      printf("isort: i=%d j=%d k=%d: iarr[2]=%d (%d)\n", i, j, k, iarr[2], master_arr[2]);
-    }
-    CU_ASSERT_EQUAL(iarr[2], master_arr[2]);
-
-    marr[0] = i;
-    marr[1] = j;
-    marr[2] = k;
-    parallel_msort_r(marr, 3, sizeof(int), compare_int_full, NULL, thread_count);
-    if (marr[0] != master_arr[0]) {
-      printf("msort: i=%d j=%d k=%d: marr[0]=%d (%d)\n", i, j, k, marr[0], master_arr[0]);
-    }
-    CU_ASSERT_EQUAL(marr[0], master_arr[0]);
-    if (marr[1] != master_arr[1]) {
-      printf("msort: i=%d j=%d k=%d: marr[1]=%d (%d)\n", i, j, k, marr[1], master_arr[1]);
-    }
-    CU_ASSERT_EQUAL(marr[1], master_arr[1]);
-    if (marr[2] != master_arr[2]) {
-      printf("msort: i=%d j=%d k=%d: marr[2]=%d (%d)\n", i, j, k, marr[2], master_arr[2]);
-    }
-    CU_ASSERT_EQUAL(marr[2], master_arr[2]);
   }
 }
 
@@ -341,12 +277,7 @@ void test_random_n() {
 
 void check_parallel_n(int master_arr[], int imax) {
   int sorted_arr[imax];
-  int qarr[imax];
-  int iarr[imax];
-  int marr[imax];
-  int harr[imax];
-  int tarr[imax];
-  int farr[imax];
+  int arr[imax];
 
   for (int i = 0; i <= imax; i++) {
     for (int j = 0; j < imax; j++) {
@@ -354,65 +285,16 @@ void check_parallel_n(int master_arr[], int imax) {
     }
     qsort_r(sorted_arr, i, sizeof(int), compare_int_full, NULL);
     for (int thread_count = 1; thread_count < 5; thread_count++) {
-      for (int j = 0; j < i; j++) {
-        qarr[j] = master_arr[j];
-      }
-      parallel_qsort_r(qarr, i, sizeof(int), compare_int_full, NULL, thread_count);
-      for (int j = 0; j < i; j++) {
-        if (qarr[j] != sorted_arr[j]) {
-          printf("check_parallel_n: qsort: i=%d j=%d: qarr[j]=%d (%d)\n", i, j, qarr[j], sorted_arr[j]);
+      for (int st = 0; st < ST_COUNT; st++) {
+        enum sort_type ste = SORT_TYPES[st];
+        for (int j = 0; j < i; j++) {
+          arr[j] = master_arr[j];
         }
-        CU_ASSERT_EQUAL(qarr[j], qarr[j]);
-      }
-      for (int j = 0; j < i; j++) {
-        iarr[j] = master_arr[j];
-      }
-      parallel_isort_r(iarr, i, sizeof(int), compare_int_full, NULL, thread_count);
-      for (int j = 0; j < i; j++) {
-        if (iarr[j] != sorted_arr[j]) {
-          printf("check_parallel_n: isort: i=%d j=%d: iarr[j]=%d (%d)\n", i, j, iarr[j], sorted_arr[j]);
+        parallel_sort_any_r(ste, arr, i, sizeof(int), compare_int_full, NULL, metric_int_full, NULL, thread_count);
+
+        for (int j = 0; j < i; j++) {
+          CU_ASSERT_EQUAL(sorted_arr[j], arr[j]);
         }
-        CU_ASSERT_EQUAL(iarr[j], sorted_arr[j]);
-      }
-      for (int j = 0; j < i; j++) {
-        marr[j] = master_arr[j];
-      }
-      parallel_msort_r(marr, i, sizeof(int), compare_int_full, NULL, thread_count);
-      for (int j = 0; j < i; j++) {
-        if (marr[j] != sorted_arr[j]) {
-          printf("check_parallel_n: msort: i=%d j=%d: marr[j]=%d (%d)\n", i, j, marr[j], sorted_arr[j]);
-        }
-        CU_ASSERT_EQUAL(marr[j], sorted_arr[j]);
-      }
-      for (int j = 0; j < i; j++) {
-        harr[j] = master_arr[j];
-      }
-      parallel_hsort_r(harr, i, sizeof(int), compare_int_full, NULL, thread_count);
-      for (int j = 0; j < i; j++) {
-        if (harr[j] != sorted_arr[j]) {
-          printf("check_parallel_n: ternary_hsort: i=%d j=%d: harr[j]=%d (%d)\n", i, j, harr[j], sorted_arr[j]);
-        }
-        CU_ASSERT_EQUAL(harr[j], sorted_arr[j]);
-      }
-      for (int j = 0; j < i; j++) {
-        tarr[j] = master_arr[j];
-      }
-      parallel_ternary_hsort_r(tarr, i, sizeof(int), compare_int_full, NULL, thread_count);
-      for (int j = 0; j < i; j++) {
-        if (tarr[j] != sorted_arr[j]) {
-          printf("check_parallel_n: ternary_hsort: i=%d j=%d: tarr[j]=%d (%d)\n", i, j, tarr[j], sorted_arr[j]);
-        }
-        CU_ASSERT_EQUAL(tarr[j], sorted_arr[j]);
-      }
-      for (int j = 0; j < i; j++) {
-        farr[j] = master_arr[j];
-      }
-      parallel_fsort_r(farr, i, sizeof(int), compare_int_full, NULL, metric_int_full, NULL, thread_count);
-      for (int j = 0; j < i; j++) {
-        if (farr[j] != sorted_arr[j]) {
-          printf("check_parallel_n: fsort: i=%d j=%d: farr[j]=%d (%d)\n", i, j, farr[j], sorted_arr[j]);
-        }
-        CU_ASSERT_EQUAL(farr[j], sorted_arr[j]);
       }
     }
     for (int j = 1; j < i; j++) {

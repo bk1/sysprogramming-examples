@@ -21,6 +21,7 @@
 #include <msort.h>
 #include <fsort.h>
 #include <fsort-metrics.h>
+#include <psort.h>
 
 
 /* Pointer to the file used by the tests. */
@@ -51,116 +52,126 @@ int clean_suite1(void) {
   }
 }
 
+
+void sort_any_r(enum sort_type selected_sort_type,
+                void *base,
+                size_t nmemb,
+                size_t size,
+                compare_fun3 compare,
+                void *argc,
+                metric_fun2 metric,
+                void *argm) {
+  switch (selected_sort_type) {
+  case HEAP_SORT:
+    hsort_r(base,
+            nmemb,
+            size,
+            compare,
+            argc);
+    break; 
+  case TERNARY_HEAP_SORT:
+    ternary_hsort_r(base,
+                    nmemb,
+                    size,
+                    compare,
+                    argc);
+    break; 
+  case QUICK_SORT:
+    qsort_r(base,         
+            nmemb,        
+            size,         
+            compare,      
+            argc);
+    break; 
+    case FLASH_SORT:
+      fsort_r(base,
+              nmemb,
+              size,
+              compare,
+              argc,
+              metric,
+              argm);
+      break; 
+  case INSERTION_SORT:
+    isort_r(base,         
+            nmemb,        
+            size,         
+            compare,      
+            argc);
+    break; 
+  case MERGE_SORT:
+    msort_r(base,         
+            nmemb,        
+            size,         
+            compare,      
+            argc);
+    break;
+  default:
+    fprintf(stderr, "invalid parameter selected_sort_type=%d\n", selected_sort_type);
+    exit(1);
+  }
+}
+
+
+static const enum sort_type SORT_TYPES[] =  { HEAP_SORT, TERNARY_HEAP_SORT, QUICK_SORT, FLASH_SORT, INSERTION_SORT, MERGE_SORT };
+static const size_t ST_COUNT = 6;
+
+
 /* Simple test of sort with empty array
  */
 void test_sort_empty() {
   int arr[0];
-  ternary_hsort_r(arr, 0, sizeof(int), compare_int_full, NULL);
-  hsort_r(arr, 0, sizeof(int), compare_int_full, NULL);
-  fsort_r(arr, 0, sizeof(int), compare_int_full, NULL, metric_int_full, NULL);
-  qsort_r(arr, 0, sizeof(int), compare_int_full, NULL);
-  isort_r(arr, 0, sizeof(int), compare_int_full, NULL);
-  msort_r(arr, 0, sizeof(int), compare_int_full, NULL);
+  for (int st = 0; st < ST_COUNT; st++) {
+    enum sort_type ste = SORT_TYPES[st];
+    sort_any_r(ste, arr, 0, sizeof(int), compare_int_full, NULL, metric_int_full, NULL);
+  }
 }
 
 /* Simple test of sort with one-element-array
  */
 void test_sort_one() {
   int arr[] = { 77 };
-  hsort_r(arr, 1, sizeof(int), compare_int_full, NULL);
-  CU_ASSERT_EQUAL(arr[0], 77);
-  ternary_hsort_r(arr, 1, sizeof(int), compare_int_full, NULL);
-  CU_ASSERT_EQUAL(arr[0], 77);
-  fsort_r(arr, 1, sizeof(int), compare_int_full, NULL, metric_int_full, NULL);
-  CU_ASSERT_EQUAL(arr[0], 77);
-  qsort_r(arr, 1, sizeof(int), compare_int_full, NULL);
-  CU_ASSERT_EQUAL(arr[0], 77);
-  isort_r(arr, 1, sizeof(int), compare_int_full, NULL);
-  CU_ASSERT_EQUAL(arr[0], 77);
-  msort_r(arr, 1, sizeof(int), compare_int_full, NULL);
-  CU_ASSERT_EQUAL(arr[0], 77);
+  for (int st = 0; st < ST_COUNT; st++) {
+    enum sort_type ste = SORT_TYPES[st];
+    sort_any_r(ste, arr, 1, sizeof(int), compare_int_full, NULL, metric_int_full, NULL);
+    CU_ASSERT_EQUAL(arr[0], 77);
+  }
 }
 
 /* Simple test of sort with two-element-array ascending
  */
 void test_sort_two_asc() {
-  int arr[] = { 77, 98 };
-  hsort_r(arr, 2, sizeof(int), compare_int_full, NULL);
-  CU_ASSERT_EQUAL(arr[0], 77);
-  CU_ASSERT_EQUAL(arr[1], 98);
-  ternary_hsort_r(arr, 2, sizeof(int), compare_int_full, NULL);
-  CU_ASSERT_EQUAL(arr[0], 77);
-  CU_ASSERT_EQUAL(arr[1], 98);
-  fsort_r(arr, 2, sizeof(int), compare_int_full, NULL, metric_int_full, NULL);
-  CU_ASSERT_EQUAL(arr[0], 77);
-  CU_ASSERT_EQUAL(arr[1], 98);
-  qsort_r(arr, 2, sizeof(int), compare_int_full, NULL);
-  CU_ASSERT_EQUAL(arr[0], 77);
-  CU_ASSERT_EQUAL(arr[1], 98);
-  isort_r(arr, 2, sizeof(int), compare_int_full, NULL);
-  CU_ASSERT_EQUAL(arr[0], 77);
-  CU_ASSERT_EQUAL(arr[1], 98);
-  msort_r(arr, 2, sizeof(int), compare_int_full, NULL);
-  CU_ASSERT_EQUAL(arr[0], 77);
-  CU_ASSERT_EQUAL(arr[1], 98);
+  for (int st = 0; st < ST_COUNT; st++) {
+    enum sort_type ste = SORT_TYPES[st];
+    int arr[] = { 77, 98 };
+    sort_any_r(ste, arr, 2, sizeof(int), compare_int_full, NULL, metric_int_full, NULL);
+    CU_ASSERT_EQUAL(arr[0], 77);
+    CU_ASSERT_EQUAL(arr[1], 98);
+  }
 }
 
 /* Simple test of sort with two-element-array descending
  */
 void test_sort_two_desc() {
-  int arr[] = { 98, 77 };
-  hsort_r(arr, 2, sizeof(int), compare_int_full, NULL);
-  CU_ASSERT_EQUAL(arr[0], 77);
-  CU_ASSERT_EQUAL(arr[1], 98);
-  arr[0] = 98;
-  arr[1] = 77;
-  ternary_hsort_r(arr, 2, sizeof(int), compare_int_full, NULL);
-  CU_ASSERT_EQUAL(arr[0], 77);
-  CU_ASSERT_EQUAL(arr[1], 98);
-  arr[0] = 98;
-  arr[1] = 77;
-  fsort_r(arr, 2, sizeof(int), compare_int_full, NULL, metric_int_full, NULL);
-  CU_ASSERT_EQUAL(arr[0], 77);
-  CU_ASSERT_EQUAL(arr[1], 98);
-  arr[0] = 98;
-  arr[1] = 77;
-  qsort_r(arr, 2, sizeof(int), compare_int_full, NULL);
-  CU_ASSERT_EQUAL(arr[0], 77);
-  CU_ASSERT_EQUAL(arr[1], 98);
-  arr[0] = 98;
-  arr[1] = 77;
-  isort_r(arr, 2, sizeof(int), compare_int_full, NULL);
-  CU_ASSERT_EQUAL(arr[0], 77);
-  CU_ASSERT_EQUAL(arr[1], 98);
-  arr[0] = 98;
-  arr[1] = 77;
-  msort_r(arr, 2, sizeof(int), compare_int_full, NULL);
-  CU_ASSERT_EQUAL(arr[0], 77);
-  CU_ASSERT_EQUAL(arr[1], 98);
+  for (int st = 0; st < ST_COUNT; st++) {
+    enum sort_type ste = SORT_TYPES[st];
+    int arr[] = { 98, 77 };
+    sort_any_r(ste, arr, 2, sizeof(int), compare_int_full, NULL, metric_int_full, NULL);
+    CU_ASSERT_EQUAL(arr[0], 77);
+    CU_ASSERT_EQUAL(arr[1], 98);
+  }
 }
 
 /* Simple test of sort with two-element-array ascending
  */
 void test_sort_two_same() {
-  int arr[] = { 88, 88 };
-  hsort_r(arr, 2, sizeof(int), compare_int_full, NULL);
-  CU_ASSERT_EQUAL(arr[0], 88);
-  CU_ASSERT_EQUAL(arr[1], 88);
-  ternary_hsort_r(arr, 2, sizeof(int), compare_int_full, NULL);
-  CU_ASSERT_EQUAL(arr[0], 88);
-  CU_ASSERT_EQUAL(arr[1], 88);
-  fsort_r(arr, 2, sizeof(int), compare_int_full, NULL, metric_int_full, NULL);
-  CU_ASSERT_EQUAL(arr[0], 88);
-  CU_ASSERT_EQUAL(arr[1], 88);
-  qsort_r(arr, 2, sizeof(int), compare_int_full, NULL);
-  CU_ASSERT_EQUAL(arr[0], 88);
-  CU_ASSERT_EQUAL(arr[1], 88);
-  isort_r(arr, 2, sizeof(int), compare_int_full, NULL);
-  CU_ASSERT_EQUAL(arr[0], 88);
-  CU_ASSERT_EQUAL(arr[1], 88);
-  msort_r(arr, 2, sizeof(int), compare_int_full, NULL);
-  CU_ASSERT_EQUAL(arr[0], 88);
-  CU_ASSERT_EQUAL(arr[1], 88);
+  for (int st = 0; st < ST_COUNT; st++) {
+    enum sort_type ste = SORT_TYPES[st];
+    int arr[] = { 88, 88 };
+    sort_any_r(ste, arr, 2, sizeof(int), compare_int_full, NULL, metric_int_full, NULL);
+    CU_ASSERT_EQUAL(arr[0], 88);
+    CU_ASSERT_EQUAL(arr[1], 88);
+  }
 }
 
 void check_three(int i, int j, int k);
@@ -216,11 +227,7 @@ void print_arr(int *arr, int n) {
 }
 
 void check_three(int i, int j, int k) {
-  int harr[3];
-  int tarr[3];
-  int farr[3];
-  int iarr[3];
-  int marr[3];
+  int arr[3];
   int master_arr[3];
   master_arr[0] = i;
   master_arr[1] = j;
@@ -230,90 +237,26 @@ void check_three(int i, int j, int k) {
   /* make some incomplete check anyway */
   CU_ASSERT(master_arr[0] <= master_arr[1]);
   CU_ASSERT(master_arr[1] <= master_arr[2]);
-
-  harr[0] = i;
-  harr[1] = j;
-  harr[2] = k;
-  hsort_r(harr, 3, sizeof(int), compare_int_full, NULL);
-  CU_ASSERT_EQUAL(harr[0], master_arr[0]);
-  CU_ASSERT_EQUAL(harr[1], master_arr[1]);
-  CU_ASSERT_EQUAL(harr[2], master_arr[2]);
-
-  tarr[0] = i;
-  tarr[1] = j;
-  tarr[2] = k;
-  ternary_hsort_r(tarr, 3, sizeof(int), compare_int_full, NULL);
-  CU_ASSERT_EQUAL(tarr[0], master_arr[0]);
-  CU_ASSERT_EQUAL(tarr[1], master_arr[1]);
-  CU_ASSERT_EQUAL(tarr[2], master_arr[2]);
-
-  farr[0] = i;
-  farr[1] = j;
-  farr[2] = k;
-  fsort_r(farr, 3, sizeof(int), compare_int_full, NULL, metric_int_full, NULL);
-  if (farr[0] != master_arr[0]) {
-    print_arr(farr, 3);
-    printf(": fsort: i=%d j=%d k=%d: farr[0]=%d (%d)\n", i, j, k, farr[0], master_arr[0]);
+  for (int st = 0; st < ST_COUNT; st++) {
+    enum sort_type ste = SORT_TYPES[st];
+    arr[0] = i;
+    arr[1] = j;
+    arr[2] = k;
+    sort_any_r(ste, arr, 3, sizeof(int), compare_int_full, NULL, metric_int_full, NULL);
+    CU_ASSERT_EQUAL(arr[0], master_arr[0]);
+    CU_ASSERT_EQUAL(arr[1], master_arr[1]);
+    CU_ASSERT_EQUAL(arr[2], master_arr[2]);
   }
-  CU_ASSERT_EQUAL(farr[0], master_arr[0]);
-  if (farr[1] != master_arr[1]) {
-    print_arr(farr, 3);
-    printf(": fsort: i=%d j=%d k=%d: farr[1]=%d (%d)\n", i, j, k, farr[1], master_arr[1]);
-  }
-  CU_ASSERT_EQUAL(farr[1], master_arr[1]);
-  if (farr[2] != master_arr[2]) {
-    print_arr(farr, 3);
-    printf(": fsort: i=%d j=%d k=%d: farr[2]=%d (%d)\n", i, j, k, farr[2], master_arr[2]);
-  }
-  CU_ASSERT_EQUAL(farr[2], master_arr[2]);
-
-  iarr[0] = i;
-  iarr[1] = j;
-  iarr[2] = k;
-  isort_r(iarr, 3, sizeof(int), compare_int_full, NULL);
-  if (iarr[0] != master_arr[0]) {
-    printf("isort: i=%d j=%d k=%d: iarr[0]=%d (%d)\n", i, j, k, iarr[0], master_arr[0]);
-  }
-  CU_ASSERT_EQUAL(iarr[0], master_arr[0]);
-  if (iarr[1] != master_arr[1]) {
-    printf("isort: i=%d j=%d k=%d: iarr[1]=%d (%d)\n", i, j, k, iarr[1], master_arr[1]);
-  }
-  CU_ASSERT_EQUAL(iarr[1], master_arr[1]);
-  if (iarr[2] != master_arr[2]) {
-    printf("isort: i=%d j=%d k=%d: iarr[2]=%d (%d)\n", i, j, k, iarr[2], master_arr[2]);
-  }
-  CU_ASSERT_EQUAL(iarr[2], master_arr[2]);
-
-  marr[0] = i;
-  marr[1] = j;
-  marr[2] = k;
-  msort_r(marr, 3, sizeof(int), compare_int_full, NULL);
-  if (marr[0] != master_arr[0]) {
-    printf("msort: i=%d j=%d k=%d: marr[0]=%d (%d)\n", i, j, k, marr[0], master_arr[0]);
-  }
-  CU_ASSERT_EQUAL(marr[0], master_arr[0]);
-  if (marr[1] != master_arr[1]) {
-    printf("msort: i=%d j=%d k=%d: marr[1]=%d (%d)\n", i, j, k, marr[1], master_arr[1]);
-  }
-  CU_ASSERT_EQUAL(marr[1], master_arr[1]);
-  if (marr[2] != master_arr[2]) {
-    printf("msort: i=%d j=%d k=%d: marr[2]=%d (%d)\n", i, j, k, marr[2], master_arr[2]);
-  }
-  CU_ASSERT_EQUAL(marr[2], master_arr[2]);
 }
 
 void test_ternary_hsort_seven_asc() {
   int arr[] = {  0, 1, 2, 3, 4, 5, 6 };
   ternary_hsort_r(arr, 7, sizeof(int), compare_int_full, NULL);
-  printf("test_ternary_hsort_seven_asc: ");
-  print_arr(arr, 7);
   for (int i = 0; i < 7; i++) {
-    if (i != arr[i]) {
-      printf("arr[%d]=%d\n", i, arr[i]);
-    }
     CU_ASSERT_EQUAL(i, arr[i]);
   }
 }
+
 void check_n(int master_arr[]);
 
 void test_ascending_n() {
@@ -357,71 +300,27 @@ void test_random_n() {
 }
 
 void check_n(int master_arr[]) {
-  int qarr[100];
-  int iarr[100];
-  int marr[100];
-  int harr[100];
-  int tarr[100];
-  int farr[100];
+  int sorted_arr[100];
+  int arr[100];
   for (int i = 0; i <= 100; i++) {
     for (int j = 0; j < i; j++) {
-      qarr[j] = master_arr[j];
+      sorted_arr[j] = master_arr[j];
     }
-    qsort_r(qarr, i, sizeof(int), compare_int_full, NULL);
-    for (int j = 0; j < i; j++) {
-      iarr[j] = master_arr[j];
-    }
-    isort_r(iarr, i, sizeof(int), compare_int_full, NULL);
-    for (int j = 0; j < i; j++) {
-      if (iarr[j] != qarr[j]) {
-        printf("check_n: isort: i=%d j=%d: iarr[j]=%d (%d)\n", i, j, iarr[j], qarr[j]);
+    qsort_r(sorted_arr, i, sizeof(int), compare_int_full, NULL);
+    for (int st = 0; st < ST_COUNT; st++) {
+      enum sort_type ste = SORT_TYPES[st];
+      for (int j = 0; j < i; j++) {
+        arr[j] = master_arr[j];
       }
-      CU_ASSERT_EQUAL(iarr[j], qarr[j]);
-    }
-    for (int j = 0; j < i; j++) {
-      marr[j] = master_arr[j];
-    }
-    msort_r(marr, i, sizeof(int), compare_int_full, NULL);
-    for (int j = 0; j < i; j++) {
-      if (marr[j] != qarr[j]) {
-        printf("check_n: msort: i=%d j=%d: marr[j]=%d (%d)\n", i, j, marr[j], qarr[j]);
+      sort_any_r(ste, arr, i, sizeof(int), compare_int_full, NULL, metric_int_full, NULL);
+      for (int j = 0; j < i; j++) {
+        CU_ASSERT_EQUAL(arr[j], sorted_arr[j]);
       }
-      CU_ASSERT_EQUAL(marr[j], qarr[j]);
-    }
-    for (int j = 0; j < i; j++) {
-      harr[j] = master_arr[j];
-    }
-    hsort_r(harr, i, sizeof(int), compare_int_full, NULL);
-    for (int j = 0; j < i; j++) {
-      if (harr[j] != qarr[j]) {
-        printf("check_n: ternary_hsort: i=%d j=%d: harr[j]=%d (%d)\n", i, j, harr[j], qarr[j]);
-      }
-      CU_ASSERT_EQUAL(harr[j], qarr[j]);
-    }
-    for (int j = 0; j < i; j++) {
-      tarr[j] = master_arr[j];
-    }
-    ternary_hsort_r(tarr, i, sizeof(int), compare_int_full, NULL);
-    for (int j = 0; j < i; j++) {
-      if (tarr[j] != qarr[j]) {
-        printf("check_n: ternary_hsort: i=%d j=%d: tarr[j]=%d (%d)\n", i, j, tarr[j], qarr[j]);
-      }
-      CU_ASSERT_EQUAL(tarr[j], qarr[j]);
-    }
-    for (int j = 0; j < i; j++) {
-      farr[j] = master_arr[j];
-    }
-    fsort_r(farr, i, sizeof(int), compare_int_full, NULL, metric_int_full, NULL);
-    for (int j = 0; j < i; j++) {
-      if (farr[j] != qarr[j]) {
-        printf("check_n: fsort: i=%d j=%d: farr[j]=%d (%d)\n", i, j, farr[j], qarr[j]);
-      }
-      CU_ASSERT_EQUAL(farr[j], qarr[j]);
     }
   }
   for (int j = 1; j < 100; j++) {
-    int a = qarr[j-1];
-    int b = qarr[j];
+    int a = sorted_arr[j-1];
+    int b = sorted_arr[j];
     CU_ASSERT(a <= b);
     CU_ASSERT(metric_int_full(&a, NULL) <= metric_int_full(&b, NULL));
   }
