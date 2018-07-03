@@ -47,8 +47,6 @@ struct closure *adder(int x) {
 
 int main(int argc, char *argv[]) {
 
-  int retcode;
-
   if (argc < 2) {
     usage(argv[0], "not enough parameters");
   }
